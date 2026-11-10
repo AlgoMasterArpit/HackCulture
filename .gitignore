@@ -1,0 +1,6 @@
+.env
+data/
+build/
+*.so
+node_modules/
+__pycache__/
