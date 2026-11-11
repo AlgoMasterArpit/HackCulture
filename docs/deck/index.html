@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BestBefore pitch deck</title>
+<style>
+  :root {
+    --ink: #0f172a; --muted: #475569; --soft: #64748b; --line: #e2e8f0;
+    --accent: #4f46e5; --accent-2: #312e81; --stale: #dc2626; --fresh: #16a34a; --warn: #d97706;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #cbd5e1; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
+  .slide {
+    width: 1280px; height: 720px; margin: 24px auto; background: #fff; position: relative;
+    padding: 64px 80px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .slide.dark { background: linear-gradient(135deg, #1e1b4b, #312e81 60%, #4338ca); color: #fff; }
+  .kicker { font-size: 15px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .dark .kicker { color: #a5b4fc; }
+  h1 { font-size: 64px; line-height: 1.04; letter-spacing: -.03em; margin: 0 0 20px; }
+  h2 { font-size: 44px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 26px; }
+  p, li { font-size: 22px; line-height: 1.5; color: var(--muted); }
+  .dark p { color: #c7d2fe; }
+  .foot { position: absolute; left: 80px; right: 80px; bottom: 28px; display: flex; justify-content: space-between; font-size: 14px; color: var(--soft); }
+  .dark .foot { color: #a5b4fc; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .card { border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; }
+  .card h3 { margin: 0 0 8px; font-size: 22px; }
+  .card p { margin: 0; font-size: 18px; }
+  .chat { border-radius: 16px; padding: 20px 24px; font-size: 22px; margin-bottom: 14px; }
+  .chat.q { background: #f1f5f9; }
+  .chat.a { background: #fee2e2; color: #7f1d1d; border-left: 6px solid var(--stale); }
+  .chat.n { background: #dcfce7; color: #14532d; border-left: 6px solid var(--fresh); }
+  .chat small { display: block; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; opacity: .8; }
+  .big { font-size: 96px; font-weight: 900; letter-spacing: -.04em; line-height: 1; }
+  .stat { display: flex; flex-direction: column; gap: 8px; }
+  .stat span { font-size: 18px; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 19px; }
+  td, th { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--soft); font-size: 15px; text-transform: uppercase; letter-spacing: .08em; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: .9em; background: #eef2ff; padding: 2px 6px; border-radius: 6px; }
+  img.full { width: 100%; display: block; }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 8px; }
+  .step { background: #eef2ff; border-radius: 14px; padding: 18px; }
+  .step b { display: block; font-size: 20px; margin-bottom: 6px; color: var(--accent-2); }
+  .step span { font-size: 16px; color: var(--muted); line-height: 1.4; display: block; }
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 15px; font-weight: 700; }
+  .logo { width: 84px; height: 84px; margin-bottom: 26px; }
+  ul { margin: 0; padding-left: 26px; }
+  li { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<section class="slide dark">
+  <img class="logo" src="../img/logo.svg" alt="">
+  <div class="kicker">Global AI Hackathon 2026 · Team stackoverflow</div>
+  <h1>BestBefore</h1>
+  <p style="font-size:30px; max-width: 900px; color:#e0e7ff">A Bifrost plugin that checks every AI answer against today's web, and keeps stale answers out of your semantic cache.</p>
+  <p style="margin-top:auto">Statement 04 · Open-Source Bifrost Gateway &nbsp;+&nbsp; Statement 06 · Stale-Answer Detector (Tavily)</p>
+  <div class="foot"><span>github.com/AlgoMasterArpit/HackCulture</span><span>Apache 2.0</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">The problem</div>
+  <h2>Models answer from the past. Caches replay it.</h2>
+  <div class="grid2">
+    <div>
+      <div class="chat q"><small>User, 11 Nov 2026</small>What is the latest stable version of Python?</div>
+      <div class="chat a"><small>Gemini 2.5 Flash</small>The latest stable version of Python is 3.12.</div>
+      <div class="chat n"><small>Wikipedia, found by Tavily</small>"As of October 2026( Python 3.15 is the latest stable release." <span style="font-size:15px">(verbatim, page markup included)</span></div>
+    </div>
+    <div>
+      <p style="margin-top:0">A gateway's semantic cache then serves that answer to <b>every</b> user who asks again, until the TTL runs out.</p>
+      <p>In Bifrost today, the clock is the only thing that removes a cached answer: <code>isExpiredEntry</code> checks <code>expires_at</code> and nothing else (<code>plugins/semanticcache/search.go:252</code>), and expired entries are only cleaned up lazily (issue #2414).</p>
+    </div>
+  </div>
+  <div class="foot"><span>BestBefore</span><span>2</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">What we built</div>
+  <h2>One plugin. Every answer checked. No app changes.</h2>
+  <img class="full" src="../img/architecture.svg" alt="" style="max-height: 470px; object-fit: contain">
+  <div class="foot"><span>BestBefore</span><span>3</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Why you can trust a "stale" flag</div>
+  <h2>The model gives advice. Go makes the decision.</h2>
+  <div class="grid2">
+    <div class="card"><h3>The judge must prove it</h3><p>Every verdict needs a word-for-word quote from the cited source. A contradiction must name a new value whose words are in that quote and not in the claim. Otherwise the verdict is thrown away, with the reason recorded.</p></div>
+    <div class="card"><h3>Fails safe</h3><p>Model down, search down or unsure: the answer is marked <code>unchecked</code> or <code>uncertain</code> and is never evicted. An outage of the checker cannot wipe your cache.</p></div>
+    <div class="card"><h3>Free when nothing can change</h3><p>A regex gate skips answers with no prices, versions, laws, leaders or "latest". Zero tokens, zero searches.</p></div>
+    <div class="card"><h3>Broken on purpose</h3><p>A separate AI reviewer was told to break it. It found 12 problems, 3 high-severity. The 3 high-severity ones are fixed, and each fix has a test that fails without it.</p></div>
+  </div>
+  <div class="foot"><span>BestBefore</span><span>4</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Results · 60 hand-labelled answers, live Gemini + Tavily</div>
+  <h2>Catches stale answers without crying wolf.</h2>
+  <div class="stats">
+    <div class="stat"><div class="big" style="color:var(--stale)" data-n="claims.with.recall" data-unit="%"></div><span>of stale answers flagged stale</span></div>
+    <div class="stat"><div class="big" style="color:var(--fresh)" data-n="claims.with.false_alarm" data-unit="%"></div><span>of good answers wrongly flagged stale; <b data-n="claims.precision" data-unit="%"></b> of stale flags were right</span></div>
+    <div class="stat"><div class="big" style="color:var(--accent)" data-n="claims.gate_skip" data-unit="%"></div><span>of timeless answers checked at zero cost</span></div>
+  </div>
+  <img class="full" src="../img/eval-grounding.svg" alt="" style="max-height: 250px; object-fit: contain; margin-top: 26px">
+  <div class="foot"><span>From eval/run.py. Rule tuned on this set after a first run that caught <b data-n="claims_run1.with.recall" data-unit="%"></b>; both runs published.</span><span>5</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Results · live semantic cache</div>
+  <h2>A TTL cache replays stale answers. BestBefore stops it.</h2>
+  <div class="grid2" style="grid-template-columns: 1fr 1.4fr">
+    <div class="stats" style="grid-template-columns: 1fr">
+      <div class="stat"><div class="big" style="color:#94a3b8" data-n="cache.baseline.served_stale"></div><span>stale answers served from a TTL-only Bifrost cache</span></div>
+      <div class="stat"><div class="big" style="color:var(--accent)" data-n="cache.bestbefore.served_stale"></div><span>with BestBefore</span></div>
+    </div>
+    <img class="full" src="../img/eval-cache.svg" alt="">
+  </div>
+  <div class="foot"><span>eval/cache.py · the same time-sensitive questions asked twice through each gateway</span><span>6</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Working prototype</div>
+  <h2>Ask through the gateway, or paste any answer.</h2>
+  <img class="full" src="../img/hero-result.png" alt="" style="max-height: 500px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
+  <div class="foot"><span>docker compose up · localhost:3000</span><span>7</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">How each technology contributes</div>
+  <h2>Take either away and nothing works.</h2>
+  <table>
+    <tr><th>Technology</th><th>What it does in BestBefore</th></tr>
+    <tr><td>Bifrost plugin hooks</td><td>The HTTP transport post-hook sees every answer, cache hits included, and rewrites body and headers. The pre-hook serves the <code>bestbefore/verify</code> model.</td></tr>
+    <tr><td>Bifrost semantic cache</td><td><code>cache_debug.cache_id</code> says which entry produced the answer; <code>DELETE /api/cache/clear/{id}</code> evicts it.</td></tr>
+    <tr><td>Bifrost routing</td><td>The judge's own calls go back through the gateway: fallbacks, retries on 503s, logs and budgets for free.</td></tr>
+    <tr><td>Tavily search</td><td>Live evidence per claim: URL, page text, date and a relevance score that weights the freshness score.</td></tr>
+    <tr><td>Gemini</td><td>Answers the questions, then extracts claims and judges them against the evidence.</td></tr>
+  </table>
+  <div class="foot"><span>BestBefore</span><span>8</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Honest limits · what's next</div>
+  <h2>What it does not do yet.</h2>
+  <div class="grid2">
+    <ul>
+      <li>Streaming responses pass through unchecked.</li>
+      <li>Checking adds latency to answers with time-sensitive claims (p95 <b data-n="claims.latency_p95" data-scale="0.001" data-unit="s"></b>).</li>
+      <li>One grounded source is enough, so a highly ranked outdated page can still pass.</li>
+      <li>The recheck ledger is in memory, per gateway process.</li>
+    </ul>
+    <ul>
+      <li>Upstream PR drafted in Bifrost's template (docs/UPSTREAM_PR.md), building on proposal #9748.</li>
+      <li>Check streams after they finish, and evict in the background.</li>
+      <li>Store recheck times in the vector store so replicas share them.</li>
+      <li>Require two sources on different hosts before evicting.</li>
+    </ul>
+  </div>
+  <div class="foot"><span>BestBefore</span><span>9</span></div>
+</section>
+
+<section class="slide dark">
+  <div class="kicker">Run it</div>
+  <h1 style="font-size:52px">Three commands.</h1>
+  <pre style="font-size:26px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git
+cp .env.example .env     # add Gemini + Tavily keys
+docker compose up -d --build</pre>
+  <p style="margin-top:auto; font-size: 24px">Team stackoverflow · github.com/AlgoMasterArpit/HackCulture</p>
+  <div class="foot"><span>Thank you</span><span>10</span></div>
+</section>
+
+<script>
+fetch("../../eval/results/summary.json").then(r => r.json()).then(summary => {
+  for (const node of document.querySelectorAll("[data-n]")) {
+    let value = node.dataset.n.split(".").reduce((o, k) => o?.[k], summary);
+    if (value == null) { node.textContent = "n/a"; continue; }
+    value *= Number(node.dataset.scale || 1);
+    const digits = node.dataset.unit === "s" ? 1 : 0;
+    node.textContent = value.toFixed(digits) + (node.dataset.unit || "");
+  }
+  document.body.dataset.ready = "1";
+});
+</script>
+</body>
+</html>
