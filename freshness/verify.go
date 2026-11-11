@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -270,7 +271,7 @@ func scoreClaim(c Claim, vd verdict, sources []Source) ClaimReport {
 		}
 		if cr.Grounded {
 			weight := max(0, min(1, 0.25+src.Relevance))
-			cr.Score = scoreUnverifiable + (base-scoreUnverifiable)*weight
+			cr.Score = math.Round((scoreUnverifiable+(base-scoreUnverifiable)*weight)*100) / 100
 			cr.SourceURL, cr.SourceDate, cr.Quote = src.URL, src.PublishedDate, vd.Quote
 			if vd.Verdict == "contradicted" {
 				cr.CurrentValue = vd.CurrentValue
