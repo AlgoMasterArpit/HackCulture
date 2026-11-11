@@ -2,6 +2,8 @@ services:
   mock:
     image: python:3.12-alpine
     command: python /mock.py
+    ports:
+      - "9000:9000"
     volumes:
       - ./mock.py:/mock.py:ro
 

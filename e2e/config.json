@@ -1,12 +1,26 @@
 {
   "$schema": "https://www.getbifrost.ai/schema",
-  "config_store": { "enabled": false },
+  "config_store": {
+    "enabled": false
+  },
   "providers": {
     "mock": {
-      "custom_provider_config": { "base_provider_type": "openai" },
-      "network_config": { "base_url": "http://mock:9000", "allow_private_network": true },
+      "custom_provider_config": {
+        "base_provider_type": "openai"
+      },
+      "network_config": {
+        "base_url": "http://mock:9000",
+        "allow_private_network": true
+      },
       "keys": [
-        { "name": "mock-key", "value": "mock-key", "models": ["*"], "weight": 1.0 }
+        {
+          "name": "mock-key",
+          "value": "mock-key",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
       ]
     }
   },
@@ -33,7 +47,11 @@
       "config": {
         "judge_model": "mock/judge",
         "tavily_url": "http://mock:9000",
-        "tavily_api_key": "tvly-mock"
+        "tavily_api_key": "tvly-mock",
+        "sweep_interval": "1s",
+        "recheck_windows": {
+          "pricing": "4s"
+        }
       }
     }
   ]
