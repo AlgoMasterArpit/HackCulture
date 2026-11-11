@@ -297,6 +297,8 @@ function render({ data, answer }) {
   score.append(el("small", null, "freshness score"));
   head.append(score);
   const meta = el("div", "meta");
+  const routed = data.extra_fields?.routing_info;
+  if (routed?.model) meta.append(el("span", "pill", `answered by ${routed.model}${routed.is_fallback ? " (fallback)" : ""}`));
   const cache = cachePill(report, data);
   if (cache) meta.append(cache);
   meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
