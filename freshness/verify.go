@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -302,31 +303,65 @@ func statusFor(score float64) Status {
 	return StatusUncertain
 }
 
-const minQuoteWords = 5
+// A support verdict needs a longer quote, because nothing else checks it. A
+// contradiction is also checked against its new value, so a short quote such
+// as "Latest version: 19.3" is enough.
+const (
+	minSupportQuoteWords    = 5
+	minContradictQuoteWords = 3
+)
 
 // groundingProblem returns why a verdict is not proven by its source, or ""
-// when it is. A contradiction must also carry a current value that is in the
-// quote and not in the claim, so quoting the claim back proves nothing.
+// when it is. A contradiction must also name a current value whose new words
+// (those not already in the claim) all appear in the quote, so quoting the
+// claim back, or inventing a value, proves nothing.
 func groundingProblem(vd verdict, claim, content string) string {
 	q := normalize(vd.Quote)
+	minWords := minSupportQuoteWords
+	if vd.Verdict == "contradicted" {
+		minWords = minContradictQuoteWords
+	}
 	switch {
-	case len(strings.Fields(q)) < minQuoteWords:
-		return "quote is shorter than five words"
+	case len(strings.Fields(q)) < minWords:
+		return fmt.Sprintf("quote is shorter than %d words", minWords)
 	case !strings.Contains(normalize(content), q):
 		return "quote is not in the cited source"
 	case vd.Verdict != "contradicted":
 		return ""
 	}
-	v := normalize(vd.CurrentValue)
-	switch {
-	case v == "":
-		return "no current value given"
-	case !strings.Contains(q, v):
-		return "current value is not in the quote"
-	case strings.Contains(normalize(claim), v):
-		return "current value is already in the claim"
+	fresh := newWords(vd.CurrentValue, claim)
+	if len(fresh) == 0 {
+		return "current value adds nothing that is not already in the claim"
+	}
+	quoteWords := wordSet(vd.Quote)
+	for _, w := range fresh {
+		if !quoteWords[w] {
+			return "current value is not in the quote"
+		}
 	}
 	return ""
+}
+
+var wordPattern = regexp.MustCompile(`[\p{L}\p{N}]+`)
+
+func wordSet(s string) map[string]bool {
+	set := map[string]bool{}
+	for _, w := range wordPattern.FindAllString(strings.ToLower(s), -1) {
+		set[w] = true
+	}
+	return set
+}
+
+// newWords lists the words of value that do not appear in claim.
+func newWords(value, claim string) []string {
+	inClaim := wordSet(claim)
+	var out []string
+	for w := range wordSet(value) {
+		if !inClaim[w] {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // defang stops web text and user input from closing or forging the prompt's tags.
