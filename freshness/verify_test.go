@@ -271,18 +271,18 @@ func TestStripFence(t *testing.T) {
 
 func TestLedgerExpiresOnRecheckWindow(t *testing.T) {
 	l := NewLedger(2)
-	l.Put("a", Report{Status: StatusFresh, RecheckAfter: fixedNow.Add(time.Hour)})
+	l.Put("a", Entry{Report: Report{Status: StatusFresh, RecheckAfter: fixedNow.Add(time.Hour)}})
 	if _, ok := l.Current("a", fixedNow); !ok {
 		t.Fatal("report should be current inside its window")
 	}
 	if _, ok := l.Current("a", fixedNow.Add(2*time.Hour)); ok {
 		t.Fatal("report should be due after its window")
 	}
-	l.Put("t", Report{Status: StatusTimeless})
+	l.Put("t", Entry{Report: Report{Status: StatusTimeless}})
 	if _, ok := l.Current("t", fixedNow.Add(1000*time.Hour)); !ok {
 		t.Fatal("a report with no time-sensitive wording never needs a recheck")
 	}
-	l.Put("e", Report{Status: StatusTimeless, RecheckAfter: fixedNow.Add(time.Hour)})
+	l.Put("e", Entry{Report: Report{Status: StatusTimeless, RecheckAfter: fixedNow.Add(time.Hour)}})
 	if _, ok := l.Current("e", fixedNow.Add(2*time.Hour)); ok {
 		t.Fatal("a model-judged timeless report must expire")
 	}
@@ -299,7 +299,7 @@ func TestLedgerIsSafeForConcurrentUse(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			id := string(rune('a' + i))
-			l.Put(id, Report{Status: StatusFresh, RecheckAfter: fixedNow.Add(time.Hour)})
+			l.Put(id, Entry{Report: Report{Status: StatusFresh, RecheckAfter: fixedNow.Add(time.Hour)}})
 			l.Current(id, fixedNow)
 			l.Delete(id)
 		}()

@@ -1,35 +1,44 @@
 package freshness
 
 import (
+	"sort"
 	"sync"
 	"time"
 )
 
-// Ledger remembers when each cached answer was last verified, so a cache hit
-// is re-checked only once its most volatile claim is due.
+// Entry is what the ledger knows about one cached answer: its last report and
+// the text needed to check it again without a user asking.
+type Entry struct {
+	Report   Report
+	Question string
+	Answer   string
+}
+
+// Ledger gives every cached answer a best-before date: the time its most
+// volatile claim is due for another check.
 // ponytail: in-memory and per-process, so it resets on restart and is not
 // shared across gateway replicas. Move it into the cache's vector store
 // metadata when that matters.
 type Ledger struct {
 	mu      sync.Mutex
-	entries map[string]Report
+	entries map[string]Entry
 	limit   int
 }
 
 func NewLedger(limit int) *Ledger {
-	return &Ledger{entries: make(map[string]Report), limit: limit}
+	return &Ledger{entries: make(map[string]Entry), limit: limit}
 }
 
-func (l *Ledger) Put(cacheID string, r Report) {
+func (l *Ledger) Put(cacheID string, e Entry) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if len(l.entries) >= l.limit {
+	if _, exists := l.entries[cacheID]; !exists && len(l.entries) >= l.limit {
 		for id := range l.entries {
 			delete(l.entries, id)
 			break
 		}
 	}
-	l.entries[cacheID] = r
+	l.entries[cacheID] = e
 }
 
 // Current returns the stored report while it is still within its recheck
@@ -37,18 +46,62 @@ func (l *Ledger) Put(cacheID string, r Report) {
 func (l *Ledger) Current(cacheID string, now time.Time) (Report, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	r, ok := l.entries[cacheID]
-	if !ok {
+	e, ok := l.entries[cacheID]
+	if !ok || e.due(now) {
 		return Report{}, false
 	}
-	if !r.RecheckAfter.IsZero() && !now.Before(r.RecheckAfter) {
-		return Report{}, false
-	}
-	return r, true
+	return e.Report, true
 }
 
 func (l *Ledger) Delete(cacheID string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	delete(l.entries, cacheID)
+}
+
+// Due lists entries past their best-before date, or every entry when all is set.
+func (l *Ledger) Due(now time.Time, all bool) map[string]Entry {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	out := map[string]Entry{}
+	for id, e := range l.entries {
+		if all || e.due(now) {
+			out[id] = e
+		}
+	}
+	return out
+}
+
+type LedgerRow struct {
+	CacheID      string    `json:"cache_id"`
+	Question     string    `json:"question"`
+	Status       Status    `json:"status"`
+	Score        float64   `json:"freshness_score"`
+	CheckedAt    time.Time `json:"checked_at"`
+	RecheckAfter time.Time `json:"recheck_after,omitempty"`
+}
+
+// Snapshot lists every entry, soonest best-before date first.
+func (l *Ledger) Snapshot() []LedgerRow {
+	l.mu.Lock()
+	rows := make([]LedgerRow, 0, len(l.entries))
+	for id, e := range l.entries {
+		rows = append(rows, LedgerRow{
+			CacheID: id, Question: e.Question, Status: e.Report.Status, Score: e.Report.Score,
+			CheckedAt: e.Report.CheckedAt, RecheckAfter: e.Report.RecheckAfter,
+		})
+	}
+	l.mu.Unlock()
+	sort.Slice(rows, func(i, j int) bool {
+		a, b := rows[i].RecheckAfter, rows[j].RecheckAfter
+		if a.IsZero() != b.IsZero() {
+			return b.IsZero()
+		}
+		return a.Before(b)
+	})
+	return rows
+}
+
+func (e Entry) due(now time.Time) bool {
+	return !e.Report.RecheckAfter.IsZero() && !now.Before(e.Report.RecheckAfter)
 }
