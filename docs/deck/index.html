@@ -140,7 +140,7 @@
   <div class="grid2">
     <div class="card"><h3>Verdicts need proof</h3><p>Every verdict needs a word-for-word quote from the cited source, and a contradiction must name a new value that is in that quote and not in the claim.</p></div>
     <div class="card"><h3>Rewrites are checked</h3><p>A correction may reuse only words from the answer and the verified values, must drop every old number and may not add links. Go appends the sources itself.</p></div>
-    <div class="card"><h3>Fails safe</h3><p>Can't prove it or can't heal it: the stale answer is flagged and never cached. Checker down: nothing is evicted.</p></div>
+    <div class="card"><h3>Fails safe, stays fast</h3><p>Can't prove or heal it: flagged and never cached. Checker down: nothing evicted. Only cached answers are checked; expired hits are served at once and re-checked in the background.</p></div>
     <div class="card"><h3>Broken on purpose, twice</h3><p>Two adversarial AI reviews found 25 problems, six high-severity, including a phishing link that would have been cached. Each is fixed with a test.</p></div>
   </div>
   <div class="foot"><span>docs/REVIEW.md</span><span>8</span></div>
@@ -152,10 +152,10 @@
   <table>
     <tr><th>Technology</th><th>What it does in BestBefore</th></tr>
     <tr><td>Bifrost plugin order</td><td><code>PostLLMHook</code> runs before the semantic cache writes, so the cache stores the healed answer; <code>semantic_cache-no_store</code> keeps unhealable stale answers out.</td></tr>
-    <tr><td>Bifrost transport hooks</td><td>See every answer, cache hits included; serve <code>bestbefore/verify</code>, <code>status</code> and <code>sweep</code> inside the OpenAI API.</td></tr>
+    <tr><td>Bifrost hooks</td><td>See every answer, cache hits and streams included; serve <code>bestbefore/verify</code>, <code>status</code> and <code>sweep</code> inside the OpenAI API.</td></tr>
     <tr><td>Bifrost cache API</td><td><code>cache_id</code> ties answers to entries; <code>DELETE /api/cache/clear/{id}</code> evicts what went stale.</td></tr>
     <tr><td>Bifrost routing</td><td>Judge and healer calls go back through the gateway: fallbacks across three free Gemini models, retries, logs.</td></tr>
-    <tr><td>Tavily search</td><td>Live evidence per claim: URL, page text, date, and a relevance score that weights the verdict.</td></tr>
+    <tr><td>Tavily search</td><td>Live evidence per claim, plus a second search on the claim's official site (<code>include_domains</code>) that the judge prefers.</td></tr>
   </table>
   <div class="foot"><span>BestBefore</span><span>9</span></div>
 </section>
@@ -165,15 +165,15 @@
   <h2>What it does not do yet.</h2>
   <div class="grid2">
     <ul>
-      <li>The first answer to a stale question is slower (p95 check <b data-n="claims.latency_p95" data-scale="0.001" data-unit="s"></b>); repeats come from cache.</li>
-      <li>Streaming responses pass through unchecked.</li>
+      <li>The first answer to a stale question is slower (p95 check <b data-n="claims.latency_p95" data-scale="0.001" data-unit="s"></b>); only cached questions pay it, once per best-before window.</li>
+      <li>A streamed answer gets a correction appended; text already sent cannot be recalled.</li>
       <li>The sweeper can evict but not pre-write: Bifrost has no cache-insert API for plugins.</li>
       <li>Best-before dates live in memory, per gateway process.</li>
     </ul>
     <ul>
       <li>Upstream PR drafted in Bifrost's template, building on proposal #9748.</li>
       <li>Store best-before dates in the vector store so replicas share them.</li>
-      <li>Check streams after they finish.</li>
+      <li>Share one claim cache across answers, so a fact is searched once.</li>
       <li>Require two sources on different hosts before healing.</li>
     </ul>
   </div>
@@ -185,7 +185,7 @@
   <h1 style="font-size:52px">Three commands.</h1>
   <pre style="font-size:26px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git
 cp .env.example .env     # add Gemini + Tavily keys
-docker compose up -d --build</pre>
+docker compose pull gateway && docker compose up -d</pre>
   <p style="margin-top:auto; font-size: 24px">Team stackoverflow · github.com/AlgoMasterArpit/HackCulture</p>
   <div class="foot"><span>Thank you</span><span>11</span></div>
 </section>
