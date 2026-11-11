@@ -12,7 +12,7 @@
 [![Tavily](https://img.shields.io/badge/search-Tavily-0891b2.svg)](https://tavily.com)
 [![Go tests](https://img.shields.io/badge/go%20test%20%2B%20e2e-passing-16a34a.svg)](#tests)
 
-**[▶ Demo video](VIDEO_LINK)** · **[Pitch deck](docs/pitch-deck.pdf)** · **[Eval results](eval/RESULTS.md)**
+**[Pitch deck](docs/pitch-deck.pdf)** · **[Eval results](eval/RESULTS.md)** · **[Adversarial reviews](docs/REVIEW.md)**
 
 Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source Bifrost Gateway* + Statement 06 *Stale-Answer Detector*
 
@@ -57,7 +57,7 @@ Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source 
 
 <p align="center"><img src="docs/img/dashboard.png" alt="The Cache freshness dashboard: counts of answers checked, stale answers found, answers healed before caching and answers evicted by the sweeper, and a table of cached questions with their status and best-before countdown" width="820"></p>
 
-<p align="center"><sub>The live Cache freshness tab during the same session: three stale answers healed before caching, one fresh, one timeless, each with its best-before countdown.</sub></p>
+<p align="center"><sub>The live Cache freshness tab right after the evaluation run: the cache comparison's questions are cached, eight of them healed before caching and one left uncertain, each with its best-before countdown. The counters cover the whole session, including the 60-answer eval.</sub></p>
 
 ## Results
 
@@ -110,7 +110,7 @@ Bifrost runs plugin hooks on the way back in reverse order, so BestBefore's `Pos
 3. **Search.** Each claim is searched with Tavily, in parallel.
 4. **Judge with proof.** The judge gets the sources and must return `supported`, `contradicted` or `unverifiable`, the source number and an exact quote from it.
 5. **Score in Go.** [`scoreClaim`](freshness/verify.go) keeps a verdict only if the quote appears word for word in that source (at least five words for support, three for a contradiction). For a contradiction, the words of the stated current value that are not already in the claim must all be in the quote, so quoting the old value back or inventing a new one proves nothing. A kept verdict moves the score toward 0.9 or 0.1, weighted by Tavily's relevance. The answer's score is its weakest claim's.
-6. **Heal if stale.** [`freshness/heal.go`](freshness/heal.go) asks the model to rewrite only the outdated statements, with numbered citations. Go then checks every verified new value is in the rewrite, caps its length, and appends the source URLs itself. The rewritten text replaces the answer before the cache stores it.
+6. **Heal if stale.** [`freshness/heal.go`](freshness/heal.go) asks the model to rewrite only the outdated statements, with numbered citations. Go accepts the draft only if it changes the answer, contains every verified new value, no longer contains any number that was only in the outdated claim, uses no words beyond the original answer and the verified values, has no links, and stays within twice the original length. Go then appends the source URLs itself. The accepted text replaces the answer before the cache stores it.
 
 | Result | What the user gets | What the cache keeps |
 |---|---|---|
@@ -311,7 +311,7 @@ docker run --rm -v "$PWD:/w" -w /w -e CGO_ENABLED=0 golang:1.27.3-alpine3.24 go 
 
 **End to end, against a real Bifrost gateway** (5 of 5 pass): a stale answer is healed and the cache keeps the corrected text, so the second ask is a cache hit with the fix; when the mock web changes a price, the background sweeper evicts the now-stale cached answer before anyone asks, and the next ask gets a newly healed answer; timeless answers cost nothing; `bestbefore/verify` heals a pasted answer; `bestbefore/status` lists cached answers with their best-before dates.
 
-**Unit tests pin down:** a rewrite that drops a verified value is rejected and the stale answer is not cached; six kinds of contradiction that prove nothing are never `stale`; web pages, questions and answers cannot forge prompt tags; a model or search outage is `unchecked`, never evicted; the plugin never checks its own judge calls; a client cannot forge the internal header. They pass under `go test -race`.
+**Unit tests pin down:** six kinds of bad rewrite are rejected (unchanged, old value kept, a link, a markdown link, an injected sentence, a fake citation) and the stale answer is then not cached; six kinds of contradiction that prove nothing are never `stale`; web pages, questions and answers cannot forge prompt tags; a model or search outage is `unchecked`, never evicted; the plugin never checks its own judge calls; a client cannot forge the internal header. They pass under `go test -race`.
 
 ### Adversarial review
 
