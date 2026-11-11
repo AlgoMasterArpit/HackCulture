@@ -39,7 +39,7 @@ def claim_metrics(runs):
     by_label = {label: [r for r in runs if r["label"] == label] for label in ("stale", "fresh", "timeless")}
     stale, fresh, timeless = by_label["stale"], by_label["fresh"], by_label["timeless"]
     not_stale = fresh + timeless
-    flagged = lambda r: r["report"]["status"] == "stale"
+    flagged = lambda r: r["report"]["status"] in ("stale", "healed")
 
     checked = [r for r in runs if r["report"].get("searches")]
     latencies = sorted(r["report"].get("latency_ms", 0) for r in checked)
@@ -59,12 +59,14 @@ def claim_metrics(runs):
     }
     true_flags = sum(map(flagged, stale))
     all_flags = sum(map(flagged, runs))
+    healed = sum(r["report"]["status"] == "healed" for r in runs)
     return {
         "counts": {label: Counter(r["report"]["status"] for r in rows) for label, rows in by_label.items()},
         "sizes": {label: len(rows) for label, rows in by_label.items()},
         "with": with_grounding,
         "without": without_grounding,
         "precision": pct(true_flags, all_flags),
+        "heal_rate": pct(healed, all_flags),
         "gate_skip": pct(len(gated), len(timeless)),
         "checked": len(checked),
         "tokens_per_checked": statistics.mean(r["report"]["judge_tokens"] for r in checked) if checked else 0,
@@ -76,16 +78,22 @@ def claim_metrics(runs):
 
 
 def cache_metrics(data):
+    status = lambda ask: (ask["bestbefore"] or {}).get("status")
     out = {}
     for name in ("baseline", "bestbefore"):
         rows = [run[name] for run in data["runs"]]
-        stale_first = sum((row["first"]["bestbefore"] or {}).get("status") == "stale" for row in rows)
-        served_stale = sum(
-            row["second"]["cache_hit"] and (row["second"]["bestbefore"] or {}).get("status") == "stale"
-            for row in rows
-        )
-        hits = sum(row["second"]["cache_hit"] for row in rows)
-        out[name] = {"questions": len(rows), "stale_first": stale_first, "served_stale": served_stale, "hits": hits}
+        asks = [row[k] for row in rows for k in ("first", "second")]
+        repeat = sorted(row["second"].get("seconds", 0) for row in rows)
+        out[name] = {
+            "questions": len(rows),
+            "stale_first": sum(status(row["first"]) in ("stale", "healed") for row in rows),
+            "stale_delivered": sum(status(ask) == "stale" for ask in asks),
+            "asks": len(asks),
+            "hits": sum(row["second"]["cache_hit"] for row in rows),
+            "served_stale": sum(row["second"]["cache_hit"] and status(row["second"]) == "stale" for row in rows),
+            "served_corrected": sum(row["second"]["cache_hit"] and status(row["second"]) == "healed" for row in rows),
+            "repeat_seconds_p50": repeat[len(repeat) // 2] if repeat else 0,
+        }
     return out
 
 
@@ -161,11 +169,12 @@ def write_charts(claims, cache):
     if cache:
         b, o = cache["baseline"], cache["bestbefore"]
         top = max(b["questions"], 1)
+        top = max(b["asks"], 1)
         (IMG / "eval-cache.svg").write_text(bar_pairs(
-            f"Stale answers served back from the semantic cache ({b['questions']} live questions, asked twice)",
+            f"What users received: {b['questions']} live questions, each asked twice ({b['asks']} answers)",
             [
-                ("Stale on first answer", [b["stale_first"], o["stale_first"]]),
-                ("Stale served from cache", [b["served_stale"], o["served_stale"]]),
+                ("Stale answers delivered", [b["stale_delivered"], o["stale_delivered"]]),
+                ("Corrected answers from cache", [b["served_corrected"], o["served_corrected"]]),
             ],
             [("Bifrost cache, TTL only", "#94a3b8"), ("Bifrost cache + BestBefore", "#4f46e5")],
             unit="", max_value=top,
@@ -218,13 +227,21 @@ def results_markdown(claims_data, claims, cache_data, cache):
             "",
             "| | Bifrost cache, TTL only | Bifrost cache + BestBefore |",
             "|---|---|---|",
-            f"| Questions asked twice | {cache['baseline']['questions']} | {cache['bestbefore']['questions']} |",
-            f"| First answer was stale | {cache['baseline']['stale_first']} | {cache['bestbefore']['stale_first']} |",
-            f"| Second ask was a cache hit | {cache['baseline']['hits']} | {cache['bestbefore']['hits']} |",
-            f"| **Stale answer served from cache** | **{cache['baseline']['served_stale']}** | **{cache['bestbefore']['served_stale']}** |",
-            "",
-        ]
+        ] + cache_rows(cache) + [""]
     (HERE / "RESULTS.md").write_text("\n".join(lines), encoding="utf-8")
+
+
+def cache_rows(cache):
+    b, o = cache["baseline"], cache["bestbefore"]
+    return [
+        f"| Live: {b['questions']} questions, each asked twice | Bifrost cache, TTL only | Bifrost cache + BestBefore |",
+        "|---|---|---|",
+        f"| The model's first answer was out of date | {b['stale_first']} of {b['questions']} | {o['stale_first']} of {o['questions']} |",
+        f"| **Stale answers delivered to users** | **{b['stale_delivered']} of {b['asks']}** | **{o['stale_delivered']} of {o['asks']}** |",
+        f"| Repeat asks served from cache | {b['hits']} | {o['hits']} |",
+        f"| ...with the corrected answer | {b['served_corrected']} | {o['served_corrected']} |",
+        f"| Repeat-ask time, median | {b['repeat_seconds_p50']:.1f}s | {o['repeat_seconds_p50']:.1f}s |",
+    ]
 
 
 def replace_block(text, name, body):
@@ -261,6 +278,7 @@ def update_readme(claims, cache, run1=None, repeat=None):
             f"| Stale answers caught | {claims['without']['recall']:.0f}% | **{claims['with']['recall']:.0f}%** |",
             f"| Good answers wrongly flagged stale | {claims['without']['false_alarm']:.0f}% | **{claims['with']['false_alarm']:.0f}%** |",
             f"| A stale flag is right | | {claims['precision']:.0f}% |",
+            f"| Stale answers rewritten with the verified values | | {claims['heal_rate']:.0f}% |",
             f"| Timeless answers checked for free (no model, no search) | | {claims['gate_skip']:.0f}% |",
             f"| Judge tokens per checked answer | | {claims['tokens_per_checked']:.0f} |",
             f"| Tavily searches per checked answer | | {claims['searches_per_checked']:.1f} |",
@@ -285,24 +303,21 @@ def update_readme(claims, cache, run1=None, repeat=None):
             ]
     if cache:
         b, o = cache["baseline"], cache["bestbefore"]
-        proof.append(
-            f"Live, asking {b['questions']} time-sensitive questions twice, a TTL-only cache served "
-            f"{b['served_stale']} stale answers back from cache; with BestBefore, {o['served_stale']}."
+        proof.insert(0,
+            f"Live, {b['questions']} time-sensitive questions asked twice through each gateway: a TTL-only cache delivered "
+            f"{b['stale_delivered']} stale answers out of {b['asks']}; with BestBefore, {o['stale_delivered']}, and "
+            f"{o['served_corrected']} repeat asks were served the corrected answer straight from the cache in "
+            f"{o['repeat_seconds_p50']:.1f}s."
         )
-        rows += [
-            "| Live semantic cache, same questions asked twice | Bifrost cache, TTL only | Bifrost cache + BestBefore |",
-            "|---|---|---|",
-            f"| First answer was stale | {b['stale_first']} of {b['questions']} | {o['stale_first']} of {o['questions']} |",
-            f"| **Stale answer served back from cache** | **{b['served_stale']}** | **{o['served_stale']}** |",
-            "",
-        ]
+        rows = cache_rows(cache) + [""] + rows
     text = replace_block(text, "proof", " ".join(proof) or "Run eval/report.py.")
     text = replace_block(text, "results", "\n" + "\n".join(rows) + "\n")
     path.write_text(text, encoding="utf-8")
 
 
 def expected(label, status):
-    return status == "stale" if label == "stale" else status != "stale"
+    caught = status in ("stale", "healed")
+    return caught if label == "stale" else not caught
 
 
 def main():
