@@ -87,7 +87,7 @@ The labelled set is [eval/claims.json](eval/claims.json): 20 stale answers (true
 2. **Extract claims.** The judge model rewrites the flagged sentences into atomic, self-contained claims ("Python 3.11 is the latest stable version of Python"), each with a kind and a search query. At most `max_claims` per answer.
 3. **Search.** Each claim is searched with Tavily, in parallel.
 4. **Judge with proof.** The judge gets the numbered sources and must return `supported`, `contradicted` or `unverifiable`, plus the source number and an exact quote from it.
-5. **Score in Go.** [`scoreClaim`](freshness/verify.go) keeps the verdict only if the quote is at least five words and appears word for word in that source's text, and, for a contradiction, only if the stated current value is inside the quote and not in the claim. Otherwise the verdict is thrown away and the claim is `uncertain`. A kept verdict moves the score toward 0.9 (supported) or 0.1 (contradicted), weighted by Tavily's relevance score. The answer's score is its weakest claim's.
+5. **Score in Go.** [`scoreClaim`](freshness/verify.go) keeps the verdict only if the quote appears word for word in that source's text (at least five words for support, three for a contradiction) and, for a contradiction, only if the words of the stated current value that are not already in the claim all appear in the quote. Quoting the old value back, or inventing a new one, proves nothing. Otherwise the verdict is thrown away and the claim is `uncertain`. A kept verdict moves the score toward 0.9 (supported) or 0.1 (contradicted), weighted by Tavily's relevance score. The answer's score is its weakest claim's.
 
 Then, depending on the result:
 
