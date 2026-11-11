@@ -607,3 +607,98 @@ func TestInitRejectsUnknownModes(t *testing.T) {
 	}
 	Cleanup()
 }
+
+func TestCachedAnswersExpireAtTheirBestBeforeDate(t *testing.T) {
+	startStubs(t, nil)
+	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{"x-bf-cache-key": "app"})
+	ctx.SetValue(questionKey, "How much is Acme Pro?")
+	fresh := answerText
+	PostLLMHook(ctx, &schemas.BifrostResponse{ChatResponse: &schemas.BifrostChatResponse{ID: "ttl", Choices: []schemas.BifrostResponseChoice{{
+		ChatNonStreamResponseChoice: &schemas.ChatNonStreamResponseChoice{Message: &schemas.ChatMessage{Content: &schemas.ChatMessageContent{ContentStr: &fresh}}},
+	}}}}, nil)
+
+	ttl, ok := ctx.Value(cacheTTLKey).(time.Duration)
+	want := freshness.RecheckWindow[freshness.KindPricing]
+	if !ok || ttl <= want-time.Minute || ttl > want {
+		t.Fatalf("the cache entry should expire at the pricing best-before date, got %v", ctx.Value(cacheTTLKey))
+	}
+}
+
+func TestFreshStreamIsCachedOnlyUntilItsBestBeforeDate(t *testing.T) {
+	startStubs(t, nil)
+	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(questionKey, "How much is Acme Pro?")
+	ctx.SetValue(streamKey, &streamText{})
+	ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+	content := answerText
+	PostLLMHook(ctx, &schemas.BifrostResponse{ChatResponse: &schemas.BifrostChatResponse{ID: "fs", Choices: []schemas.BifrostResponseChoice{{
+		ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{Delta: &schemas.ChatStreamResponseChoiceDelta{Content: &content}},
+	}}}}, nil)
+
+	if ctx.Value(cacheNoStoreKey) != nil {
+		t.Fatal("a fresh stream may be cached")
+	}
+	if _, ok := ctx.Value(cacheTTLKey).(time.Duration); !ok {
+		t.Fatal("a cached stream must expire at its best-before date, since the ledger never sees it")
+	}
+}
+
+func TestStreamThatCannotBeCheckedIsNotCached(t *testing.T) {
+	s := startStubs(t, nil)
+	s.server.Close()
+	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(questionKey, "How much is Acme Pro?")
+	ctx.SetValue(streamKey, &streamText{})
+	ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+	content := answerText
+	PostLLMHook(ctx, &schemas.BifrostResponse{ChatResponse: &schemas.BifrostChatResponse{ID: "us", Choices: []schemas.BifrostResponseChoice{{
+		ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{Delta: &schemas.ChatStreamResponseChoiceDelta{Content: &content}},
+	}}}}, nil)
+	if ctx.Value(cacheNoStoreKey) != true {
+		t.Fatal("an unchecked stream must not be cached")
+	}
+}
+
+func TestHealedAnswerIsReportedEvenWhenTheCacheSkippedIt(t *testing.T) {
+	startStubs(t, nil)
+	p := activePlugin()
+	healed := "Acme Pro costs $15 per month [1]."
+	p.pending.put(pendingKey("nc", healed), "How much is Acme Pro?", outcome{Report: freshness.Report{Status: freshness.StatusHealed}, Healed: true})
+	resp := chatResponse("nc", healed, "")
+
+	HTTPTransportPostHook(nil, chatRequest(question), resp)
+
+	if gjson.GetBytes(resp.Body, "bestbefore.status").String() != "healed" || resp.Headers["x-bestbefore-healed"] != "true" {
+		t.Fatalf("a rewritten answer must always carry its report, got %s %v", resp.Body, resp.Headers)
+	}
+}
+
+func TestRecheckSkipsWhenTheLedgerHasANewerAnswer(t *testing.T) {
+	s := startStubs(t, nil)
+	p := activePlugin()
+	p.ledger.Put("x", freshness.Entry{Answer: answerText, Report: freshness.Report{Status: freshness.StatusHealed, CheckedAt: time.Now()}})
+
+	if _, ran := p.recheck("x", freshness.Entry{Question: "q", Answer: staleText}, false); ran {
+		t.Fatal("a re-check from an older snapshot must not run")
+	}
+	if s.judgeCalls.Load() != 0 || s.evictions.Load() != 0 {
+		t.Fatal("nothing should be checked or evicted")
+	}
+}
+
+func TestFailedRecheckOfAnUnknownEntryIsRemembered(t *testing.T) {
+	s := startStubs(t, nil)
+	s.server.Close()
+	p := activePlugin()
+
+	p.recheck("fresh-start", freshness.Entry{Question: "How much is Acme Pro?", Answer: staleText}, false)
+
+	e, ok := p.ledger.Get("fresh-start")
+	if !ok || e.Report.Status != freshness.StatusUnchecked || time.Until(e.Report.RecheckAfter) < time.Minute {
+		t.Fatalf("a failed check should leave a backoff entry, got %+v %v", e, ok)
+	}
+	if _, ran := p.recheck("fresh-start", freshness.Entry{Question: "q", Answer: staleText}, false); ran {
+		t.Fatal("a later hit must not pay for another check while backing off")
+	}
+}

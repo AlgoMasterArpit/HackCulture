@@ -320,9 +320,9 @@ func TestOfficialSiteIsSearchedAndPreferred(t *testing.T) {
 	}
 	v := newVerifier(&fakeLLM{}, search)
 
-	got, err := v.gather(context.Background(), Claim{Query: "Acme Pro price", Site: "WWW.Acme.test"})
-	if err != nil {
-		t.Fatal(err)
+	got, calls, err := v.gather(context.Background(), Claim{Query: "Acme Pro price", Site: "WWW.Acme.test"})
+	if err != nil || calls != 2 {
+		t.Fatalf("calls=%d err=%v", calls, err)
 	}
 	if search.domains.Load() != "acme.test" || search.calls.Load() != 2 {
 		t.Fatalf("domain=%v calls=%d", search.domains.Load(), search.calls.Load())
@@ -333,9 +333,10 @@ func TestOfficialSiteIsSearchedAndPreferred(t *testing.T) {
 }
 
 func TestBadOrMissingSiteFallsBackToOneSearch(t *testing.T) {
-	for _, site := range []string{"", "not a domain", "javascript:alert(1)", "acme"} {
+	// acmeSource is hosted on acme.test, so only that site is corroborated by the open web.
+	for _, site := range []string{"", "not a domain", "javascript:alert(1)", "acme", "github.com", "evil.example", "test"} {
 		search := &fakeSearch{sources: acmeSource}
-		if _, err := newVerifier(&fakeLLM{}, search).gather(context.Background(), Claim{Query: "q", Site: site}); err != nil || search.calls.Load() != 1 {
+		if _, _, err := newVerifier(&fakeLLM{}, search).gather(context.Background(), Claim{Query: "q", Site: site}); err != nil || search.calls.Load() != 1 {
 			t.Errorf("site %q: calls=%d err=%v", site, search.calls.Load(), err)
 		}
 	}
