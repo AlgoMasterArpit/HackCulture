@@ -137,6 +137,11 @@ func (p *plugin) recheck(id string, e freshness.Entry, known bool) (sweepResult,
 		return sweepResult{}, false
 	}
 	defer p.inflight.release(id)
+	// Another check may have finished between the caller's snapshot and the
+	// claim; never act on a snapshot older than what the ledger now holds.
+	if cur, ok := p.ledger.Get(id); ok && (!known || cur.Report.CheckedAt.After(e.Report.CheckedAt)) {
+		return sweepResult{}, false
+	}
 
 	checkedAt := e.Report.CheckedAt
 	out := p.checkWithin(p.ctx, e.Question, freshness.StripSources(e.Answer), false)
@@ -145,11 +150,15 @@ func (p *plugin) recheck(id string, e freshness.Entry, known bool) (sweepResult,
 	case out.Status == freshness.StatusUnchecked:
 		// Do not keep vouching for an answer that could not be re-checked,
 		// and back off so an outage does not repeat paid calls every tick.
+		e.Failures++
+		e.Report.Status, e.Report.Score, e.Report.Error = freshness.StatusUnchecked, out.Score, out.Error
+		e.Report.RecheckAfter = time.Now().Add(min(time.Minute<<min(e.Failures, 6), time.Hour))
 		if known {
-			e.Failures++
-			e.Report.Status, e.Report.Score, e.Report.Error = freshness.StatusUnchecked, out.Score, out.Error
-			e.Report.RecheckAfter = time.Now().Add(min(time.Minute<<min(e.Failures, 6), time.Hour))
 			p.ledger.ReplaceIf(id, checkedAt, e)
+		} else {
+			// Remember the failure too, so every later hit does not pay again.
+			e.Report.CheckedAt = time.Now()
+			p.ledger.Put(id, e)
 		}
 	case out.Stale():
 		if (!known || p.ledger.DeleteIf(id, checkedAt)) && p.evictsStale() {
@@ -173,7 +182,15 @@ func (p *plugin) revalidateLater(id, question, answer string) {
 	if !known {
 		e = freshness.Entry{Question: question, Answer: answer}
 	}
+	// A small pool bounds background checks; when it is full the hit is
+	// simply served and the sweeper or a later hit re-checks it.
+	select {
+	case p.background <- struct{}{}:
+	default:
+		return
+	}
 	go func() {
+		defer func() { <-p.background }()
 		if _, ran := p.recheck(id, e, known); ran {
 			p.stats.revalidated.Add(1)
 		}

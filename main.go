@@ -73,6 +73,8 @@ type plugin struct {
 	stop     context.CancelFunc
 	sweeping sync.Mutex
 	inflight inflight
+	// background holds a slot per running background revalidation.
+	background chan struct{}
 }
 
 var current atomic.Pointer[plugin]
@@ -140,15 +142,16 @@ func newPlugin(raw any) (*plugin, error) {
 	judge := &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, Token: token, HTTP: client}
 	ctx, stop := context.WithCancel(context.Background())
 	return &plugin{
-		ctx:     ctx,
-		stop:    stop,
-		cfg:     cfg,
-		http:    client,
-		token:   token,
-		ledger:  freshness.NewLedger(10000),
-		pending: newPendingChecks(),
-		stats:   &stats{},
-		healer:  &freshness.Healer{LLM: judge},
+		ctx:        ctx,
+		stop:       stop,
+		background: make(chan struct{}, 4),
+		cfg:        cfg,
+		http:       client,
+		token:      token,
+		ledger:     freshness.NewLedger(10000),
+		pending:    newPendingChecks(),
+		stats:      &stats{},
+		healer:     &freshness.Healer{LLM: judge},
 		verifier: &freshness.Verifier{
 			LLM:       judge,
 			Search:    &freshness.Tavily{BaseURL: cfg.TavilyURL, APIKey: cfg.TavilyAPIKey, VirtualKey: cfg.VirtualKey, MaxResults: cfg.MaxResults, HTTP: client},
