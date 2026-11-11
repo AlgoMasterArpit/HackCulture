@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BestBefore</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%2322c55e' stroke-width='3'/%3E%3Cpath d='M10 16.5l4 4 8-9' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #10141a;
+    --muted: #5b6573;
+    --line: #e3e7ed;
+    --accent: #4f46e5;
+    --accent-ink: #ffffff;
+    --fresh: #15803d;
+    --fresh-bg: #dcfce7;
+    --stale: #b91c1c;
+    --stale-bg: #fee2e2;
+    --uncertain: #a16207;
+    --uncertain-bg: #fef3c7;
+    --neutral: #475569;
+    --neutral-bg: #e2e8f0;
+    --code-bg: #f1f3f6;
+    --shadow: 0 1px 2px rgba(16, 20, 26, .06), 0 8px 24px rgba(16, 20, 26, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0e13;
+      --panel: #131821;
+      --ink: #e8ecf2;
+      --muted: #94a0b2;
+      --line: #232b38;
+      --accent: #818cf8;
+      --accent-ink: #0b0e13;
+      --fresh: #4ade80;
+      --fresh-bg: #12301f;
+      --stale: #f87171;
+      --stale-bg: #3a1618;
+      --uncertain: #fbbf24;
+      --uncertain-bg: #36290c;
+      --neutral: #cbd5e1;
+      --neutral-bg: #232b38;
+      --code-bg: #0f131a;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; letter-spacing: -.01em; }
+  .brand svg { width: 28px; height: 28px; }
+  header a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  header a:hover { color: var(--ink); }
+  h1 { font-size: clamp(26px, 4vw, 36px); line-height: 1.15; letter-spacing: -.02em; margin: 18px 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 28px; max-width: 640px; }
+  .tabs { display: flex; gap: 4px; background: var(--line); padding: 4px; border-radius: 10px; width: fit-content; margin-bottom: 14px; }
+  .tabs button { border: 0; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 7px; font: inherit; font-weight: 600; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  input[type=text], textarea {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px;
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row { display: grid; grid-template-columns: 1fr 260px; gap: 12px; margin-bottom: 12px; }
+  .field { margin-bottom: 12px; }
+  .actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 9px; padding: 10px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+  .primary:disabled { opacity: .6; cursor: progress; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chips button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .chips button:hover { color: var(--ink); border-color: var(--muted); }
+  #result { margin-top: 18px; display: none; }
+  .verdict { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stamp { font-weight: 800; letter-spacing: .08em; font-size: 15px; padding: 8px 14px; border-radius: 10px; border: 2px solid currentColor; }
+  .score { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .score small { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; display: block; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .pill { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: var(--neutral-bg); color: var(--neutral); font-weight: 600; white-space: nowrap; }
+  .fresh { color: var(--fresh); background: var(--fresh-bg); }
+  .stale { color: var(--stale); background: var(--stale-bg); }
+  .uncertain, .unchecked { color: var(--uncertain); background: var(--uncertain-bg); }
+  .timeless { color: var(--neutral); background: var(--neutral-bg); }
+  .answer { white-space: pre-wrap; margin: 0 0 6px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 10px; }
+  .claims { display: grid; gap: 10px; }
+  .claim { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; border-left-width: 4px; }
+  .claim.is-stale { border-left-color: var(--stale); }
+  .claim.is-fresh { border-left-color: var(--fresh); }
+  .claim.is-uncertain { border-left-color: var(--uncertain); }
+  .claim-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+  .claim-text { font-weight: 600; }
+  .now { margin: 8px 0 0; }
+  .now b { color: var(--fresh); }
+  blockquote { margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--line); color: var(--muted); font-size: 14px; background: var(--code-bg); border-radius: 0 8px 8px 0; }
+  .source { font-size: 13px; margin-top: 8px; color: var(--muted); }
+  .source a { color: var(--accent); }
+  .empty { color: var(--muted); }
+  details { margin-top: 18px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  pre { background: var(--code-bg); border-radius: 10px; padding: 12px; overflow: auto; font-size: 12.5px; max-height: 360px; }
+  .error { color: var(--stale); font-weight: 600; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+  .busy .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 1fr; }
+    .meta { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="var(--fresh)" stroke-width="3"/><path d="M10 16.5l4 4 8-9" fill="none" stroke="var(--fresh)" stroke-width="3" stroke-linecap="round"/></svg>
+      BestBefore
+    </div>
+    <a href="https://github.com/AlgoMasterArpit/HackCulture" target="_blank" rel="noopener">GitHub ↗</a>
+  </header>
+
+  <h1>Every answer through your gateway, checked against today's web.</h1>
+  <p class="lede">A Bifrost plugin that finds the time-sensitive claims in a model's answer, re-verifies them with Tavily, scores how fresh each one is, and keeps stale answers out of the semantic cache.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="ask">Ask through the gateway</button>
+    <button role="tab" aria-selected="false" data-tab="check">Check any answer</button>
+  </div>
+
+  <form class="card" id="ask-form" data-panel="ask">
+    <div class="row">
+      <div>
+        <label for="question">Question</label>
+        <input type="text" id="question" placeholder="What does Claude Opus cost per million tokens?" required>
+      </div>
+      <div>
+        <label for="model">Model</label>
+        <input type="text" id="model" value="gemini/gemini-2.5-flash">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" type="submit">Ask</button>
+      <label class="check"><input type="checkbox" id="use-cache" checked> Use the semantic cache</label>
+      <span class="spinner" aria-hidden="true"></span>
+    </div>
+    <div class="chips" id="examples"></div>
+  </form>
+
+  <form class="card" id="check-form" data-panel="check" hidden>
+    <div class="field">
+      <label for="check-question">Question it answered (optional)</label>
+      <input type="text" id="check-question" placeholder="What is the latest version of Python?">
+    </div>
+    <div class="field">
+      <label for="check-answer">Answer to check</label>
+      <textarea id="check-answer" required placeholder="Paste any AI-generated answer here."></textarea>
+    </div>
+    <div class="actions">
+      <button class="primary" type="submit">Check freshness</button>
+      <span class="spinner" aria-hidden="true"></span>
+    </div>
+  </form>
+
+  <section class="card" id="result" aria-live="polite"></section>
+
+  <footer>Requests go to <code>/v1/chat/completions</code> on your Bifrost gateway. The check tab uses the <code>bestbefore/verify</code> model the plugin adds.</footer>
+</div>
+
+<script>
+const EXAMPLES = [
+  "What is the latest stable version of Python?",
+  "Who is the CEO of Twitter?",
+  "What is the newest Gemini model from Google?",
+  "How much does GitHub Copilot Pro cost per month?",
+  "Which Node.js version is the current active LTS?",
+  "How does binary search work?",
+];
+
+const $ = (sel) => document.querySelector(sel);
+const el = (tag, cls, text) => {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+};
+
+for (const tab of document.querySelectorAll("[role=tab]")) {
+  tab.addEventListener("click", () => {
+    for (const t of document.querySelectorAll("[role=tab]")) t.setAttribute("aria-selected", t === tab);
+    for (const p of document.querySelectorAll("[data-panel]")) p.hidden = p.dataset.panel !== tab.dataset.tab;
+    $("#result").style.display = "none";
+  });
+}
+
+for (const q of EXAMPLES) {
+  const chip = el("button", null, q);
+  chip.type = "button";
+  chip.addEventListener("click", () => { $("#question").value = q; $("#ask-form").requestSubmit(); });
+  $("#examples").append(chip);
+}
+
+async function call(body, headers) {
+  const res = await fetch("/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || `Gateway returned ${res.status}`);
+  return data;
+}
+
+async function run(form, work) {
+  const button = form.querySelector(".primary");
+  form.classList.add("busy");
+  button.disabled = true;
+  try {
+    render(await work());
+  } catch (err) {
+    const box = $("#result");
+    box.replaceChildren(el("p", "error", err.message));
+    box.style.display = "block";
+  } finally {
+    form.classList.remove("busy");
+    button.disabled = false;
+  }
+}
+
+$("#ask-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const question = $("#question").value.trim();
+  const headers = $("#use-cache").checked ? { "x-bf-cache-key": "bestbefore-demo" } : {};
+  run(e.currentTarget, async () => {
+    const data = await call({
+      model: $("#model").value.trim(),
+      messages: [{ role: "user", content: question }],
+      fallbacks: ["gemini/gemini-flash-lite-latest"],
+    }, headers);
+    return { data, answer: data.choices?.[0]?.message?.content ?? "" };
+  });
+});
+
+$("#check-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const messages = [];
+  const question = $("#check-question").value.trim();
+  if (question) messages.push({ role: "user", content: question });
+  messages.push({ role: "assistant", content: $("#check-answer").value.trim() });
+  run(e.currentTarget, async () => {
+    const data = await call({ model: "bestbefore/verify", messages });
+    return { data, answer: $("#check-answer").value.trim() };
+  });
+});
+
+function safeURL(raw) {
+  try {
+    const url = new URL(raw);
+    return url.protocol === "https:" || url.protocol === "http:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+function cachePill(report, data) {
+  if (report.cache_evicted) return el("span", "pill stale", "Evicted from cache");
+  if (report.origin === "ledger") return el("span", "pill fresh", "Cache hit, still within recheck window");
+  const debug = data.extra_fields?.cache_debug;
+  if (!debug) return null;
+  return el("span", "pill", debug.cache_hit ? "Cache hit, re-verified" : "Cache miss");
+}
+
+function render({ data, answer }) {
+  const report = data.bestbefore;
+  const box = $("#result");
+  box.replaceChildren();
+  if (!report) {
+    box.append(el("p", "empty", "The gateway answered, but no freshness report was attached. Is the plugin loaded?"));
+    box.style.display = "block";
+    return;
+  }
+
+  const head = el("div", "verdict");
+  head.append(el("span", `stamp ${report.status}`, report.status.toUpperCase()));
+  const score = el("div", "score", report.freshness_score.toFixed(2));
+  score.append(el("small", null, "freshness score"));
+  head.append(score);
+  const meta = el("div", "meta");
+  const cache = cachePill(report, data);
+  if (cache) meta.append(cache);
+  meta.append(el("span", "pill", `${report.searches} searches`));
+  meta.append(el("span", "pill", `${report.judge_tokens} judge tokens`));
+  meta.append(el("span", "pill", `${report.latency_ms} ms`));
+  head.append(meta);
+  box.append(head);
+
+  box.append(el("h2", null, "Answer"));
+  box.append(el("p", "answer", answer));
+  if (report.error) box.append(el("p", "error", `Could not verify: ${report.error}`));
+
+  box.append(el("h2", null, "Claims"));
+  const list = el("div", "claims");
+  if (!report.claims.length) {
+    list.append(el("p", "empty", report.status === "timeless"
+      ? "No time-sensitive claims, so nothing was searched and no judge tokens were spent."
+      : "No checkable claims found."));
+  }
+  for (const c of report.claims) {
+    const card = el("div", `claim is-${c.status}`);
+    const top = el("div", "claim-head");
+    top.append(el("span", `pill ${c.status}`, `${c.status} · ${c.freshness_score.toFixed(2)}`));
+    top.append(el("span", "pill", c.kind));
+    card.append(top);
+    card.append(el("div", "claim-text", c.claim));
+    if (c.current_value) {
+      const now = el("p", "now", "Now: ");
+      now.append(el("b", null, c.current_value));
+      card.append(now);
+    }
+    if (c.quote) card.append(el("blockquote", null, `“${c.quote}”`));
+    const source = safeURL(c.source_url);
+    if (source) {
+      const src = el("div", "source", "Source: ");
+      const link = el("a", null, source.hostname);
+      link.href = source.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      src.append(link);
+      if (c.source_date) src.append(` · ${c.source_date}`);
+      card.append(src);
+    } else if (c.source_url) {
+      card.append(el("div", "source", `Source: ${c.source_url}`));
+    } else if (c.model_verdict && c.model_verdict !== "unverifiable" && !c.grounded) {
+      card.append(el("div", "source", `The judge said “${c.model_verdict}” but its quote was not found in the source, so the verdict was discarded.`));
+    }
+    list.append(card);
+  }
+  box.append(list);
+
+  const raw = el("details");
+  raw.append(el("summary", null, "Raw report"));
+  raw.append(el("pre", null, JSON.stringify(report, null, 2)));
+  box.append(raw);
+  box.style.display = "block";
+}
+</script>
+</body>
+</html>
