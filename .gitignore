@@ -4,3 +4,4 @@ build/
 *.so
 node_modules/
 __pycache__/
+.playwright-mcp/
