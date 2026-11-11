@@ -18,9 +18,9 @@ Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source 
 
 </div>
 
-<p align="center"><img src="docs/img/hero.png" alt="The BestBefore demo page: Gemini says the latest Python is 3.12.3, BestBefore marks the claim stale, shows that the current version is 3.15 with a verbatim quote from Wikipedia, and reports that the answer was evicted from the cache" width="900"></p>
+<p align="center"><img src="docs/img/hero.png" alt="The BestBefore demo page: the model says the latest Python is 3.13, BestBefore marks the claim stale, shows that the current version is 3.15 with a verbatim quote from Wikipedia, and reports that the answer was evicted from the cache" width="900"></p>
 
-<p align="center"><sub>A live run on 11 Nov 2026. Gemini 2.5 Flash answers from its training data ("Python 3.12.3"). BestBefore pulls out the claim, Tavily finds Wikipedia, the judge quotes it word for word (page markup and all), Go marks it stale, and the answer is evicted from Bifrost's semantic cache so the next user does not get it.</sub></p>
+<p align="center"><sub>A live run on 11 Nov 2026. The request asked for Gemini 2.5 Flash; it was out of free quota, so Bifrost fell back to Gemma 4, which answered from its training data ("Python 3.13"). BestBefore pulled out the claim, Tavily found Wikipedia, the judge quoted it word for word, Go marked it stale, and the answer was evicted from Bifrost's semantic cache so the next user does not get it. The whole check took 8.8 seconds.</sub></p>
 
 ## Contents
 
@@ -105,22 +105,24 @@ Every checked response gets the report in its body and as `x-bestbefore-*` heade
 "bestbefore": {
   "status": "stale",
   "freshness_score": 0.1,
-  "claims": [{
-    "claim": "The latest stable version of Python is 3.12.3 as of May 2024.",
-    "kind": "version",
-    "status": "stale",
-    "freshness_score": 0.1,
-    "current_value": "3.15",
-    "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-    "quote": "As of October 2026( Python 3.15 is the latest stable release.",
-    "model_verdict": "contradicted",
-    "grounded": true
-  }],
-  "checked_at": "2026-11-11T07:41:32.157483753Z",
-  "recheck_after": "2026-11-14T07:41:32.157483753Z",
+  "claims": [
+    {
+      "claim": "The latest stable version of Python is 3.13.",
+      "kind": "version",
+      "status": "stale",
+      "freshness_score": 0.1,
+      "current_value": "3.15",
+      "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
+      "quote": "Python 3.15 is the latest stable release",
+      "model_verdict": "contradicted",
+      "grounded": true
+    }
+  ],
+  "checked_at": "2026-11-11T13:02:16.69974802Z",
+  "recheck_after": "2026-11-14T13:02:16.69974802Z",
   "searches": 1,
-  "judge_tokens": 2400,
-  "latency_ms": 38074,
+  "judge_tokens": 2686,
+  "latency_ms": 8791,
   "origin": "verified",
   "cache_hit": false,
   "cache_evicted": true
@@ -133,7 +135,7 @@ x-bestbefore-score: 0.10
 x-bestbefore-cache-evicted: true
 ```
 
-That check took 38 seconds because Gemini was returning 503s and Bifrost was retrying; see the latency figures in [Results](#results) for typical times.
+A rejected verdict is kept too, with `"grounded": false`, a `rejected_because` reason (for example "current value is not in the quote") and the `rejected_quote`, so every decision can be audited.
 
 ## How Bifrost and Tavily are used
 
