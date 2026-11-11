@@ -9,28 +9,38 @@ import time
 import urllib.error
 import urllib.request
 
-GATEWAY = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8080"
+GATEWAY = "http://localhost:8080"
+MOCK = "http://localhost:9000"
 
 
-def chat(messages, model="mock/gpt-test", cache_key=None):
-    headers = {"Content-Type": "application/json"}
-    if cache_key:
-        headers["x-bf-cache-key"] = cache_key
-    request = urllib.request.Request(
-        f"{GATEWAY}/v1/chat/completions",
-        data=json.dumps({"model": model, "messages": messages}).encode(),
-        headers=headers,
-    )
+def post(url, payload, headers=None):
+    request = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json", **(headers or {})})
     with urllib.request.urlopen(request, timeout=60) as response:
         return json.loads(response.read()), response.headers
 
 
 def ask(question, cache_key=None):
-    return chat([{"role": "user", "content": question}], cache_key=cache_key)
+    headers = {"x-bf-cache-key": cache_key} if cache_key else {}
+    return post(f"{GATEWAY}/v1/chat/completions",
+                {"model": "mock/gpt-test", "messages": [{"role": "user", "content": question}]}, headers)
+
+
+def model(name, messages=None):
+    body, _ = post(f"{GATEWAY}/v1/chat/completions", {"model": name, "messages": messages or []})
+    return body
+
+
+def answer(body):
+    return body["choices"][0]["message"]["content"]
 
 
 def cache_hit(body):
     return body.get("extra_fields", {}).get("cache_debug", {}).get("cache_hit", False)
+
+
+def set_web(**prices):
+    post(f"{MOCK}/admin/web", prices)
 
 
 def wait_for_gateway():
@@ -49,48 +59,68 @@ def test_timeless_answer_is_not_checked():
     assert body["bestbefore"]["searches"] == 0
 
 
-def test_stale_answer_is_flagged_and_never_stays_cached():
-    key = f"stale-{time.time()}"
+def test_stale_answer_is_healed_and_the_cache_keeps_the_corrected_version():
+    set_web(acme="$15")
+    key = f"heal-{time.time()}"
     first, headers = ask("How much is Acme Pro?", cache_key=key)
     report = first["bestbefore"]
-    assert report["status"] == "stale", report
-    assert report["claims"][0]["current_value"] == "$15 per month", report
-    assert report["claims"][0]["source_url"] == "https://acme.test/pricing", report
-    assert report["cache_evicted"] is True, report
-    assert headers["x-bestbefore-cache-evicted"] == "true"
-
-    second, _ = ask("How much is Acme Pro?", cache_key=key)
-    assert not cache_hit(second), "a stale answer was served from cache"
-
-
-def test_fresh_answer_is_cached_and_served_from_ledger():
-    key = f"fresh-{time.time()}"
-    first, _ = ask("How much is Globex Team?", cache_key=key)
-    assert first["bestbefore"]["status"] == "fresh", first["bestbefore"]
-    assert first["bestbefore"]["origin"] == "verified"
+    assert report["status"] == "healed", report
+    assert report["original_answer"] == "Acme Pro costs $10 per month.", report
+    assert answer(first).startswith("Acme Pro costs $15 per month [1]."), answer(first)
+    assert "https://acme.test/pricing" in answer(first)
+    assert headers["x-bestbefore-healed"] == "true"
+    assert not report["cache_evicted"], "a healed answer should stay cached"
 
     time.sleep(1)
-    second, _ = ask("How much is Globex Team?", cache_key=key)
-    assert cache_hit(second), "fresh answer should be a cache hit"
+    second, _ = ask("How much is Acme Pro?", cache_key=key)
+    assert cache_hit(second), "the corrected answer should be served from Bifrost's cache"
+    assert answer(second) == answer(first), "the cache must hold the corrected text, not the stale one"
     assert second["bestbefore"]["origin"] == "ledger", second["bestbefore"]
-    assert second["bestbefore"]["status"] == "fresh"
 
 
-def test_verify_model_scores_a_pasted_answer():
-    body, _ = chat(
-        [
-            {"role": "user", "content": "How much is Acme Pro?"},
-            {"role": "assistant", "content": "Acme Pro costs $10 per month."},
-        ],
-        model="bestbefore/verify",
-    )
-    assert body["bestbefore"]["status"] == "stale", body
-    assert "$15 per month" in body["choices"][0]["message"]["content"]
+def test_sweeper_evicts_an_answer_that_went_stale_while_cached():
+    set_web(globex="$30")
+    key = f"sweep-{time.time()}"
+    first, _ = ask("How much is Globex Team?", cache_key=key)
+    assert first["bestbefore"]["status"] == "fresh", first["bestbefore"]
+
+    set_web(globex="$45")
+    deadline = time.time() + 20
+    while time.time() < deadline:
+        counts = model("bestbefore/status")["bestbefore_status"]["counts"]
+        if counts["evicted_by_sweeper"] >= 1:
+            break
+        time.sleep(1)
+    else:
+        raise AssertionError(f"the background sweeper never evicted the stale answer: {counts}")
+
+    second, _ = ask("How much is Globex Team?", cache_key=key)
+    assert not cache_hit(second), "the stale entry should be gone before anyone asked again"
+    assert second["bestbefore"]["status"] == "healed", second["bestbefore"]
+    assert "$45 per month" in answer(second), answer(second)
+    set_web(globex="$30")
+
+
+def test_verify_model_heals_a_pasted_answer():
+    set_web(acme="$15")
+    body = model("bestbefore/verify", [
+        {"role": "user", "content": "How much is Acme Pro?"},
+        {"role": "assistant", "content": "Acme Pro costs $10 per month."},
+    ])
+    assert body["bestbefore"]["status"] == "healed", body
+    assert "Corrected answer:\nAcme Pro costs $15 per month" in answer(body)
+
+
+def test_status_model_lists_cached_answers_with_best_before_dates():
+    status = model("bestbefore/status")["bestbefore_status"]
+    questions = [entry["question"] for entry in status["entries"]]
+    assert "How much is Acme Pro?" in questions, status
+    assert all(entry["recheck_after"] for entry in status["entries"]), status
 
 
 if __name__ == "__main__":
     wait_for_gateway()
-    tests = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
+    tests = [value for name, value in globals().items() if name.startswith("test_")]
     failed = 0
     for test in tests:
         try:
