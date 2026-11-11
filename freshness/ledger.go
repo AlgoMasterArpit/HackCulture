@@ -12,7 +12,12 @@ type Entry struct {
 	Report   Report
 	Question string
 	Answer   string
+	// Failures counts re-checks in a row that could not run, for backoff.
+	Failures int
 }
+
+// maxStoredText bounds the memory each entry can hold.
+const maxStoredText = 8000
 
 // Ledger gives every cached answer a best-before date: the time its most
 // volatile claim is due for another check.
@@ -32,13 +37,63 @@ func NewLedger(limit int) *Ledger {
 func (l *Ledger) Put(cacheID string, e Entry) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.put(cacheID, e)
+}
+
+func (l *Ledger) put(cacheID string, e Entry) {
 	if _, exists := l.entries[cacheID]; !exists && len(l.entries) >= l.limit {
-		for id := range l.entries {
-			delete(l.entries, id)
+		l.evictOne()
+	}
+	if len(e.Question) > maxStoredText {
+		e.Question = e.Question[:maxStoredText]
+	}
+	if len(e.Answer) > maxStoredText {
+		e.Answer = e.Answer[:maxStoredText]
+	}
+	l.entries[cacheID] = e
+}
+
+// evictOne makes room, preferring entries that never need a re-check.
+func (l *Ledger) evictOne() {
+	victim := ""
+	for id, e := range l.entries {
+		victim = id
+		if e.Report.RecheckAfter.IsZero() {
 			break
 		}
 	}
-	l.entries[cacheID] = e
+	delete(l.entries, victim)
+}
+
+// ReplaceIf stores e only if the entry is still the one last checked at
+// checkedAt, so a slow background re-check cannot overwrite a newer answer.
+func (l *Ledger) ReplaceIf(cacheID string, checkedAt time.Time, e Entry) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if cur, ok := l.entries[cacheID]; !ok || !cur.Report.CheckedAt.Equal(checkedAt) {
+		return false
+	}
+	l.put(cacheID, e)
+	return true
+}
+
+// DeleteIf removes the entry only if it is still the one last checked at checkedAt.
+func (l *Ledger) DeleteIf(cacheID string, checkedAt time.Time) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if cur, ok := l.entries[cacheID]; !ok || !cur.Report.CheckedAt.Equal(checkedAt) {
+		return false
+	}
+	delete(l.entries, cacheID)
+	return true
+}
+
+// CheckedAt reports when the entry was last checked, if there is one.
+func (l *Ledger) CheckedAt(cacheID string) (time.Time, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	e, ok := l.entries[cacheID]
+	return e.Report.CheckedAt, ok
 }
 
 // Current returns the stored report while it is still within its recheck
