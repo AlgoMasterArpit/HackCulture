@@ -28,13 +28,19 @@ func (f *fakeLLM) CompleteJSON(_ context.Context, _, user string) (string, int, 
 }
 
 type fakeSearch struct {
-	sources []Source
-	err     error
-	calls   atomic.Int32
+	sources  []Source
+	official []Source
+	err      error
+	calls    atomic.Int32
+	domains  atomic.Value
 }
 
-func (f *fakeSearch) Search(context.Context, string) ([]Source, error) {
+func (f *fakeSearch) Search(_ context.Context, _ string, domains []string) ([]Source, error) {
 	f.calls.Add(1)
+	if len(domains) > 0 {
+		f.domains.Store(domains[0])
+		return f.official, f.err
+	}
 	return f.sources, f.err
 }
 
@@ -305,4 +311,32 @@ func TestLedgerIsSafeForConcurrentUse(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+}
+
+func TestOfficialSiteIsSearchedAndPreferred(t *testing.T) {
+	search := &fakeSearch{
+		sources:  []Source{{URL: "https://blog.test/a", Content: "old news"}, {URL: "https://acme.test/pricing", Content: "dup"}},
+		official: []Source{{URL: "https://acme.test/pricing", Content: "Acme Pro is now $15 per month"}},
+	}
+	v := newVerifier(&fakeLLM{}, search)
+
+	got, err := v.gather(context.Background(), Claim{Query: "Acme Pro price", Site: "WWW.Acme.test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if search.domains.Load() != "acme.test" || search.calls.Load() != 2 {
+		t.Fatalf("domain=%v calls=%d", search.domains.Load(), search.calls.Load())
+	}
+	if len(got) != 2 || !got[0].Official || got[0].URL != "https://acme.test/pricing" || got[1].Official {
+		t.Fatalf("official results must come first, marked, without duplicates: %+v", got)
+	}
+}
+
+func TestBadOrMissingSiteFallsBackToOneSearch(t *testing.T) {
+	for _, site := range []string{"", "not a domain", "javascript:alert(1)", "acme"} {
+		search := &fakeSearch{sources: acmeSource}
+		if _, err := newVerifier(&fakeLLM{}, search).gather(context.Background(), Claim{Query: "q", Site: site}); err != nil || search.calls.Load() != 1 {
+			t.Errorf("site %q: calls=%d err=%v", site, search.calls.Load(), err)
+		}
+	}
 }
