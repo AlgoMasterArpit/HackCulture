@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,7 +29,7 @@ const (
 // PreLLMHook runs only when the semantic cache missed. It remembers the
 // question so PostLLMHook can check the model's answer.
 func PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*schemas.BifrostRequest, *schemas.LLMPluginShortCircuit, error) {
-	p := active
+	p := activePlugin()
 	if p == nil || req.RequestType != schemas.ChatCompletionRequest || req.ChatRequest == nil || p.isInternalCall(ctx) {
 		return req, nil, nil
 	}
@@ -40,9 +42,9 @@ func PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*sche
 // the corrected version. A stale answer that cannot be rewritten is never
 // stored at all.
 func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bifrostErr *schemas.BifrostError) (*schemas.BifrostResponse, *schemas.BifrostError, error) {
-	p := active
+	p := activePlugin()
 	question, asked := ctx.Value(questionKey).(string)
-	if p == nil || !asked || bifrostErr != nil || resp == nil || resp.ChatResponse == nil || resp.ChatResponse.ID == "" {
+	if p == nil || !asked || bifrostErr != nil || resp == nil || resp.ChatResponse == nil || len(resp.ChatResponse.Choices) != 1 {
 		return resp, bifrostErr, nil
 	}
 	msg := firstMessage(resp.ChatResponse)
@@ -58,7 +60,7 @@ func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bif
 	case out.Stale() && p.evictsStale():
 		ctx.SetValue(cacheNoStoreKey, true)
 	}
-	p.pending.put(resp.ChatResponse.ID, question, out)
+	p.pending.put(pendingKey(resp.ChatResponse.ID, contentText(msg)), question, out)
 	return resp, bifrostErr, nil
 }
 
@@ -67,17 +69,26 @@ func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bif
 // bestbefore/status lists every cached answer with its best-before date, and
 // bestbefore/sweep re-checks all of them now.
 func HTTPTransportPreHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest) (*schemas.HTTPResponse, error) {
-	p := active
+	p := activePlugin()
 	if p == nil || !isChatCompletion(req) || p.isInternal(req) {
 		return nil, nil
 	}
-	switch gjson.GetBytes(req.Body, "model").String() {
-	case verifyModel:
+	model := gjson.GetBytes(req.Body, "model").String()
+	switch {
+	case model == verifyModel:
 		return p.serveVerify(req), nil
-	case statusModel:
+	case (model == statusModel || model == sweepModel) && !p.cfg.AdminModels:
+		return jsonResponse(403, map[string]any{"error": map[string]string{
+			"message": model + " is turned off; set admin_models in the bestbefore plugin config",
+		}}), nil
+	case model == statusModel:
 		return p.serveStatus(nil), nil
-	case sweepModel:
-		return p.serveStatus(p.sweep(true)), nil
+	case model == sweepModel:
+		swept, ran := p.sweep(true)
+		if !ran {
+			return chatJSON(sweepModel, "A sweep is already running.", "bestbefore_status", map[string]any{"busy": true}), nil
+		}
+		return p.serveStatus(swept), nil
 	}
 	return nil, nil
 }
@@ -87,7 +98,7 @@ func HTTPTransportPreHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest)
 // stored report while the answer is within its best-before date, and checks
 // it again once that date has passed.
 func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest, resp *schemas.HTTPResponse) error {
-	p := active
+	p := activePlugin()
 	if p == nil || !isChatCompletion(req) || p.isInternal(req) || resp.StatusCode != 200 || len(resp.Body) == 0 {
 		return nil
 	}
@@ -95,7 +106,7 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	case verifyModel, statusModel, sweepModel:
 		return nil
 	}
-	if gjson.GetBytes(req.Body, "stream").Bool() || !gjson.ValidBytes(resp.Body) {
+	if gjson.GetBytes(req.Body, "stream").Bool() || !gjson.ValidBytes(resp.Body) || gjson.GetBytes(resp.Body, "choices.#").Int() != 1 {
 		return nil
 	}
 	answer := messageText(gjson.GetBytes(resp.Body, "choices.0.message"))
@@ -106,7 +117,7 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	cacheHit := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_hit").Bool()
 	question := lastUserMessage(req.Body)
 
-	if done, ok := p.pending.take(gjson.GetBytes(resp.Body, "id").String()); ok && !cacheHit {
+	if done, ok := p.takePending(cacheHit, gjson.GetBytes(resp.Body, "id").String(), answer); ok {
 		out := done.outcome
 		if cacheID != "" {
 			switch {
@@ -223,6 +234,23 @@ func annotate(resp *schemas.HTTPResponse, out outcome) error {
 		resp.Headers["x-bestbefore-healed"] = "true"
 	}
 	return nil
+}
+
+// pendingKey pairs the provider's response id with the answer text, so two
+// responses that share an id (some providers and proxies reuse them) cannot
+// pick up each other's result.
+func pendingKey(id, answer string) string {
+	sum := sha256.Sum256([]byte(answer))
+	return id + "|" + hex.EncodeToString(sum[:8])
+}
+
+// takePending returns PostLLMHook's result for this response. A cache hit
+// never has one, so it must not consume an entry that belongs to a miss.
+func (p *plugin) takePending(cacheHit bool, id, answer string) (pendingCheck, bool) {
+	if cacheHit {
+		return pendingCheck{}, false
+	}
+	return p.pending.take(pendingKey(id, answer))
 }
 
 func isChatCompletion(req *schemas.HTTPRequest) bool {
