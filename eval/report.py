@@ -151,7 +151,7 @@ def write_charts(claims, cache):
     if claims:
         (IMG / "eval-verdicts.svg").write_text(verdict_chart(claims), encoding="utf-8")
         (IMG / "eval-grounding.svg").write_text(bar_pairs(
-            "Quote grounding: the judge must prove its verdict",
+            "What the quote check costs on clean answers (its job is attacks, see docs/REVIEW.md)",
             [
                 ("Stale answers caught", [claims["without"]["recall"], claims["with"]["recall"]]),
                 ("Good answers wrongly flagged", [claims["without"]["false_alarm"], claims["with"]["false_alarm"]]),
