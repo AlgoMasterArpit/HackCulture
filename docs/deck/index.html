@@ -58,7 +58,7 @@
   <img class="logo" src="../img/logo.svg" alt="">
   <div class="kicker">Global AI Hackathon 2026 · Team stackoverflow</div>
   <h1>BestBefore</h1>
-  <p style="font-size:30px; max-width: 900px; color:#e0e7ff">A Bifrost plugin that checks every AI answer against today's web, and keeps stale answers out of your semantic cache.</p>
+  <p style="font-size:30px; max-width: 980px; color:#e0e7ff">A self-healing semantic cache for Bifrost. Stale AI answers are rewritten with today's verified facts before they are cached, and every cached answer gets a best-before date.</p>
   <p style="margin-top:auto">Statement 04 · Open-Source Bifrost Gateway &nbsp;+&nbsp; Statement 06 · Stale-Answer Detector (Tavily)</p>
   <div class="foot"><span>github.com/AlgoMasterArpit/HackCulture</span><span>Apache 2.0</span></div>
 </section>
@@ -69,12 +69,13 @@
   <div class="grid2">
     <div>
       <div class="chat q"><small>User, 11 Nov 2026</small>What is the latest stable version of Python?</div>
-      <div class="chat a"><small>Gemini 2.5 Flash</small>The latest stable version of Python is 3.12.</div>
+      <div class="chat a"><small>Gemini 2.5 Flash</small>The latest stable version of Python is 3.12.1.</div>
       <div class="chat n"><small>Wikipedia, found by Tavily</small>"As of October 2026( Python 3.15 is the latest stable release." <span style="font-size:15px">(verbatim, page markup included)</span></div>
     </div>
     <div>
       <p style="margin-top:0">A gateway's semantic cache then serves that answer to <b>every</b> user who asks again, until the TTL runs out.</p>
       <p>In Bifrost today, the clock is the only thing that removes a cached answer: <code>isExpiredEntry</code> checks <code>expires_at</code> and nothing else (<code>plugins/semanticcache/search.go:252</code>), and expired entries are only cleaned up lazily (issue #2414).</p>
+      <p>Fact-checkers stop at "this looks outdated". The next user still gets the stale answer.</p>
     </div>
   </div>
   <div class="foot"><span>BestBefore</span><span>2</span></div>
@@ -82,53 +83,67 @@
 
 <section class="slide">
   <div class="kicker">What we built</div>
-  <h2>One plugin. Every answer checked. No app changes.</h2>
-  <img class="full" src="../img/architecture.svg" alt="" style="max-height: 470px; object-fit: contain">
-  <div class="foot"><span>BestBefore</span><span>3</span></div>
+  <h2>Heal the answer before the cache stores it.</h2>
+  <img class="full" src="../img/architecture.svg" alt="" style="max-height: 500px; object-fit: contain">
+  <div class="foot"><span>Bifrost runs our post-hook before the cache's, so the cache stores the corrected text</span><span>3</span></div>
 </section>
 
 <section class="slide">
-  <div class="kicker">Why you can trust a "stale" flag</div>
-  <h2>The model gives advice. Go makes the decision.</h2>
-  <div class="grid2">
-    <div class="card"><h3>The judge must prove it</h3><p>Every verdict needs a word-for-word quote from the cited source. A contradiction must name a new value whose words are in that quote and not in the claim. Otherwise the verdict is thrown away, with the reason recorded.</p></div>
-    <div class="card"><h3>Fails safe</h3><p>Model down, search down or unsure: the answer is marked <code>unchecked</code> or <code>uncertain</code> and is never evicted. An outage of the checker cannot wipe your cache.</p></div>
-    <div class="card"><h3>Free when nothing can change</h3><p>A regex gate skips answers with no prices, versions, laws, leaders or "latest". Zero tokens, zero searches.</p></div>
-    <div class="card"><h3>Broken on purpose</h3><p>A separate AI reviewer was told to break it. It found 12 problems, 3 high-severity. The 3 high-severity ones are fixed, and each fix has a test that fails without it.</p></div>
+  <div class="kicker">Working prototype, live</div>
+  <h2>From "3.12.1" to "3.15 [1]", cached for everyone.</h2>
+  <div class="grid2" style="grid-template-columns: 1.25fr 1fr; gap: 32px">
+    <img class="full" src="../img/hero-result.png" alt="" style="max-height: 500px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
+    <div>
+      <p style="margin-top:0">Gemini answered from its training data. BestBefore found the claim, Tavily found Wikipedia, the judge quoted it word for word, and Go accepted the rewrite only because it carries the new value, drops the old one and adds no new words or links.</p>
+      <p>The corrected answer, with its source, is what Bifrost cached. <b>Asking again: a cache hit with the corrected answer in 1.1 s, no model call.</b></p>
+    </div>
   </div>
-  <div class="foot"><span>BestBefore</span><span>4</span></div>
+  <div class="foot"><span>docker compose up · localhost:3000</span><span>4</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Results · live semantic cache</div>
+  <h2>What users actually received.</h2>
+  <div class="grid2" style="grid-template-columns: 1fr 1.3fr">
+    <div class="stats" style="grid-template-columns: 1fr">
+      <div class="stat"><div class="big" style="color:#94a3b8"><span data-n="cache.baseline.stale_delivered"></span><span style="font-size:40px"> / <span data-n="cache.baseline.asks"></span></span></div><span>stale answers delivered by a TTL-only Bifrost cache</span></div>
+      <div class="stat"><div class="big" style="color:var(--accent)"><span data-n="cache.bestbefore.stale_delivered"></span><span style="font-size:40px"> / <span data-n="cache.bestbefore.asks"></span></span></div><span>with BestBefore; <b data-n="cache.bestbefore.served_corrected"></b> repeat asks got the corrected answer straight from cache</span></div>
+    </div>
+    <img class="full" src="../img/eval-cache.svg" alt="">
+  </div>
+  <div class="foot"><span>eval/cache.py · the same time-sensitive questions asked twice through each gateway</span><span>5</span></div>
 </section>
 
 <section class="slide">
   <div class="kicker">Results · 60 hand-labelled answers, live Gemini + Tavily</div>
   <h2>Catches stale answers without crying wolf.</h2>
   <div class="stats">
-    <div class="stat"><div class="big" style="color:var(--stale)" data-n="claims.with.recall" data-unit="%"></div><span>of stale answers flagged stale</span></div>
-    <div class="stat"><div class="big" style="color:var(--fresh)" data-n="claims.with.false_alarm" data-unit="%"></div><span>of good answers wrongly flagged stale; <b data-n="claims.precision" data-unit="%"></b> of stale flags were right</span></div>
-    <div class="stat"><div class="big" style="color:var(--accent)" data-n="claims.gate_skip" data-unit="%"></div><span>of timeless answers checked at zero cost</span></div>
+    <div class="stat"><div class="big" style="color:var(--stale)" data-n="claims.with.recall" data-unit="%"></div><span>of stale answers caught</span></div>
+    <div class="stat"><div class="big" style="color:var(--fresh)" data-n="claims.with.false_alarm" data-unit="%"></div><span>of good answers wrongly flagged; <b data-n="claims.precision" data-unit="%"></b> of flags were right</span></div>
+    <div class="stat"><div class="big" style="color:#0369a1" data-n="claims.heal_rate" data-unit="%"></div><span>of caught answers healed with the verified value</span></div>
   </div>
-  <img class="full" src="../img/eval-grounding.svg" alt="" style="max-height: 250px; object-fit: contain; margin-top: 26px">
-  <div class="foot"><span>From eval/run.py. Rule tuned on this set after a first run that caught <b data-n="claims_run1.with.recall" data-unit="%"></b>; both runs published.</span><span>5</span></div>
+  <img class="full" src="../img/eval-verdicts.svg" alt="" style="max-height: 230px; object-fit: contain; margin-top: 22px">
+  <div class="foot"><span>From eval/run.py. Grounding rule tuned on this set after a first run that caught <b data-n="claims_run1.with.recall" data-unit="%"></b>; all runs published.</span><span>6</span></div>
 </section>
 
 <section class="slide">
-  <div class="kicker">Results · live semantic cache</div>
-  <h2>A TTL cache replays stale answers. BestBefore stops it.</h2>
-  <div class="grid2" style="grid-template-columns: 1fr 1.4fr">
-    <div class="stats" style="grid-template-columns: 1fr">
-      <div class="stat"><div class="big" style="color:#94a3b8" data-n="cache.baseline.served_stale"></div><span>stale answers served from a TTL-only Bifrost cache</span></div>
-      <div class="stat"><div class="big" style="color:var(--accent)" data-n="cache.bestbefore.served_stale"></div><span>with BestBefore</span></div>
-    </div>
-    <img class="full" src="../img/eval-cache.svg" alt="">
-  </div>
-  <div class="foot"><span>eval/cache.py · the same time-sensitive questions asked twice through each gateway</span><span>6</span></div>
+  <div class="kicker">Best-before dates</div>
+  <h2>Every cached answer knows when to be re-checked.</h2>
+  <img class="full" src="../img/dashboard.png" alt="" style="max-height: 420px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
+  <p style="margin: 18px 0 0">Prices 24h, versions 72h, leaders and laws 7 days. A background sweeper re-checks answers when their date passes, before any user asks, and evicts them if the world changed. Proven end to end: change a price on the mock web, and the sweeper evicts the cached answer on its own.</p>
+  <div class="foot"><span>Cache freshness tab · bestbefore/status</span><span>7</span></div>
 </section>
 
 <section class="slide">
-  <div class="kicker">Working prototype</div>
-  <h2>Ask through the gateway, or paste any answer.</h2>
-  <img class="full" src="../img/hero-result.png" alt="" style="max-height: 500px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
-  <div class="foot"><span>docker compose up · localhost:3000</span><span>7</span></div>
+  <div class="kicker">Why you can trust it</div>
+  <h2>The model drafts. Go decides.</h2>
+  <div class="grid2">
+    <div class="card"><h3>Verdicts need proof</h3><p>Every verdict needs a word-for-word quote from the cited source, and a contradiction must name a new value that is in that quote and not in the claim.</p></div>
+    <div class="card"><h3>Rewrites are checked</h3><p>A correction may reuse only words from the answer and the verified values, must drop every old number and may not add links. Go appends the sources itself.</p></div>
+    <div class="card"><h3>Fails safe</h3><p>Can't prove it or can't heal it: the stale answer is flagged and never cached. Checker down: nothing is evicted.</p></div>
+    <div class="card"><h3>Broken on purpose, twice</h3><p>Two adversarial AI reviews found 25 problems, six high-severity, including a phishing link that would have been cached. Each is fixed with a test.</p></div>
+  </div>
+  <div class="foot"><span>docs/REVIEW.md</span><span>8</span></div>
 </section>
 
 <section class="slide">
@@ -136,13 +151,13 @@
   <h2>Take either away and nothing works.</h2>
   <table>
     <tr><th>Technology</th><th>What it does in BestBefore</th></tr>
-    <tr><td>Bifrost plugin hooks</td><td>The HTTP transport post-hook sees every answer, cache hits included, and rewrites body and headers. The pre-hook serves the <code>bestbefore/verify</code> model.</td></tr>
-    <tr><td>Bifrost semantic cache</td><td><code>cache_debug.cache_id</code> says which entry produced the answer; <code>DELETE /api/cache/clear/{id}</code> evicts it.</td></tr>
-    <tr><td>Bifrost routing</td><td>The judge's own calls go back through the gateway: fallbacks, retries on 503s, logs and budgets for free.</td></tr>
-    <tr><td>Tavily search</td><td>Live evidence per claim: URL, page text, date and a relevance score that weights the freshness score.</td></tr>
-    <tr><td>Gemini</td><td>Answers the questions, then extracts claims and judges them against the evidence.</td></tr>
+    <tr><td>Bifrost plugin order</td><td><code>PostLLMHook</code> runs before the semantic cache writes, so the cache stores the healed answer; <code>semantic_cache-no_store</code> keeps unhealable stale answers out.</td></tr>
+    <tr><td>Bifrost transport hooks</td><td>See every answer, cache hits included; serve <code>bestbefore/verify</code>, <code>status</code> and <code>sweep</code> inside the OpenAI API.</td></tr>
+    <tr><td>Bifrost cache API</td><td><code>cache_id</code> ties answers to entries; <code>DELETE /api/cache/clear/{id}</code> evicts what went stale.</td></tr>
+    <tr><td>Bifrost routing</td><td>Judge and healer calls go back through the gateway: fallbacks across three free Gemini models, retries, logs.</td></tr>
+    <tr><td>Tavily search</td><td>Live evidence per claim: URL, page text, date, and a relevance score that weights the verdict.</td></tr>
   </table>
-  <div class="foot"><span>BestBefore</span><span>8</span></div>
+  <div class="foot"><span>BestBefore</span><span>9</span></div>
 </section>
 
 <section class="slide">
@@ -150,19 +165,19 @@
   <h2>What it does not do yet.</h2>
   <div class="grid2">
     <ul>
+      <li>The first answer to a stale question is slower (p95 check <b data-n="claims.latency_p95" data-scale="0.001" data-unit="s"></b>); repeats come from cache.</li>
       <li>Streaming responses pass through unchecked.</li>
-      <li>Checking adds latency to answers with time-sensitive claims (p95 <b data-n="claims.latency_p95" data-scale="0.001" data-unit="s"></b>).</li>
-      <li>One grounded source is enough, so a highly ranked outdated page can still pass.</li>
-      <li>The recheck ledger is in memory, per gateway process.</li>
+      <li>The sweeper can evict but not pre-write: Bifrost has no cache-insert API for plugins.</li>
+      <li>Best-before dates live in memory, per gateway process.</li>
     </ul>
     <ul>
-      <li>Upstream PR drafted in Bifrost's template (docs/UPSTREAM_PR.md), building on proposal #9748.</li>
-      <li>Check streams after they finish, and evict in the background.</li>
-      <li>Store recheck times in the vector store so replicas share them.</li>
-      <li>Require two sources on different hosts before evicting.</li>
+      <li>Upstream PR drafted in Bifrost's template, building on proposal #9748.</li>
+      <li>Store best-before dates in the vector store so replicas share them.</li>
+      <li>Check streams after they finish.</li>
+      <li>Require two sources on different hosts before healing.</li>
     </ul>
   </div>
-  <div class="foot"><span>BestBefore</span><span>9</span></div>
+  <div class="foot"><span>BestBefore</span><span>10</span></div>
 </section>
 
 <section class="slide dark">
@@ -172,7 +187,7 @@
 cp .env.example .env     # add Gemini + Tavily keys
 docker compose up -d --build</pre>
   <p style="margin-top:auto; font-size: 24px">Team stackoverflow · github.com/AlgoMasterArpit/HackCulture</p>
-  <div class="foot"><span>Thank you</span><span>10</span></div>
+  <div class="foot"><span>Thank you</span><span>11</span></div>
 </section>
 
 <script>
