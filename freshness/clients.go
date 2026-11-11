@@ -10,7 +10,8 @@ import (
 	"strings"
 )
 
-// InternalHeader marks the plugin's own model calls so its hooks skip them.
+// InternalHeader carries GatewayLLM.Token on the plugin's own model calls so
+// its hooks can skip them.
 const InternalHeader = "x-bestbefore-internal"
 
 type LLM interface {
@@ -37,6 +38,7 @@ type GatewayLLM struct {
 	Model      string
 	Fallbacks  []string
 	VirtualKey string
+	Token      string
 	HTTP       *http.Client
 }
 
@@ -54,7 +56,7 @@ func (g *GatewayLLM) CompleteJSON(ctx context.Context, system, user string) (str
 		request["fallbacks"] = g.Fallbacks
 	}
 	body, _ := json.Marshal(request)
-	headers := map[string]string{InternalHeader: "1"}
+	headers := map[string]string{InternalHeader: g.Token}
 	if g.VirtualKey != "" {
 		headers["x-bf-vk"] = g.VirtualKey
 	}

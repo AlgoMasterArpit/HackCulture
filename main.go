@@ -5,9 +5,12 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -44,6 +47,9 @@ type plugin struct {
 	verifier *freshness.Verifier
 	ledger   *freshness.Ledger
 	http     *http.Client
+	// token marks the plugin's own judge calls. It is random per process so a
+	// client cannot send the header itself to skip checking.
+	token string
 }
 
 var active *plugin
@@ -81,14 +87,19 @@ func newPlugin(raw any) (*plugin, error) {
 	if cfg.TavilyAPIKey == "" && cfg.VirtualKey == "" {
 		return nil, fmt.Errorf("set tavily_api_key, or virtual_key with tavily_url pointing at a Bifrost relay")
 	}
+	if cfg.MaxClaims <= 0 || cfg.MaxResults <= 0 || cfg.TimeoutSeconds <= 0 {
+		return nil, fmt.Errorf("max_claims, max_results and timeout_seconds must be positive")
+	}
 
+	token := rand.Text()
 	client := &http.Client{Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second}
 	return &plugin{
 		cfg:    cfg,
 		http:   client,
+		token:  token,
 		ledger: freshness.NewLedger(10000),
 		verifier: &freshness.Verifier{
-			LLM:       &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, HTTP: client},
+			LLM:       &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, Token: token, HTTP: client},
 			Search:    &freshness.Tavily{BaseURL: cfg.TavilyURL, APIKey: cfg.TavilyAPIKey, VirtualKey: cfg.VirtualKey, MaxResults: cfg.MaxResults, HTTP: client},
 			MaxClaims: cfg.MaxClaims,
 			Now:       time.Now,
@@ -115,7 +126,7 @@ func Cleanup() error {
 // freshness report back, without a second service or a new route.
 func HTTPTransportPreHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest) (*schemas.HTTPResponse, error) {
 	p := active
-	if p == nil || !isChatCompletion(req) || isInternal(req) {
+	if p == nil || !isChatCompletion(req) || p.isInternal(req) {
 		return nil, nil
 	}
 	if gjson.GetBytes(req.Body, "model").String() != verifyModel {
@@ -159,7 +170,10 @@ type annotation struct {
 // answer that has since gone stale.
 func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest, resp *schemas.HTTPResponse) error {
 	p := active
-	if p == nil || !isChatCompletion(req) || isInternal(req) || resp.StatusCode != 200 || len(resp.Body) == 0 {
+	if p == nil || !isChatCompletion(req) || p.isInternal(req) || resp.StatusCode != 200 || len(resp.Body) == 0 {
+		return nil
+	}
+	if gjson.GetBytes(req.Body, "model").String() == verifyModel {
 		return nil
 	}
 	if gjson.GetBytes(req.Body, "stream").Bool() || !gjson.ValidBytes(resp.Body) {
@@ -203,12 +217,18 @@ func (p *plugin) evictsStale() bool {
 func (p *plugin) verify(question, answer string) freshness.Report {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.cfg.TimeoutSeconds)*time.Second)
 	defer cancel()
-	return p.verifier.Verify(ctx, question, answer)
+	report := p.verifier.Verify(ctx, question, answer)
+	if report.Detail != nil {
+		log.Printf("bestbefore: %s: %v", report.Error, report.Detail)
+	}
+	return report
 }
 
 func (p *plugin) evict(cacheID string) error {
-	url := strings.TrimRight(p.cfg.GatewayURL, "/") + "/api/cache/clear/" + cacheID
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	target := strings.TrimRight(p.cfg.GatewayURL, "/") + "/api/cache/clear/" + url.PathEscape(cacheID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, target, nil)
 	if err != nil {
 		return err
 	}
@@ -244,8 +264,8 @@ func isChatCompletion(req *schemas.HTTPRequest) bool {
 	return req.Method == http.MethodPost && strings.HasSuffix(req.Path, "/chat/completions")
 }
 
-func isInternal(req *schemas.HTTPRequest) bool {
-	return req.CaseInsensitiveHeaderLookup(freshness.InternalHeader) != ""
+func (p *plugin) isInternal(req *schemas.HTTPRequest) bool {
+	return req.CaseInsensitiveHeaderLookup(freshness.InternalHeader) == p.token
 }
 
 func lastUserMessage(body []byte) string {
