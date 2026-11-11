@@ -1,7 +1,7 @@
 services:
   gateway:
     build: .
-    image: bestbefore-gateway:dev
+    image: ghcr.io/algomasterarpit/bestbefore-gateway:latest
     env_file: .env
     ports:
       - "8080:8080"
@@ -19,7 +19,7 @@ services:
 
   gateway-baseline:
     profiles: [baseline]
-    image: bestbefore-gateway:dev
+    image: ghcr.io/algomasterarpit/bestbefore-gateway:latest
     env_file: .env
     ports:
       - "8081:8080"
