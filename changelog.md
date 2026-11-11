@@ -1,0 +1,3 @@
+- feat: bestbefore plugin. Re-verifies time-sensitive claims in chat answers against live Tavily search results and adds a per-claim freshness score to the response body (`bestbefore`) and headers (`x-bestbefore-status`, `x-bestbefore-score`).
+- feat: evicts stale answers from the semantic cache by `cache_id`, and re-checks cache hits only when their most volatile claim is due.
+- feat: `bestbefore/verify` virtual model that scores an answer passed in as the last message.
