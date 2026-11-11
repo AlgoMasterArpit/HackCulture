@@ -41,6 +41,9 @@ def main():
             report, seconds = {"status": "error", "error": str(error), "claims": []}, 0
         runs.append({**item, "report": report, "wall_seconds": round(seconds, 2)})
         print(f"[{index:2}/{len(items)}] {item['id']} {item['label']:9} -> {report['status']:9} {item['answer'][:60]}", flush=True)
+        if len(runs) >= 3 and all(r["report"]["status"] in ("unchecked", "error") for r in runs[-3:]):
+            print("\nthree checks in a row failed (network or quota); not saving a broken run", flush=True)
+            return 2
         if report.get("searches"):
             time.sleep(args.pace)
 
