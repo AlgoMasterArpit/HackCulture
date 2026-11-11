@@ -1,0 +1,9 @@
+.git
+.env
+.playwright-mcp
+data
+docs
+web
+eval
+e2e
+*.md
