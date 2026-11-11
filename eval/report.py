@@ -234,7 +234,7 @@ def replace_block(text, name, body):
     return head + start + body + end + tail
 
 
-def update_readme(claims, cache, run1=None):
+def update_readme(claims, cache, run1=None, repeat=None):
     path = HERE.parent / "README.md"
     text = path.read_text(encoding="utf-8")
     proof, rows = [], []
@@ -260,13 +260,18 @@ def update_readme(claims, cache, run1=None):
             "",
         ]
         if run1:
+            repeat_note = (
+                f"; a repeat with the same rule gave {repeat['with']['recall']:.0f}% and {repeat['with']['false_alarm']:.0f}%"
+                if repeat else ""
+            )
             rows += [
-                f"**Two runs, both published.** Our first run used a stricter quote rule, which threw out real contradictions "
-                f"worded differently from the source (\"JDK 25\" for \"Java 25\", a three-word \"Latest version: 19.3\"). "
-                f"It caught {run1['with']['recall']:.0f}% of stale answers and wrongly flagged {run1['with']['false_alarm']:.0f}% of good ones. "
-                f"We changed the rule after reading those misses, then re-ran the same 60 answers; the table above is that second run. "
-                f"Because the rule was tuned after seeing this data, treat these as development numbers, not a held-out test. "
-                f"Both runs are in [eval/results/](eval/results/), and every rejected verdict carries its reason.",
+                "**Earlier runs, also published.** Our first run used a stricter quote rule, which threw out real contradictions "
+                "worded differently from the source (\"JDK 25\" for \"Java 25\", a three-word \"Latest version: 19.3\"). "
+                f"It caught {run1['with']['recall']:.0f}% of stale answers and wrongly flagged {run1['with']['false_alarm']:.0f}% "
+                f"of good ones{repeat_note}. We changed the rule after reading those misses, then re-ran the same 60 answers; "
+                "the table above is that run. Because the rule was tuned after seeing this data, treat these as development "
+                "numbers, not a held-out test. Every run is in [eval/results/](eval/results/), and every rejected verdict "
+                "carries its reason.",
                 "",
             ]
     if cache:
@@ -295,12 +300,14 @@ def main():
     claims_data, cache_data, run1_data = load("claims.json"), load("cache.json"), load("claims-run1.json")
     claims = claim_metrics(claims_data["runs"]) if claims_data else None
     run1 = claim_metrics(run1_data["runs"]) if run1_data else None
+    repeat_data = load("claims-run1-repeat.json")
+    repeat = claim_metrics(repeat_data["runs"]) if repeat_data else None
     cache = cache_metrics(cache_data) if cache_data else None
     write_charts(claims, cache)
     results_markdown(claims_data, claims, cache_data, cache)
-    update_readme(claims, cache, run1)
+    update_readme(claims, cache, run1, repeat)
     keep = lambda m: {k: v for k, v in (m or {}).items() if k not in ("rejected", "counts")}
-    summary = {"claims": keep(claims), "claims_run1": keep(run1), "cache": cache}
+    summary = {"claims": keep(claims), "claims_run1": keep(run1), "claims_run1_repeat": keep(repeat), "cache": cache}
     (HERE / "results" / "summary.json").write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
     print(json.dumps(summary, indent=2, default=str))
 
