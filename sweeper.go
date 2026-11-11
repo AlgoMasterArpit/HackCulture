@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -26,7 +25,7 @@ func (s *stats) record(r freshness.Report) {
 
 func (s *stats) snapshot() map[string]int64 {
 	return map[string]int64{
-		"answers_checked":           s.checked.Load(),
+		"checks_run":                s.checked.Load(),
 		"stale_found":               s.stale.Load(),
 		"healed":                    s.healed.Load(),
 		"evicted":                   s.evicted.Load(),
@@ -55,16 +54,20 @@ func newPendingChecks() *pendingChecks {
 	return &pendingChecks{items: map[string]pendingCheck{}}
 }
 
-func (pc *pendingChecks) put(id, question string, o outcome) {
+func (pc *pendingChecks) put(key, question string, o outcome) {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 	now := time.Now()
-	for k, v := range pc.items {
-		if now.Sub(v.at) > time.Minute {
-			delete(pc.items, k)
+	// Entries are taken within milliseconds; only orphans from failed
+	// requests linger, so prune rarely instead of on every put.
+	if len(pc.items) >= 256 {
+		for k, v := range pc.items {
+			if now.Sub(v.at) > time.Minute {
+				delete(pc.items, k)
+			}
 		}
 	}
-	pc.items[id] = pendingCheck{outcome: o, question: question, at: now}
+	pc.items[key] = pendingCheck{outcome: o, question: question, at: now}
 }
 
 func (pc *pendingChecks) take(id string) (pendingCheck, bool) {
@@ -80,14 +83,12 @@ func (p *plugin) startSweeper() {
 	if every == 0 {
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	p.stop = cancel
 	go func() {
 		ticker := time.NewTicker(every)
 		defer ticker.Stop()
 		for {
 			select {
-			case <-ctx.Done():
+			case <-p.ctx.Done():
 				return
 			case <-ticker.C:
 				p.sweep(false)
@@ -106,27 +107,41 @@ type sweepResult struct {
 // sweep re-checks cached answers whose best-before date has passed, so a fact
 // that changed is caught before the next user asks. Stale entries are
 // evicted; the next request then gets a fresh, healed answer into the cache.
-func (p *plugin) sweep(all bool) []sweepResult {
+// Only one sweep runs at a time; ran is false when another was in progress.
+func (p *plugin) sweep(all bool) (results []sweepResult, ran bool) {
+	if !p.sweeping.TryLock() {
+		return nil, false
+	}
+	defer p.sweeping.Unlock()
 	p.stats.sweeps.Add(1)
-	var results []sweepResult
+	results = []sweepResult{}
 	for id, e := range p.ledger.Due(time.Now(), all) {
-		out := p.check(e.Question, e.Answer, false)
+		if p.ctx.Err() != nil {
+			break
+		}
+		checkedAt := e.Report.CheckedAt
+		out := p.checkWithin(p.ctx, e.Question, freshness.StripSources(e.Answer), false)
 		p.stats.swept.Add(1)
 		r := sweepResult{CacheID: id, Question: e.Question, Status: out.Status}
 		switch {
 		case out.Status == freshness.StatusUnchecked:
-			e.Report.RecheckAfter = time.Now().Add(time.Minute)
-			p.ledger.Put(id, e)
+			// Do not keep vouching for an answer that could not be re-checked,
+			// and back off so an outage does not repeat paid calls every tick.
+			e.Failures++
+			e.Report.Status, e.Report.Score, e.Report.Error = freshness.StatusUnchecked, out.Score, out.Error
+			e.Report.RecheckAfter = time.Now().Add(min(time.Minute<<min(e.Failures, 6), time.Hour))
+			p.ledger.ReplaceIf(id, checkedAt, e)
 		case out.Stale():
-			if p.evictsStale() {
+			if p.ledger.DeleteIf(id, checkedAt) && p.evictsStale() {
 				r.Evicted = p.evictTwice(id)
-				p.stats.sweptStale.Add(1)
+				if r.Evicted {
+					p.stats.sweptStale.Add(1)
+				}
 			}
-			p.ledger.Delete(id)
 		default:
-			p.ledger.Put(id, out.ledgerEntry(e.Question))
+			p.ledger.ReplaceIf(id, checkedAt, out.ledgerEntry(e.Question))
 		}
 		results = append(results, r)
 	}
-	return results
+	return results, true
 }
