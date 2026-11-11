@@ -16,7 +16,7 @@ def chat(gateway, model, messages, cache_key=None, retries=4):
             with urllib.request.urlopen(request, timeout=180) as response:
                 return json.loads(response.read()), time.monotonic() - started
         except urllib.error.HTTPError as error:
-            if error.code not in (429, 500, 502, 503) or attempt == retries:
+            if error.code not in (429, 500, 502, 503, 504) or attempt == retries:
                 raise RuntimeError(f"{error.code}: {error.read()[:300]!r}") from error
         except (urllib.error.URLError, ConnectionError, TimeoutError):
             if attempt == retries:
