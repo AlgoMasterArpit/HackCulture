@@ -1,0 +1,1483 @@
+{
+  "ran_at": "2026-11-11T07:51:40+00:00",
+  "gateway": "http://localhost:8080",
+  "labelled_on": "2026-11-11",
+  "duration_seconds": 285,
+  "runs": [
+    {
+      "id": "s01",
+      "label": "stale",
+      "question": "What is the latest stable version of Python?",
+      "answer": "The latest stable version of Python is Python 3.11.",
+      "why": "3.12 (Oct 2023), 3.13 (Oct 2024) and 3.14 (Oct 2025) have since shipped.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "The latest stable version of Python is Python 3.11.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "3.15",
+            "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
+            "quote": "Python 3.15 is the latest stable release",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:46:56.409019686Z",
+        "recheck_after": "2026-11-14T07:46:56.409019686Z",
+        "searches": 1,
+        "judge_tokens": 2357,
+        "latency_ms": 4710
+      },
+      "wall_seconds": 5.25
+    },
+    {
+      "id": "s02",
+      "label": "stale",
+      "question": "Who runs Twitter?",
+      "answer": "Parag Agrawal is the CEO of Twitter.",
+      "why": "Agrawal was removed in October 2022.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Parag Agrawal is the CEO of Twitter.",
+            "kind": "leadership",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:03.200621063Z",
+        "recheck_after": "2026-11-18T07:47:03.200621063Z",
+        "searches": 1,
+        "judge_tokens": 2198,
+        "latency_ms": 6749
+      },
+      "wall_seconds": 6.81
+    },
+    {
+      "id": "s03",
+      "label": "stale",
+      "question": "Which Node.js version should I use?",
+      "answer": "Node.js 18 is the current active LTS release of Node.js.",
+      "why": "Node.js 18 reached end of life in April 2025.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Node.js 18 is the current active LTS release of Node.js.",
+            "kind": "version",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:11.98449748Z",
+        "recheck_after": "2026-11-14T07:47:11.98449748Z",
+        "searches": 1,
+        "judge_tokens": 2317,
+        "latency_ms": 9008
+      },
+      "wall_seconds": 9.06
+    },
+    {
+      "id": "s04",
+      "label": "stale",
+      "question": "Is there a free GitHub Copilot plan?",
+      "answer": "GitHub Copilot has no free tier; every plan is paid.",
+      "why": "GitHub launched Copilot Free in December 2024.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "GitHub Copilot has no free tier; every plan is paid.",
+            "kind": "pricing",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:23.107341279Z",
+        "recheck_after": "2026-11-12T07:47:23.107341279Z",
+        "searches": 1,
+        "judge_tokens": 2343,
+        "latency_ms": 7699
+      },
+      "wall_seconds": 7.8
+    },
+    {
+      "id": "s05",
+      "label": "stale",
+      "question": "Who is the UK Prime Minister?",
+      "answer": "Rishi Sunak is the Prime Minister of the United Kingdom.",
+      "why": "Sunak left office in July 2024.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Rishi Sunak is the Prime Minister of the United Kingdom.",
+            "kind": "leadership",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Andy Burnham",
+            "source_url": "https://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom",
+            "quote": "The current prime minister is Andy Burnham who has held the office since 20 July 2026.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:33.117154898Z",
+        "recheck_after": "2026-11-18T07:47:33.117154898Z",
+        "searches": 1,
+        "judge_tokens": 2034,
+        "latency_ms": 7755
+      },
+      "wall_seconds": 8.19
+    },
+    {
+      "id": "s06",
+      "label": "stale",
+      "question": "What is Google's most capable Gemini model?",
+      "answer": "Gemini 1.5 Pro is currently Google's most capable Gemini model.",
+      "why": "Gemini 2.5 Pro (2025) and later models replaced it.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Gemini 1.5 Pro is Google's most capable Gemini model.",
+            "kind": "version",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "unverifiable",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:43.068012828Z",
+        "recheck_after": "2026-11-14T07:47:43.068012828Z",
+        "searches": 1,
+        "judge_tokens": 2063,
+        "latency_ms": 7580
+      },
+      "wall_seconds": 7.7
+    },
+    {
+      "id": "s07",
+      "label": "stale",
+      "question": "What is the latest major version of React?",
+      "answer": "The latest major version of React is React 18.",
+      "why": "React 19 was released in December 2024.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "The latest major version of React is React 18.",
+            "kind": "version",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:47:53.83924432Z",
+        "recheck_after": "2026-11-14T07:47:53.83924432Z",
+        "searches": 1,
+        "judge_tokens": 2435,
+        "latency_ms": 4219
+      },
+      "wall_seconds": 5.41
+    },
+    {
+      "id": "s08",
+      "label": "stale",
+      "question": "Which Ubuntu LTS is newest?",
+      "answer": "Ubuntu 22.04 is the newest Ubuntu LTS release.",
+      "why": "Ubuntu 24.04 LTS (April 2024) and 26.04 LTS (April 2026) followed.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Ubuntu 22.04 is the newest Ubuntu LTS release.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Ubuntu 26.04 (\"Resolute Raccoon\") LTS",
+            "source_url": "https://en.wikipedia.org/wiki/Ubuntu_version_history",
+            "quote": "Ubuntu 26.04 (\"Resolute Raccoon\") LTS released",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:00.467124232Z",
+        "recheck_after": "2026-11-14T07:48:00.467124232Z",
+        "searches": 1,
+        "judge_tokens": 2704,
+        "latency_ms": 7134
+      },
+      "wall_seconds": 7.53
+    },
+    {
+      "id": "s09",
+      "label": "stale",
+      "question": "What is OpenAI's newest flagship model?",
+      "answer": "GPT-4 Turbo is currently OpenAI's newest flagship model.",
+      "why": "GPT-4o, GPT-4.1 and GPT-5 followed it.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "GPT-4 Turbo is OpenAI's newest flagship model.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "GPT-6 Astra",
+            "source_url": "https://developers.openai.com/api/docs/models",
+            "quote": "GPT-6 Astra\n\nOur most capable model for the most demanding work.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:09.85634394Z",
+        "recheck_after": "2026-11-14T07:48:09.85634394Z",
+        "searches": 1,
+        "judge_tokens": 2318,
+        "latency_ms": 6190
+      },
+      "wall_seconds": 6.42
+    },
+    {
+      "id": "s10",
+      "label": "stale",
+      "question": "Who is the US President?",
+      "answer": "Joe Biden is the current President of the United States.",
+      "why": "Biden's term ended in January 2025.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Joe Biden is the current President of the United States.",
+            "kind": "leadership",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Donald John Trump",
+            "source_url": "https://www.usa.gov/presidents",
+            "quote": "The 47th and current president of the United States is Donald John Trump.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:18.087508021Z",
+        "recheck_after": "2026-11-18T07:48:18.087508021Z",
+        "searches": 1,
+        "judge_tokens": 1744,
+        "latency_ms": 6740
+      },
+      "wall_seconds": 6.76
+    },
+    {
+      "id": "s11",
+      "label": "stale",
+      "question": "What is the newest Kubernetes release?",
+      "answer": "Kubernetes 1.28 is the latest Kubernetes release.",
+      "why": "Kubernetes has shipped 1.29 through 1.33 and later since.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.15,
+        "claims": [
+          {
+            "claim": "Kubernetes 1.28 is the latest Kubernetes release.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.15,
+            "current_value": "1.37",
+            "source_url": "https://endoflife.date/kubernetes",
+            "quote": "| 1.37 | 1 month and 2 weeks ago (26 Aug 2026) | Ends in 10 months (28 Aug 2027) | Ends in 1 year (28 Oct 2027) | 1.37.1 (23 Sep 2026) |",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:26.870789162Z",
+        "recheck_after": "2026-11-14T07:48:26.870789162Z",
+        "searches": 1,
+        "judge_tokens": 2874,
+        "latency_ms": 6357
+      },
+      "wall_seconds": 6.39
+    },
+    {
+      "id": "s12",
+      "label": "stale",
+      "question": "What is the latest Go release?",
+      "answer": "Go 1.21 is the latest release of the Go programming language.",
+      "why": "Go 1.22 through 1.25 and later have shipped.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Go 1.21 is the latest release of the Go programming language.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Go 1.27",
+            "source_url": "https://go.dev/blog/go1.27",
+            "quote": "Today the Go team is pleased to release Go 1.27.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:35.27594082Z",
+        "recheck_after": "2026-11-14T07:48:35.27594082Z",
+        "searches": 1,
+        "judge_tokens": 2487,
+        "latency_ms": 6260
+      },
+      "wall_seconds": 6.3
+    },
+    {
+      "id": "s13",
+      "label": "stale",
+      "question": "Who is the CEO of YouTube?",
+      "answer": "Susan Wojcicki is the CEO of YouTube.",
+      "why": "Neal Mohan took over in February 2023.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Susan Wojcicki is the CEO of YouTube.",
+            "kind": "leadership",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "CEO at YouTube",
+            "source_url": "https://www.linkedin.com/in/neal-mohan",
+            "quote": "CEO at YouTube (Feb 2023 to present)",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:43.575797564Z",
+        "recheck_after": "2026-11-18T07:48:43.575797564Z",
+        "searches": 1,
+        "judge_tokens": 1915,
+        "latency_ms": 4784
+      },
+      "wall_seconds": 4.83
+    },
+    {
+      "id": "s14",
+      "label": "stale",
+      "question": "What is Apple's newest iPhone?",
+      "answer": "The iPhone 15 is Apple's newest iPhone.",
+      "why": "The iPhone 16 (2024) and iPhone 17 (2025) followed.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.12,
+        "claims": [
+          {
+            "claim": "The iPhone 15 is Apple's newest iPhone.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.12,
+            "current_value": "iPhone 17",
+            "source_url": "https://finance.yahoo.com/video/newest-features-showcased-apple-iphone-191420403.html",
+            "quote": "Apple (AAPL) unveiled the iPhone 17 and its latest generation of devices at the company's launch event in Cupertino, California.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:50.419104587Z",
+        "recheck_after": "2026-11-14T07:48:50.419104587Z",
+        "searches": 1,
+        "judge_tokens": 2303,
+        "latency_ms": 7028
+      },
+      "wall_seconds": 7.08
+    },
+    {
+      "id": "s15",
+      "label": "stale",
+      "question": "Which Java version is the latest LTS?",
+      "answer": "Java 17 is the latest long-term support release of Java.",
+      "why": "Java 21 (2023) and Java 25 (2025) are newer LTS releases.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Java 17 is the latest long-term support release of Java.",
+            "kind": "version",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:48:59.477123108Z",
+        "recheck_after": "2026-11-14T07:48:59.477123108Z",
+        "searches": 1,
+        "judge_tokens": 2506,
+        "latency_ms": 7726
+      },
+      "wall_seconds": 7.75
+    },
+    {
+      "id": "s16",
+      "label": "stale",
+      "question": "Has the EU passed its AI law?",
+      "answer": "The EU AI Act has been proposed but has not yet been adopted.",
+      "why": "The AI Act was adopted in 2024 and entered into force on 1 August 2024.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:49:09.227424895Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "s17",
+      "label": "stale",
+      "question": "What is Twitter's web address?",
+      "answer": "Twitter's main website is currently twitter.com.",
+      "why": "The service moved to x.com in May 2024.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.15,
+        "claims": [
+          {
+            "claim": "Twitter's main website is currently twitter.com.",
+            "kind": "recency",
+            "status": "stale",
+            "freshness_score": 0.15,
+            "current_value": "X.com",
+            "source_url": "https://www.businessinsider.com/twitter-url-redirects-x-com-domain-website-elon-musk-rebrand-2024-5?op=1",
+            "quote": "Typing in Twitter.com now redirects to the X.com domain.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:09.253805197Z",
+        "recheck_after": "2026-11-12T07:49:09.253805197Z",
+        "searches": 1,
+        "judge_tokens": 2378,
+        "latency_ms": 4696
+      },
+      "wall_seconds": 4.72
+    },
+    {
+      "id": "s18",
+      "label": "stale",
+      "question": "What is the latest PostgreSQL major version?",
+      "answer": "PostgreSQL 15 is the latest major version of PostgreSQL.",
+      "why": "PostgreSQL 16 (2023), 17 (2024) and 18 (2025) followed.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "PostgreSQL 15 is the latest major version of PostgreSQL.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "PostgreSQL 18",
+            "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
+            "quote": "the release of PostgreSQL 18, the latest version",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:15.980323166Z",
+        "recheck_after": "2026-11-14T07:49:15.980323166Z",
+        "searches": 1,
+        "judge_tokens": 2598,
+        "latency_ms": 5919
+      },
+      "wall_seconds": 5.95
+    },
+    {
+      "id": "s19",
+      "label": "stale",
+      "question": "What's the newest Claude model?",
+      "answer": "Claude 3 Opus is Anthropic's newest and most capable model.",
+      "why": "Claude 3.5, 4 and later families followed.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Claude 3 Opus is Anthropic's newest and most capable model.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Claude Sonnet 4.5",
+            "source_url": "https://cryptorank.io/news/feed/3f07b-anthropic-launches-claude-sonnet-4-5-claims-worlds-best-coding-ai-model",
+            "quote": "Anthropic rolled out Claude Sonnet 4.5 on Monday, its newest AI model",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:23.923337973Z",
+        "recheck_after": "2026-11-14T07:49:23.923337973Z",
+        "searches": 1,
+        "judge_tokens": 2020,
+        "latency_ms": 4076
+      },
+      "wall_seconds": 4.09
+    },
+    {
+      "id": "s20",
+      "label": "stale",
+      "question": "Which macOS is current?",
+      "answer": "macOS Sonoma is the latest version of macOS.",
+      "why": "macOS Sequoia (2024) and macOS Tahoe (2025) followed.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.12,
+        "claims": [
+          {
+            "claim": "macOS Sonoma is the latest version of macOS.",
+            "kind": "version",
+            "status": "stale",
+            "freshness_score": 0.12,
+            "current_value": "macOS Tahoe",
+            "source_url": "https://www.macworld.com/article/672681/list-of-all-macos-versions-including-the-latest-macos.html",
+            "quote": "The latest version of macOS is called macOS Tahoe",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:30.058793452Z",
+        "recheck_after": "2026-11-14T07:49:30.058793452Z",
+        "searches": 1,
+        "judge_tokens": 1992,
+        "latency_ms": 5622
+      },
+      "wall_seconds": 5.67
+    },
+    {
+      "id": "f01",
+      "label": "fresh",
+      "question": "Who is the CEO of Microsoft?",
+      "answer": "Satya Nadella is the CEO of Microsoft.",
+      "why": "CEO since 2014.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Satya Nadella is the CEO of Microsoft.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://news.microsoft.com/source/exec/satya-nadella",
+            "quote": "Satya Nadella is Chairman and Chief Executive Officer of Microsoft",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:37.715807694Z",
+        "recheck_after": "2026-11-18T07:49:37.715807694Z",
+        "searches": 1,
+        "judge_tokens": 2214,
+        "latency_ms": 4011
+      },
+      "wall_seconds": 4.06
+    },
+    {
+      "id": "f02",
+      "label": "fresh",
+      "question": "Who leads NVIDIA?",
+      "answer": "Jensen Huang is the CEO of NVIDIA.",
+      "why": "Co-founder and CEO since 1993.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Jensen Huang is the CEO of NVIDIA.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "http://nvidianews.nvidia.com/bios/jensen-huang",
+            "quote": "Jensen Huang founded NVIDIA in 1993 and has served since its inception as president, chief executive officer, and a member of the board of directors.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:43.739516941Z",
+        "recheck_after": "2026-11-18T07:49:43.739516941Z",
+        "searches": 1,
+        "judge_tokens": 1863,
+        "latency_ms": 8927
+      },
+      "wall_seconds": 8.94
+    },
+    {
+      "id": "f03",
+      "label": "fresh",
+      "question": "Who is the CEO of Alphabet?",
+      "answer": "Sundar Pichai is the CEO of Alphabet.",
+      "why": "CEO since 2019.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Sundar Pichai is the CEO of Alphabet.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/Sundar_Pichai",
+            "quote": "CEO of Google since 2015 and the CEO of its parent company Alphabet Inc. since 2019.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:49:54.719216943Z",
+        "recheck_after": "2026-11-18T07:49:54.719216943Z",
+        "searches": 1,
+        "judge_tokens": 2092,
+        "latency_ms": 4684
+      },
+      "wall_seconds": 4.73
+    },
+    {
+      "id": "f04",
+      "label": "fresh",
+      "question": "When did Python 2 reach end of life?",
+      "answer": "Python 2 reached end of life on January 1, 2020.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Python 2 reached end of life on January 1, 2020.",
+            "kind": "recency",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://tuxcare.com/blog/python-2-7-eol",
+            "quote": "Python 2.7 officially reached its end of life (EOL) on January 1, 2020.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:01.432787716Z",
+        "recheck_after": "2026-11-12T07:50:01.432787716Z",
+        "searches": 1,
+        "judge_tokens": 2578,
+        "latency_ms": 3554
+      },
+      "wall_seconds": 3.58
+    },
+    {
+      "id": "f05",
+      "label": "fresh",
+      "question": "Who owns GitHub?",
+      "answer": "GitHub is owned by Microsoft, which acquired it in 2018.",
+      "why": "Ownership unchanged.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "GitHub is owned by Microsoft",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://aifundingtracker.com/who-owns-github",
+            "quote": "GitHub is owned by Microsoft Corporation",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:07.003679186Z",
+        "recheck_after": "2026-11-18T07:50:07.003679186Z",
+        "searches": 1,
+        "judge_tokens": 2387,
+        "latency_ms": 3815
+      },
+      "wall_seconds": 3.83
+    },
+    {
+      "id": "f06",
+      "label": "fresh",
+      "question": "Who owns Instagram?",
+      "answer": "Instagram is owned by Meta.",
+      "why": "Ownership unchanged.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:50:12.834787681Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "f07",
+      "label": "fresh",
+      "question": "When did the EU AI Act take effect?",
+      "answer": "The EU AI Act entered into force on 1 August 2024.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "The EU AI Act entered into force on 1 August 2024.",
+            "kind": "regulation",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/Artificial_Intelligence_Act",
+            "quote": "The regulation entered into force on 1 August 2024",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:12.853341154Z",
+        "recheck_after": "2026-11-18T07:50:12.853341154Z",
+        "searches": 1,
+        "judge_tokens": 2172,
+        "latency_ms": 3759
+      },
+      "wall_seconds": 3.78
+    },
+    {
+      "id": "f08",
+      "label": "fresh",
+      "question": "Is Node.js 18 still supported?",
+      "answer": "Node.js 18 reached end of life in April 2025.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Node.js 18 reached end of life in April 2025.",
+            "kind": "version",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://acemq.com/blogs/nodejs-end-of-life",
+            "quote": "Node.js 18 reached end of life on 30 April 2025",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:18.641403476Z",
+        "recheck_after": "2026-11-14T07:50:18.641403476Z",
+        "searches": 1,
+        "judge_tokens": 2801,
+        "latency_ms": 5663
+      },
+      "wall_seconds": 5.69
+    },
+    {
+      "id": "f09",
+      "label": "fresh",
+      "question": "Who is the CEO of Amazon?",
+      "answer": "Andy Jassy is the CEO of Amazon.",
+      "why": "CEO since 2021.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Andy Jassy is the CEO of Amazon.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://ir.aboutamazon.com/officers-and-directors/person-details/default.aspx?ItemId=7601ef7b-4732-44e2-84ef-2cccb54ac11a",
+            "quote": "Andy Jassy is President and CEO of Amazon.com",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:26.334678341Z",
+        "recheck_after": "2026-11-18T07:50:26.334678341Z",
+        "searches": 1,
+        "judge_tokens": 2243,
+        "latency_ms": 5810
+      },
+      "wall_seconds": 5.83
+    },
+    {
+      "id": "f10",
+      "label": "fresh",
+      "question": "Who is the CEO of AMD?",
+      "answer": "Lisa Su is the CEO of AMD.",
+      "why": "CEO since 2014.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Lisa Su is the CEO of AMD.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://www.amd.com/en/corporate/leadership/lisa-su.html",
+            "quote": "Chair and Chief Executive Officer",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:34.171591105Z",
+        "recheck_after": "2026-11-18T07:50:34.171591105Z",
+        "searches": 1,
+        "judge_tokens": 2275,
+        "latency_ms": 4330
+      },
+      "wall_seconds": 4.36
+    },
+    {
+      "id": "f11",
+      "label": "fresh",
+      "question": "Who runs Meta?",
+      "answer": "Mark Zuckerberg is the CEO of Meta.",
+      "why": "Founder and CEO.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Mark Zuckerberg is the CEO of Meta.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/Mark_Zuckerberg",
+            "quote": "He is its chairman, chief executive officer (CEO), and controlling shareholder.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:40.51974611Z",
+        "recheck_after": "2026-11-18T07:50:40.51974611Z",
+        "searches": 1,
+        "judge_tokens": 2178,
+        "latency_ms": 3973
+      },
+      "wall_seconds": 4.03
+    },
+    {
+      "id": "f12",
+      "label": "fresh",
+      "question": "When was React 19 released?",
+      "answer": "React 19 was released in December 2024.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "React 19 was released in December 2024.",
+            "kind": "version",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/React_(software)",
+            "quote": "On December 5, 2024, React 19 was released.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:46.531938107Z",
+        "recheck_after": "2026-11-14T07:50:46.531938107Z",
+        "searches": 1,
+        "judge_tokens": 2304,
+        "latency_ms": 4785
+      },
+      "wall_seconds": 4.8
+    },
+    {
+      "id": "f13",
+      "label": "fresh",
+      "question": "When did Ubuntu 24.04 come out?",
+      "answer": "Ubuntu 24.04 LTS was released in April 2024.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Ubuntu 24.04 LTS was released in April 2024.",
+            "kind": "version",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://ubuntu.com/about/release-cycle",
+            "quote": "Ubuntu 24.04 LTS Released: Apr 2024",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:50:53.336075178Z",
+        "recheck_after": "2026-11-14T07:50:53.336075178Z",
+        "searches": 1,
+        "judge_tokens": 3663,
+        "latency_ms": 4061
+      },
+      "wall_seconds": 4.08
+    },
+    {
+      "id": "f14",
+      "label": "fresh",
+      "question": "Since when has GDPR applied?",
+      "answer": "GDPR has applied across the EU since 25 May 2018.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:50:59.414092567Z",
+        "recheck_after": "2026-11-12T07:50:59.414092567Z",
+        "searches": 0,
+        "judge_tokens": 246,
+        "latency_ms": 971
+      },
+      "wall_seconds": 0.98
+    },
+    {
+      "id": "f15",
+      "label": "fresh",
+      "question": "Where is OpenAI based?",
+      "answer": "OpenAI is headquartered in San Francisco.",
+      "why": "Headquarters unchanged.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "OpenAI is headquartered in San Francisco.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://www.clay.com/dossier/openai-headquarters-office-locations",
+            "quote": "OpenAI's headquarters is located at 3180 18th Street in San Francisco, California.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:51:00.403991174Z",
+        "recheck_after": "2026-11-18T07:51:00.403991174Z",
+        "searches": 1,
+        "judge_tokens": 2376,
+        "latency_ms": 4580
+      },
+      "wall_seconds": 4.59
+    },
+    {
+      "id": "f16",
+      "label": "fresh",
+      "question": "Who is the CEO of YouTube?",
+      "answer": "Neal Mohan is the CEO of YouTube.",
+      "why": "CEO since February 2023.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Neal Mohan is the CEO of YouTube.",
+            "kind": "leadership",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "supported",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-11T07:51:07.011623682Z",
+        "recheck_after": "2026-11-18T07:51:07.011623682Z",
+        "searches": 1,
+        "judge_tokens": 1890,
+        "latency_ms": 2675
+      },
+      "wall_seconds": 2.7
+    },
+    {
+      "id": "f17",
+      "label": "fresh",
+      "question": "Is Java 21 an LTS release?",
+      "answer": "Java 21 is a long-term support release of Java.",
+      "why": "LTS status does not change.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:11.703179101Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "f18",
+      "label": "fresh",
+      "question": "When was Python 3.12 released?",
+      "answer": "Python 3.12 was released in October 2023.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Python 3.12 was released in October 2023.",
+            "kind": "version",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://www.python.org/downloads/release/python-3120",
+            "quote": "Release date: Oct. 2, 2023",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:51:11.733781053Z",
+        "recheck_after": "2026-11-14T07:51:11.733781053Z",
+        "searches": 1,
+        "judge_tokens": 3014,
+        "latency_ms": 4550
+      },
+      "wall_seconds": 4.58
+    },
+    {
+      "id": "f19",
+      "label": "fresh",
+      "question": "What happened to the Twitter name?",
+      "answer": "Twitter was rebranded as X in July 2023.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Twitter was rebranded as X in July 2023.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://tweetfull.com/blog/when-did-twitter-become-x-timeline-dates-and-key-changes",
+            "quote": "began on July 23, 2023, when the iconic bird logo was replaced with a stylized X",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:51:18.304201517Z",
+        "recheck_after": "2026-11-18T07:51:18.304201517Z",
+        "searches": 1,
+        "judge_tokens": 2385,
+        "latency_ms": 7214
+      },
+      "wall_seconds": 7.22
+    },
+    {
+      "id": "f20",
+      "label": "fresh",
+      "question": "Who runs SpaceX?",
+      "answer": "Elon Musk is the CEO of SpaceX.",
+      "why": "Founder and CEO.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "Elon Musk is the CEO of SpaceX.",
+            "kind": "leadership",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/SpaceX",
+            "quote": "Elon Musk (CEO, chairman \"Chair (officer)\")&CTO)",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-11T07:51:27.5498791Z",
+        "recheck_after": "2026-11-18T07:51:27.5498791Z",
+        "searches": 1,
+        "judge_tokens": 2285,
+        "latency_ms": 6589
+      },
+      "wall_seconds": 6.62
+    },
+    {
+      "id": "t01",
+      "label": "timeless",
+      "question": "How fast is binary search?",
+      "answer": "Binary search runs in logarithmic time on a sorted array, halving the search space on every step.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.175842907Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t02",
+      "label": "timeless",
+      "question": "What is a TCP handshake?",
+      "answer": "A TCP connection opens with a three-way handshake of SYN, SYN-ACK and ACK packets.",
+      "why": "Protocol definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.191757417Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.01
+    },
+    {
+      "id": "t03",
+      "label": "timeless",
+      "question": "Why use a hash map?",
+      "answer": "A hash map gives average constant-time lookups by hashing keys into buckets.",
+      "why": "Data structure property.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.20810112Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t04",
+      "label": "timeless",
+      "question": "What is photosynthesis?",
+      "answer": "Photosynthesis converts light energy into chemical energy stored in glucose.",
+      "why": "Biology.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.236992988Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t05",
+      "label": "timeless",
+      "question": "Why does recursion need a base case?",
+      "answer": "A recursive function needs a base case, otherwise it never stops calling itself.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.269219634Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t06",
+      "label": "timeless",
+      "question": "What does HTTP 404 mean?",
+      "answer": "HTTP status 404 means the server could not find the requested resource.",
+      "why": "Protocol definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.283609464Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t07",
+      "label": "timeless",
+      "question": "How fast is merge sort?",
+      "answer": "Merge sort runs in n log n time in the worst case and is stable.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.314365935Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t08",
+      "label": "timeless",
+      "question": "What is a prime number?",
+      "answer": "A prime number has exactly two divisors: one and itself.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.332223115Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t09",
+      "label": "timeless",
+      "question": "What does a SQL join do?",
+      "answer": "A SQL join combines rows from two tables using a related column.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.355838795Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t10",
+      "label": "timeless",
+      "question": "What is the Pythagorean theorem?",
+      "answer": "In a right triangle, the square of the hypotenuse equals the sum of the squares of the other two sides.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.373369541Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t11",
+      "label": "timeless",
+      "question": "What did TLS 1.3 change?",
+      "answer": "TLS 1.3 removed static RSA key exchange and requires forward secrecy.",
+      "why": "A fixed property of a published standard; it trips the version pattern on purpose.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:36.394915353Z",
+        "recheck_after": "2026-11-12T07:51:36.394915353Z",
+        "searches": 0,
+        "judge_tokens": 247,
+        "latency_ms": 929
+      },
+      "wall_seconds": 0.95
+    },
+    {
+      "id": "t12",
+      "label": "timeless",
+      "question": "What is IPv4 address space?",
+      "answer": "An IPv4 address is 32 bits long, giving about 4.3 billion addresses.",
+      "why": "Fixed by the standard; it trips the version pattern on purpose.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:37.34958512Z",
+        "recheck_after": "2026-11-12T07:51:37.34958512Z",
+        "searches": 0,
+        "judge_tokens": 250,
+        "latency_ms": 2138
+      },
+      "wall_seconds": 2.16
+    },
+    {
+      "id": "t13",
+      "label": "timeless",
+      "question": "When did Apollo 11 land?",
+      "answer": "Apollo 11 landed on the Moon in July 1969.",
+      "why": "History.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:39.495375479Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t14",
+      "label": "timeless",
+      "question": "What is Big-O notation?",
+      "answer": "Big-O notation describes an upper bound on how an algorithm's cost grows with input size.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:39.513675182Z",
+        "recheck_after": "2026-11-12T07:51:39.513675182Z",
+        "searches": 0,
+        "judge_tokens": 250,
+        "latency_ms": 1217
+      },
+      "wall_seconds": 1.23
+    },
+    {
+      "id": "t15",
+      "label": "timeless",
+      "question": "What does a mutex do?",
+      "answer": "A mutex lets only one thread at a time enter a critical section.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.751911294Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t16",
+      "label": "timeless",
+      "question": "What is the speed of light?",
+      "answer": "Light travels at about 299,792 kilometres per second in a vacuum.",
+      "why": "Physical constant.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.782754811Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t17",
+      "label": "timeless",
+      "question": "What is a git commit?",
+      "answer": "A git commit records a snapshot of the tracked files along with a message and its parent commits.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.805462089Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.01
+    },
+    {
+      "id": "t18",
+      "label": "timeless",
+      "question": "What is DNS?",
+      "answer": "DNS translates human-readable domain names into IP addresses.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.830926747Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.03
+    },
+    {
+      "id": "t19",
+      "label": "timeless",
+      "question": "What is gradient descent?",
+      "answer": "Gradient descent minimises a function by stepping against its gradient.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.8448226Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    },
+    {
+      "id": "t20",
+      "label": "timeless",
+      "question": "What is Unicode?",
+      "answer": "Unicode assigns a unique code point to every character across writing systems.",
+      "why": "Definition.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-11T07:51:40.864470341Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0
+      },
+      "wall_seconds": 0.02
+    }
+  ]
+}
