@@ -53,8 +53,13 @@ def wait_for_gateway():
     raise SystemExit("gateway did not come up")
 
 
+def test_answer_not_headed_for_the_cache_is_untouched():
+    body, headers = ask("How much is Acme Pro?")
+    assert "bestbefore" not in body and "x-bestbefore-status" not in headers, body
+
+
 def test_timeless_answer_is_not_checked():
-    body, headers = ask("How does binary search work?")
+    body, headers = ask("How does binary search work?", cache_key=f"timeless-{time.time()}")
     assert headers["x-bestbefore-status"] == "timeless", headers.items()
     assert body["bestbefore"]["searches"] == 0
 
@@ -99,6 +104,41 @@ def test_sweeper_evicts_an_answer_that_went_stale_while_cached():
     assert second["bestbefore"]["status"] == "healed", second["bestbefore"]
     assert "$45 per month" in answer(second), answer(second)
     set_web(globex="$30")
+
+
+def stream(question, cache_key):
+    request = urllib.request.Request(
+        f"{GATEWAY}/v1/chat/completions",
+        data=json.dumps({"model": "mock/gpt-test", "stream": True,
+                         "messages": [{"role": "user", "content": question}]}).encode(),
+        headers={"Content-Type": "application/json", "x-bf-cache-key": cache_key},
+    )
+    text, chunks = "", []
+    with urllib.request.urlopen(request, timeout=60) as response:
+        for line in response:
+            line = line.decode().strip()
+            if not line.startswith("data: ") or line == "data: [DONE]":
+                continue
+            chunk = json.loads(line[6:])
+            chunks.append(chunk)
+            for choice in chunk.get("choices", []):
+                text += (choice.get("delta") or {}).get("content") or ""
+    return text, chunks
+
+
+def test_streamed_stale_answer_gets_a_correction_and_stays_out_of_the_cache():
+    set_web(acme="$15")
+    key = f"stream-{time.time()}"
+    text, chunks = stream("How much is Acme Pro?", key)
+    assert text.startswith("Acme Pro costs $10 per month."), text
+    assert "Corrected by BestBefore: Acme Pro costs $15 per month" in text, text
+    report = chunks[-1].get("extra_fields", {}).get("raw_response", {}).get("bestbefore")
+    assert report and report["status"] == "healed", chunks[-1]
+
+    time.sleep(1)
+    _, again = stream("How much is Acme Pro?", key)
+    debug = again[-1].get("extra_fields", {}).get("cache_debug", {})
+    assert not debug.get("cache_hit"), "a stale stream must not be replayed from the cache"
 
 
 def test_verify_model_heals_a_pasted_answer():
