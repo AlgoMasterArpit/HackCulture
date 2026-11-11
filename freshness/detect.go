@@ -17,6 +17,7 @@ const (
 )
 
 // How long a verified claim of each kind is trusted before it is re-checked.
+// These are defaults and are never modified; use Verifier.Windows to override.
 var RecheckWindow = map[Kind]time.Duration{
 	KindPricing:    24 * time.Hour,
 	KindVersion:    72 * time.Hour,

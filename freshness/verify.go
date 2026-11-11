@@ -70,6 +70,16 @@ type Verifier struct {
 	Search    Searcher
 	MaxClaims int
 	Now       func() time.Time
+	// Windows overrides RecheckWindow per claim kind. It is set once, before
+	// the verifier is used, and never written afterwards.
+	Windows map[Kind]time.Duration
+}
+
+func (v *Verifier) window(k Kind) time.Duration {
+	if w, ok := v.Windows[k]; ok {
+		return w
+	}
+	return RecheckWindow[k]
 }
 
 func countNil(errs []error) int {
@@ -105,7 +115,7 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 		// The gate saw time-sensitive wording but the model found nothing to
 		// check. Trust that only for a day, so a bad or injected extraction
 		// cannot pin an answer as timeless.
-		report.RecheckAfter = start.Add(RecheckWindow[KindRecency])
+		report.RecheckAfter = start.Add(v.window(KindRecency))
 		report.LatencyMs = v.Now().Sub(start).Milliseconds()
 		return report
 	}
@@ -137,7 +147,7 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 		cr := scoreClaim(c, verdicts[i], evidence[i])
 		report.Claims = append(report.Claims, cr)
 		report.Score = min(report.Score, cr.Score)
-		if w := RecheckWindow[c.Kind]; window == 0 || w < window {
+		if w := v.window(c.Kind); window == 0 || w < window {
 			window = w
 		}
 	}
