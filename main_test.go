@@ -148,6 +148,7 @@ func TestInitRejectsBadConfig(t *testing.T) {
 func TestStaleAnswerIsHealedBeforeTheCacheStoresIt(t *testing.T) {
 	s := startStubs(t, nil)
 	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{"x-bf-cache-key": "app"})
 	userText := "How much is Acme Pro?"
 	PreLLMHook(ctx, &schemas.BifrostRequest{
 		RequestType: schemas.ChatCompletionRequest,
@@ -226,7 +227,7 @@ func TestPluginSkipsItsOwnJudgeCallsInLLMHooks(t *testing.T) {
 }
 
 func TestStaleCacheHitIsHealedForTheUserAndEvicted(t *testing.T) {
-	s := startStubs(t, nil)
+	s := startStubs(t, map[string]any{"revalidate": "inline"})
 	resp := chatResponse("hit-1", staleText, `{"cache_hit":true,"cache_id":"abc-123"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -244,7 +245,7 @@ func TestStaleCacheHitIsHealedForTheUserAndEvicted(t *testing.T) {
 }
 
 func TestWithHealingOffAStaleHitIsFlaggedAndEvicted(t *testing.T) {
-	s := startStubs(t, map[string]any{"heal": false})
+	s := startStubs(t, map[string]any{"heal": false, "revalidate": "inline"})
 	resp := chatResponse("hit-2", staleText, `{"cache_hit":true,"cache_id":"abc-123"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -258,7 +259,7 @@ func TestWithHealingOffAStaleHitIsFlaggedAndEvicted(t *testing.T) {
 }
 
 func TestTimelessAnswerMakesNoCalls(t *testing.T) {
-	s := startStubs(t, nil)
+	s := startStubs(t, map[string]any{"check_scope": "all"})
 	resp := chatResponse("t-1", "A binary search halves the search space on every step.", "")
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -283,8 +284,8 @@ func TestCacheHitInsideItsBestBeforeDateUsesLedger(t *testing.T) {
 	}
 }
 
-func TestCacheHitPastItsBestBeforeDateIsCheckedAgain(t *testing.T) {
-	s := startStubs(t, nil)
+func TestCacheHitPastItsBestBeforeDateIsCheckedAgainInline(t *testing.T) {
+	s := startStubs(t, map[string]any{"revalidate": "inline"})
 	activePlugin().ledger.Put("due", freshness.Entry{Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(-time.Minute)}})
 	resp := chatResponse("hit-4", staleText, `{"cache_hit":true,"cache_id":"due"}`)
 
@@ -352,7 +353,7 @@ func TestStatusAndSweepModels(t *testing.T) {
 }
 
 func TestCacheIDIsEscapedInEvictionURL(t *testing.T) {
-	s := startStubs(t, map[string]any{"heal": false})
+	s := startStubs(t, map[string]any{"heal": false, "revalidate": "inline"})
 	resp := chatResponse("e-1", staleText, `{"cache_hit":true,"cache_id":"../../v1/x?y=1"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -363,7 +364,7 @@ func TestCacheIDIsEscapedInEvictionURL(t *testing.T) {
 }
 
 func TestForgedInternalHeaderIsStillChecked(t *testing.T) {
-	s := startStubs(t, nil)
+	s := startStubs(t, map[string]any{"check_scope": "all"})
 	req := chatRequest(question)
 	req.Headers[freshness.InternalHeader] = "1"
 
@@ -500,4 +501,109 @@ func TestResultsWithTheSameResponseIDDoNotCross(t *testing.T) {
 	if !okA || !okB || a.Origin != "A" || b.Origin != "B" {
 		t.Fatalf("a=%+v b=%+v", a, b)
 	}
+}
+
+func TestAnswersNotHeadedForTheCachePassUntouched(t *testing.T) {
+	s := startStubs(t, nil)
+	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{})
+	text := "How much is Acme Pro?"
+	PreLLMHook(ctx, &schemas.BifrostRequest{RequestType: schemas.ChatCompletionRequest, ChatRequest: &schemas.BifrostChatRequest{
+		Input: []schemas.ChatMessage{{Role: schemas.ChatMessageRoleUser, Content: &schemas.ChatMessageContent{ContentStr: &text}}},
+	}})
+	if ctx.Value(questionKey) != nil {
+		t.Fatal("an uncached request must not be queued for a check")
+	}
+	resp := chatResponse("u-1", staleText, "")
+	HTTPTransportPostHook(nil, chatRequest(question), resp)
+	if strings.Contains(string(resp.Body), "bestbefore") || s.judgeCalls.Load() != 0 {
+		t.Fatal("an uncached answer should pass with no check and no delay")
+	}
+}
+
+func TestExpiredHitIsServedNowAndRevalidatedInTheBackground(t *testing.T) {
+	s := startStubs(t, nil)
+	p := activePlugin()
+	p.ledger.Put("old", freshness.Entry{Question: "How much is Acme Pro?", Answer: staleText,
+		Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, CheckedAt: time.Now().Add(-48 * time.Hour), RecheckAfter: time.Now().Add(-time.Hour)}})
+	resp := chatResponse("hit-5", staleText, `{"cache_hit":true,"cache_id":"old"}`)
+
+	HTTPTransportPostHook(nil, chatRequest(question), resp)
+
+	if got := gjson.GetBytes(resp.Body, "bestbefore.origin").String(); got != "revalidating" {
+		t.Fatalf("origin = %q", got)
+	}
+	if gjson.GetBytes(resp.Body, "choices.0.message.content").String() != staleText {
+		t.Error("the hit should be served as it is, without waiting for the check")
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for s.evictedID.Load() != "old" && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if s.evictedID.Load() != "old" {
+		t.Fatal("the background re-check should evict the entry that went stale")
+	}
+	if _, ok := p.ledger.Get("old"); ok {
+		t.Error("the evicted entry should leave the ledger")
+	}
+}
+
+func TestABurstOfExpiredHitsPaysForOneCheck(t *testing.T) {
+	startStubs(t, nil)
+	p := activePlugin()
+	if !p.inflight.claim("busy") {
+		t.Fatal("first claim should succeed")
+	}
+	defer p.inflight.release("busy")
+	if _, ran := p.recheck("busy", freshness.Entry{Answer: staleText}, false); ran {
+		t.Fatal("a second re-check of the same entry must not start while one is running")
+	}
+}
+
+func TestStreamedStaleAnswerGetsACorrectionAndIsNotCached(t *testing.T) {
+	startStubs(t, nil)
+	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{"x-bf-cache-key": "app"})
+	text := "How much is Acme Pro?"
+	PreLLMHook(ctx, &schemas.BifrostRequest{RequestType: schemas.ChatCompletionStreamRequest, ChatRequest: &schemas.BifrostChatRequest{
+		Input: []schemas.ChatMessage{{Role: schemas.ChatMessageRoleUser, Content: &schemas.ChatMessageContent{ContentStr: &text}}},
+	}})
+	chunk := func(content string) *schemas.BifrostResponse {
+		return &schemas.BifrostResponse{ChatResponse: &schemas.BifrostChatResponse{ID: "s1", Choices: []schemas.BifrostResponseChoice{{
+			ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{Delta: &schemas.ChatStreamResponseChoiceDelta{Content: &content}},
+		}}}}
+	}
+
+	PostLLMHook(ctx, chunk("Acme Pro costs $10"), nil)
+	PostLLMHook(ctx, chunk(" per month."), nil)
+	if ctx.Value(cacheNoStoreKey) != nil {
+		t.Fatal("nothing should be decided before the final chunk")
+	}
+	ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+	final := chunk("")
+	PostLLMHook(ctx, final, nil)
+
+	delta := *final.ChatResponse.Choices[0].Delta.Content
+	if !strings.Contains(delta, "Corrected by BestBefore: Acme Pro costs $15 per month") {
+		t.Fatalf("final delta = %q", delta)
+	}
+	if ctx.Value(cacheNoStoreKey) != true {
+		t.Error("a stale stream must be kept out of the cache")
+	}
+	report, ok := final.ChatResponse.ExtraFields.RawResponse.(map[string]any)
+	if !ok || report["bestbefore"].(outcome).Status != freshness.StatusHealed {
+		t.Errorf("the final chunk should carry the report, got %#v", final.ChatResponse.ExtraFields.RawResponse)
+	}
+}
+
+func TestInitRejectsUnknownModes(t *testing.T) {
+	for _, cfg := range []map[string]any{
+		{"judge_model": "m", "tavily_api_key": "k", "check_scope": "some"},
+		{"judge_model": "m", "tavily_api_key": "k", "revalidate": "later"},
+	} {
+		if err := Init(cfg); err == nil {
+			t.Errorf("Init(%v) should fail", cfg)
+		}
+	}
+	Cleanup()
 }
