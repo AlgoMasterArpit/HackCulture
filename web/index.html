@@ -403,9 +403,13 @@ function render({ data, answer }) {
   if (routed?.model) meta.append(el("span", "pill", `answered by ${routed.model}${routed.is_fallback ? " (fallback)" : ""}`));
   const cache = cachePill(report, data);
   if (cache) meta.append(cache);
-  meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
-  meta.append(el("span", "pill", `${report.judge_tokens.toLocaleString()} judge tokens`));
-  meta.append(el("span", "pill", `${(report.latency_ms / 1000).toFixed(1)} s to check`));
+  if (report.origin === "ledger") {
+    meta.append(el("span", "pill", `no new check: last checked ${new Date(report.checked_at).toLocaleTimeString()}`));
+  } else {
+    meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
+    meta.append(el("span", "pill", `${report.judge_tokens.toLocaleString()} judge tokens`));
+    meta.append(el("span", "pill", `${(report.latency_ms / 1000).toFixed(1)} s to check`));
+  }
   head.append(meta);
   box.append(head);
 
