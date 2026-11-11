@@ -152,8 +152,8 @@ func TestContradictionsThatProveNothingAreUncertain(t *testing.T) {
 		if r.Status != StatusUncertain || c.CurrentValue != "" || c.SourceURL != "" || c.Grounded {
 			t.Errorf("%s: want uncertain and ungrounded, got %+v", name, r)
 		}
-		if c.ModelVerdict != "contradicted" {
-			t.Errorf("%s: the rejected verdict should still be recorded, got %q", name, c.ModelVerdict)
+		if c.ModelVerdict != "contradicted" || c.RejectedBecause == "" {
+			t.Errorf("%s: the rejected verdict and its reason should be recorded, got %+v", name, c)
 		}
 	}
 }

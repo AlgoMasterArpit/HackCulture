@@ -38,6 +38,10 @@ type ClaimReport struct {
 	Quote        string  `json:"quote,omitempty"`
 	ModelVerdict string  `json:"model_verdict"`
 	Grounded     bool    `json:"grounded"`
+	// RejectedBecause says why a supported or contradicted verdict was not
+	// trusted, with the judge's quote, so a discarded verdict can be audited.
+	RejectedBecause string `json:"rejected_because,omitempty"`
+	RejectedQuote   string `json:"rejected_quote,omitempty"`
 }
 
 type Report struct {
@@ -263,19 +267,25 @@ func scoreClaim(c Claim, vd verdict, sources []Source) ClaimReport {
 	case "contradicted":
 		base = scoreContradicted
 	}
-	if base != scoreUnverifiable && vd.Source >= 1 && vd.Source <= len(sources) {
-		src := sources[vd.Source-1]
-		cr.Grounded = grounded(vd.Quote, src.Content)
-		if cr.Grounded && vd.Verdict == "contradicted" {
-			cr.Grounded = showsNewValue(vd.CurrentValue, vd.Quote, c.Text)
+	if base != scoreUnverifiable {
+		reason := ""
+		if vd.Source < 1 || vd.Source > len(sources) {
+			reason = "cited source does not exist"
+		} else {
+			reason = groundingProblem(vd, c.Text, sources[vd.Source-1].Content)
 		}
-		if cr.Grounded {
-			weight := max(0, min(1, 0.25+src.Relevance))
-			cr.Score = math.Round((scoreUnverifiable+(base-scoreUnverifiable)*weight)*100) / 100
-			cr.SourceURL, cr.SourceDate, cr.Quote = src.URL, src.PublishedDate, vd.Quote
-			if vd.Verdict == "contradicted" {
-				cr.CurrentValue = vd.CurrentValue
-			}
+		cr.Grounded = reason == ""
+		if !cr.Grounded {
+			cr.RejectedBecause, cr.RejectedQuote = reason, vd.Quote
+		}
+	}
+	if cr.Grounded {
+		src := sources[vd.Source-1]
+		weight := max(0, min(1, 0.25+src.Relevance))
+		cr.Score = math.Round((scoreUnverifiable+(base-scoreUnverifiable)*weight)*100) / 100
+		cr.SourceURL, cr.SourceDate, cr.Quote = src.URL, src.PublishedDate, vd.Quote
+		if vd.Verdict == "contradicted" {
+			cr.CurrentValue = vd.CurrentValue
 		}
 	}
 	cr.Status = statusFor(cr.Score)
@@ -294,16 +304,29 @@ func statusFor(score float64) Status {
 
 const minQuoteWords = 5
 
-func grounded(quote, content string) bool {
-	q := normalize(quote)
-	return len(strings.Fields(q)) >= minQuoteWords && strings.Contains(normalize(content), q)
-}
-
-// showsNewValue rejects a contradiction that quotes the claim back at itself:
-// the current value must be in the evidence and must differ from the claim.
-func showsNewValue(current, quote, claim string) bool {
-	v := normalize(current)
-	return v != "" && strings.Contains(normalize(quote), v) && !strings.Contains(normalize(claim), v)
+// groundingProblem returns why a verdict is not proven by its source, or ""
+// when it is. A contradiction must also carry a current value that is in the
+// quote and not in the claim, so quoting the claim back proves nothing.
+func groundingProblem(vd verdict, claim, content string) string {
+	q := normalize(vd.Quote)
+	switch {
+	case len(strings.Fields(q)) < minQuoteWords:
+		return "quote is shorter than five words"
+	case !strings.Contains(normalize(content), q):
+		return "quote is not in the cited source"
+	case vd.Verdict != "contradicted":
+		return ""
+	}
+	v := normalize(vd.CurrentValue)
+	switch {
+	case v == "":
+		return "no current value given"
+	case !strings.Contains(q, v):
+		return "current value is not in the quote"
+	case strings.Contains(normalize(claim), v):
+		return "current value is already in the claim"
+	}
+	return ""
 }
 
 // defang stops web text and user input from closing or forging the prompt's tags.
