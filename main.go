@@ -16,6 +16,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/AlgoMasterArpit/HackCulture/freshness"
@@ -41,6 +43,10 @@ type config struct {
 	Heal           *bool             `json:"heal"`
 	SweepInterval  string            `json:"sweep_interval"`
 	RecheckWindows map[string]string `json:"recheck_windows"`
+	// AdminModels turns on bestbefore/status and bestbefore/sweep. They list
+	// cached questions and can trigger paid re-checks, so they are off unless
+	// an operator asks for them.
+	AdminModels bool `json:"admin_models"`
 }
 
 type plugin struct {
@@ -54,20 +60,25 @@ type plugin struct {
 	// token marks the plugin's own judge calls. It is random per process so a
 	// client cannot send the header itself to skip checking.
 	token string
-	stop  context.CancelFunc
+	// ctx ends when the plugin is cleaned up or replaced, stopping the
+	// sweeper and any check it is running.
+	ctx      context.Context
+	stop     context.CancelFunc
+	sweeping sync.Mutex
 }
 
-var active *plugin
+var current atomic.Pointer[plugin]
+
+func activePlugin() *plugin { return current.Load() }
 
 func Init(raw any) error {
 	p, err := newPlugin(raw)
 	if err != nil {
 		return fmt.Errorf("bestbefore: %w", err)
 	}
-	if active != nil && active.stop != nil {
-		active.stop()
+	if old := current.Swap(p); old != nil {
+		old.stop()
 	}
-	active = p
 	p.startSweeper()
 	return nil
 }
@@ -103,14 +114,18 @@ func newPlugin(raw any) (*plugin, error) {
 	if _, err := cfg.sweepEvery(); err != nil {
 		return nil, err
 	}
-	if err := applyRecheckWindows(cfg.RecheckWindows); err != nil {
+	windows, err := recheckWindows(cfg.RecheckWindows)
+	if err != nil {
 		return nil, err
 	}
 
 	token := rand.Text()
 	client := &http.Client{Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second}
 	judge := &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, Token: token, HTTP: client}
+	ctx, stop := context.WithCancel(context.Background())
 	return &plugin{
+		ctx:     ctx,
+		stop:    stop,
 		cfg:     cfg,
 		http:    client,
 		token:   token,
@@ -123,6 +138,7 @@ func newPlugin(raw any) (*plugin, error) {
 			Search:    &freshness.Tavily{BaseURL: cfg.TavilyURL, APIKey: cfg.TavilyAPIKey, VirtualKey: cfg.VirtualKey, MaxResults: cfg.MaxResults, HTTP: client},
 			MaxClaims: cfg.MaxClaims,
 			Now:       time.Now,
+			Windows:   windows,
 		},
 	}, nil
 }
@@ -138,21 +154,26 @@ func (c config) sweepEvery() (time.Duration, error) {
 	return d, nil
 }
 
-// applyRecheckWindows lets operators shorten or lengthen how long each kind of
-// claim is trusted, for example {"pricing": "6h"}.
-func applyRecheckWindows(windows map[string]string) error {
-	for kind, value := range windows {
+// recheckWindows lets operators shorten or lengthen how long each kind of
+// claim is trusted, for example {"pricing": "6h"}. The result belongs to one
+// plugin instance; the package defaults are never modified.
+func recheckWindows(overrides map[string]string) (map[freshness.Kind]time.Duration, error) {
+	windows := make(map[freshness.Kind]time.Duration, len(freshness.RecheckWindow))
+	for k, d := range freshness.RecheckWindow {
+		windows[k] = d
+	}
+	for kind, value := range overrides {
 		k := freshness.Kind(kind)
-		if _, ok := freshness.RecheckWindow[k]; !ok {
-			return fmt.Errorf("recheck_windows: unknown claim kind %q", kind)
+		if _, ok := windows[k]; !ok {
+			return nil, fmt.Errorf("recheck_windows: unknown claim kind %q", kind)
 		}
 		d, err := time.ParseDuration(value)
 		if err != nil || d <= 0 {
-			return fmt.Errorf("recheck_windows: %s must be a positive duration", kind)
+			return nil, fmt.Errorf("recheck_windows: %s must be a positive duration", kind)
 		}
-		freshness.RecheckWindow[k] = d
+		windows[k] = d
 	}
-	return nil
+	return windows, nil
 }
 
 func resolveEnv(v string) string {
@@ -165,10 +186,9 @@ func resolveEnv(v string) string {
 func GetName() string { return pluginName }
 
 func Cleanup() error {
-	if p := active; p != nil && p.stop != nil {
+	if p := current.Swap(nil); p != nil {
 		p.stop()
 	}
-	active = nil
 	return nil
 }
 
@@ -188,7 +208,11 @@ type outcome struct {
 
 // check verifies an answer and, when it is stale and heal is set, rewrites it.
 func (p *plugin) check(question, answer string, heal bool) outcome {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.cfg.TimeoutSeconds)*time.Second)
+	return p.checkWithin(p.ctx, question, answer, heal)
+}
+
+func (p *plugin) checkWithin(parent context.Context, question, answer string, heal bool) outcome {
+	ctx, cancel := context.WithTimeout(parent, time.Duration(p.cfg.TimeoutSeconds)*time.Second)
 	defer cancel()
 	out := outcome{Report: p.verifier.Verify(ctx, question, answer), Origin: "verified", answer: answer}
 	if out.Detail != nil {
@@ -199,7 +223,7 @@ func (p *plugin) check(question, answer string, heal bool) outcome {
 		return out
 	}
 	// The rewrite gets its own budget, so a slow check does not starve it.
-	healCtx, cancelHeal := context.WithTimeout(context.Background(), time.Duration(p.cfg.TimeoutSeconds)*time.Second)
+	healCtx, cancelHeal := context.WithTimeout(parent, time.Duration(p.cfg.TimeoutSeconds)*time.Second)
 	defer cancelHeal()
 	healed, tokens, err := p.healer.Heal(healCtx, question, answer, out.Report)
 	out.JudgeTokens += tokens
@@ -244,14 +268,19 @@ func (p *plugin) evict(cacheID string) error {
 }
 
 // evictTwice clears an entry now and again once the cache's own asynchronous
-// write has had time to land.
+// write has had time to land. The second pass is skipped if a newer answer
+// was recorded under the same id in the meantime, so it cannot delete a fix.
 func (p *plugin) evictTwice(cacheID string) bool {
+	evictedAt := time.Now()
 	ok := p.evict(cacheID) == nil
 	if ok {
 		p.stats.evicted.Add(1)
 	}
 	go func() {
 		time.Sleep(evictRetryDelay)
+		if at, stored := p.ledger.CheckedAt(cacheID); stored && at.After(evictedAt) {
+			return
+		}
 		p.evict(cacheID)
 	}()
 	return ok
