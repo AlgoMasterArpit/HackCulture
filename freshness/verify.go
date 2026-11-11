@@ -3,6 +3,7 @@ package freshness
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -48,6 +49,9 @@ type Report struct {
 	JudgeTokens  int           `json:"judge_tokens"`
 	LatencyMs    int64         `json:"latency_ms"`
 	Error        string        `json:"error,omitempty"`
+	// Detail is the underlying error for gateway logs. It can name internal
+	// hosts, so it is never sent to callers.
+	Detail error `json:"-"`
 }
 
 func (r Report) Stale() bool { return r.Status == StatusStale }
@@ -59,6 +63,16 @@ type Verifier struct {
 	Now       func() time.Time
 }
 
+func countNil(errs []error) int {
+	n := 0
+	for _, err := range errs {
+		if err == nil {
+			n++
+		}
+	}
+	return n
+}
+
 func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 	start := v.Now()
 	report := Report{Status: StatusTimeless, Score: 1, Claims: []ClaimReport{}, CheckedAt: start}
@@ -67,36 +81,45 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 	if len(candidates) == 0 {
 		return report
 	}
-	fail := func(err error) Report {
-		report.Status, report.Score, report.Error = StatusUnchecked, 0.5, err.Error()
+	fail := func(stage string, err error) Report {
+		report.Status, report.Score = StatusUnchecked, scoreUnverifiable
+		report.Error, report.Detail = stage+" failed", err
 		report.LatencyMs = v.Now().Sub(start).Milliseconds()
 		return report
 	}
 
 	claims, err := v.extract(ctx, question, candidates, &report.JudgeTokens)
 	if err != nil {
-		return fail(fmt.Errorf("claim extraction: %w", err))
+		return fail("claim extraction", err)
 	}
 	if len(claims) == 0 {
+		// The gate saw time-sensitive wording but the model found nothing to
+		// check. Trust that only for a day, so a bad or injected extraction
+		// cannot pin an answer as timeless.
+		report.RecheckAfter = start.Add(RecheckWindow[KindRecency])
 		report.LatencyMs = v.Now().Sub(start).Milliseconds()
 		return report
 	}
 
 	evidence := make([][]Source, len(claims))
+	searchErrs := make([]error, len(claims))
 	var wg sync.WaitGroup
 	for i, c := range claims {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			evidence[i], _ = v.Search.Search(ctx, c.Query)
+			evidence[i], searchErrs[i] = v.Search.Search(ctx, c.Query)
 		}()
 	}
 	wg.Wait()
 	report.Searches = len(claims)
+	if countNil(searchErrs) == 0 {
+		return fail("search", errors.Join(searchErrs...))
+	}
 
 	verdicts, err := v.judge(ctx, claims, evidence, start, &report.JudgeTokens)
 	if err != nil {
-		return fail(fmt.Errorf("judging: %w", err))
+		return fail("judging", err)
 	}
 
 	report.Score = 1
