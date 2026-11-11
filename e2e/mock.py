@@ -60,6 +60,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/admin/web":
             web_prices.update(body)
             payload = web_prices
+        elif self.path.endswith("/chat/completions") and body.get("stream"):
+            self.stream(body)
+            return
         elif self.path.endswith("/chat/completions"):
             payload = {
                 "id": f"mock-{uuid.uuid4().hex[:12]}",
@@ -85,6 +88,28 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
         self.wfile.write(raw)
+
+    def stream(self, body):
+        """Send the answer as OpenAI-style server-sent events, a few words per chunk."""
+        words = complete(body["messages"]).split(" ")
+        chunk_id = f"mock-{uuid.uuid4().hex[:12]}"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.end_headers()
+        pieces = [" ".join(words[i:i + 2]) + " " for i in range(0, len(words), 2)]
+        pieces[-1] = pieces[-1].rstrip()
+        for piece in pieces:
+            self.event({"id": chunk_id, "object": "chat.completion.chunk", "model": body.get("model", "mock"),
+                        "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}]})
+        self.event({"id": chunk_id, "object": "chat.completion.chunk", "model": body.get("model", "mock"),
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                    "usage": {"prompt_tokens": 1, "completion_tokens": len(pieces), "total_tokens": len(pieces) + 1}})
+        self.wfile.write(b"data: [DONE]\n\n")
+        self.wfile.flush()
+
+    def event(self, payload):
+        self.wfile.write(b"data: " + json.dumps(payload).encode() + b"\n\n")
+        self.wfile.flush()
 
     def log_message(self, *args):
         pass
