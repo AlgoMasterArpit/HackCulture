@@ -88,6 +88,14 @@ func (l *Ledger) DeleteIf(cacheID string, checkedAt time.Time) bool {
 	return true
 }
 
+// Get returns the entry for cacheID, due or not.
+func (l *Ledger) Get(cacheID string) (Entry, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	e, ok := l.entries[cacheID]
+	return e, ok
+}
+
 // CheckedAt reports when the entry was last checked, if there is one.
 func (l *Ledger) CheckedAt(cacheID string) (time.Time, bool) {
 	l.mu.Lock()
