@@ -47,6 +47,13 @@ type config struct {
 	// cached questions and can trigger paid re-checks, so they are off unless
 	// an operator asks for them.
 	AdminModels bool `json:"admin_models"`
+	// CheckScope is "cached" (default) to check only answers that are going
+	// into the semantic cache, or "all" to check every chat answer.
+	CheckScope string `json:"check_scope"`
+	// Revalidate is "background" (default) to serve a cache hit that is past
+	// its best-before date at once and re-check it behind the scenes, or
+	// "inline" to re-check it before answering.
+	Revalidate string `json:"revalidate"`
 }
 
 type plugin struct {
@@ -65,6 +72,7 @@ type plugin struct {
 	ctx      context.Context
 	stop     context.CancelFunc
 	sweeping sync.Mutex
+	inflight inflight
 }
 
 var current atomic.Pointer[plugin]
@@ -91,6 +99,8 @@ func newPlugin(raw any) (*plugin, error) {
 		MaxResults:     5,
 		TimeoutSeconds: 25,
 		SweepInterval:  "5m",
+		CheckScope:     "cached",
+		Revalidate:     "background",
 	}
 	encoded, err := json.Marshal(raw)
 	if err != nil {
@@ -113,6 +123,12 @@ func newPlugin(raw any) (*plugin, error) {
 	}
 	if _, err := cfg.sweepEvery(); err != nil {
 		return nil, err
+	}
+	if cfg.CheckScope != "cached" && cfg.CheckScope != "all" {
+		return nil, errors.New(`check_scope must be "cached" or "all"`)
+	}
+	if cfg.Revalidate != "background" && cfg.Revalidate != "inline" {
+		return nil, errors.New(`revalidate must be "background" or "inline"`)
 	}
 	windows, err := recheckWindows(cfg.RecheckWindows)
 	if err != nil {
