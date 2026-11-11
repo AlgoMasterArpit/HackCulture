@@ -46,7 +46,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bestbefore", default="http://localhost:8080")
     parser.add_argument("--baseline", default="http://localhost:8081")
-    parser.add_argument("--model", default="gemini/gemini-2.5-flash")
+    parser.add_argument("--model", default="gemini/gemma-4-26b-a4b-it")
     parser.add_argument("--pace", type=float, default=10)
     args = parser.parse_args()
 
