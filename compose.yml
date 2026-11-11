@@ -1,0 +1,27 @@
+services:
+  gateway:
+    build: .
+    image: bestbefore-gateway:dev
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.json:/app/data/config.json:ro
+
+  web:
+    image: nginx:1.29-alpine
+    depends_on: [gateway]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/index.html:/usr/share/nginx/html/index.html:ro
+      - ./web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  gateway-baseline:
+    profiles: [baseline]
+    image: bestbefore-gateway:dev
+    env_file: .env
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./eval/config.baseline.json:/app/data/config.json:ro
