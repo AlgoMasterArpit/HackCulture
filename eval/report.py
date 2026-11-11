@@ -240,10 +240,19 @@ def update_readme(claims, cache, run1=None, repeat=None):
     proof, rows = [], []
     if claims:
         total = sum(claims["sizes"].values())
+        cost = claims["without"]["recall"] - claims["with"]["recall"]
+        saved = claims["without"]["false_alarm"] - claims["with"]["false_alarm"]
+        if saved > 0:
+            grounding = f"The quote check cut false alarms by {saved:.0f} points at a cost of {cost:.0f} points of recall."
+        else:
+            grounding = (
+                f"On this clean set the quote check cost {cost:.0f} points of recall and prevented no false alarm, because "
+                "nothing here tries to fool the judge; it exists for poisoned pages and invented quotes, which the "
+                "[attack tests](docs/REVIEW.md) show the judge alone would act on."
+            )
         proof.append(
             f"On {total} hand-labelled answers, BestBefore flagged {claims['with']['recall']:.0f}% of the stale ones "
-            f"and wrongly flagged {claims['with']['false_alarm']:.0f}% of the good ones. Without the quote check, the judge "
-            f"alone would have wrongly flagged {claims['without']['false_alarm']:.0f}%. "
+            f"and wrongly flagged {claims['with']['false_alarm']:.0f}% of the good ones. {grounding} "
             f"{claims['gate_skip']:.0f}% of timeless answers cost nothing at all."
         )
         rows += [
