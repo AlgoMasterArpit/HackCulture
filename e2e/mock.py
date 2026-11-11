@@ -1,49 +1,68 @@
 """Offline stand-in for a model provider and Tavily, so the gateway and plugin
 can be exercised end to end with no API keys.
 
-The "model" answers from frozen training data (Acme Pro at $10), while the
-"web" has moved on (Acme Pro at $15). Globex is unchanged in both.
+The "model" answers from frozen training data (Acme Pro at $10, Globex Team
+at $30). The "web" starts with Acme Pro at $15 and Globex Team at $30, and a
+test can change it with POST /admin/web to make a cached answer go stale.
 """
 import json
+import re
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-MODEL_ANSWERS = {
-    "acme": "Acme Pro costs $10 per month.",
-    "globex": "Globex Team costs $30 per month.",
-}
-WEB = {
-    "acme": {"url": "https://acme.test/pricing", "content": "Acme Pro is now $15 per month, up from $10."},
-    "globex": {"url": "https://globex.test/pricing", "content": "Globex Team costs $30 per month for every seat."},
-}
-VERDICTS = {
-    "acme": {"verdict": "contradicted", "quote": "Acme Pro is now $15 per month", "current_value": "$15 per month"},
-    "globex": {"verdict": "supported", "quote": "Globex Team costs $30 per month"},
-}
+PRODUCTS = {"acme": "Acme Pro", "globex": "Globex Team"}
+MODEL_PRICES = {"acme": "$10", "globex": "$30"}
+web_prices = {"acme": "$15", "globex": "$30"}
+DOLLARS = re.compile(r"\$\d+")
 
 
 def topic(text):
-    return next((name for name in WEB if name in text.lower()), None)
+    return next((key for key in PRODUCTS if key in text.lower()), None)
+
+
+def page(key):
+    return f"{PRODUCTS[key]} now costs {web_prices[key]} per month for every seat."
 
 
 def complete(messages):
     system = next((m["content"] for m in messages if m["role"] == "system"), "")
     user = messages[-1]["content"]
-    name = topic(user)
     if system.startswith("You extract"):
-        claims = [{"text": MODEL_ANSWERS[name].rstrip("."), "kind": "pricing", "query": f"{name} price"}] if name else []
+        sentences = user[user.index("Sentences"):]
+        key = topic(sentences)
+        claims = []
+        if key:
+            claimed = DOLLARS.search(sentences).group()
+            claims = [{"text": f"{PRODUCTS[key]} costs {claimed} per month", "kind": "pricing", "query": f"{key} price"}]
         return json.dumps({"claims": claims})
     if system.startswith("You check"):
-        verdicts = [{"claim": 1, "source": 1, **VERDICTS[name]}] if name else []
-        return json.dumps({"verdicts": verdicts})
-    return MODEL_ANSWERS.get(name, "A binary search halves the search space on every step.")
+        claim = user[user.index("Claim 1:"):].splitlines()[0]
+        key, claimed = topic(claim), DOLLARS.search(claim).group()
+        quote = f"{PRODUCTS[key]} now costs {web_prices[key]} per month"
+        verdict = {"claim": 1, "source": 1, "quote": quote}
+        if claimed == web_prices[key]:
+            verdict["verdict"] = "supported"
+        else:
+            verdict.update(verdict="contradicted", current_value=f"{web_prices[key]} per month")
+        return json.dumps({"verdicts": [verdict]})
+    if system.startswith("You correct"):
+        key = topic(user)
+        return json.dumps({"answer": f"{PRODUCTS[key]} costs {web_prices[key]} per month [1]."})
+    key = topic(user)
+    if key:
+        return f"{PRODUCTS[key]} costs {MODEL_PRICES[key]} per month."
+    return "A binary search halves the search space on every step."
 
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
-        if self.path.endswith("/chat/completions"):
+        if self.path == "/admin/web":
+            web_prices.update(body)
+            payload = web_prices
+        elif self.path.endswith("/chat/completions"):
             payload = {
-                "id": "mock-1",
+                "id": f"mock-{uuid.uuid4().hex[:12]}",
                 "object": "chat.completion",
                 "created": 0,
                 "model": body.get("model", "mock"),
@@ -55,8 +74,8 @@ class Handler(BaseHTTPRequestHandler):
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
             }
         elif self.path.endswith("/search"):
-            name = topic(body.get("query", ""))
-            payload = {"results": [{**WEB[name], "title": name, "score": 0.9}] if name else []}
+            key = topic(body.get("query", ""))
+            payload = {"results": [{"url": f"https://{key}.test/pricing", "title": key, "content": page(key), "score": 0.9}] if key else []}
         else:
             self.send_error(404)
             return
