@@ -377,6 +377,7 @@ function safeURL(raw) {
 function cachePill(report, data) {
   if (report.cache_evicted) return el("span", "pill stale", "Stale copy evicted from cache");
   if (report.origin === "ledger") return el("span", "pill fresh", "Cache hit, within its best-before date");
+  if (report.origin === "revalidating") return el("span", "pill uncertain", "Cache hit past its best-before date: re-checking in the background");
   if (report.healed && data.extra_fields?.cache_debug && !data.extra_fields.cache_debug.cache_hit) return el("span", "pill healed", "Corrected answer cached");
   const debug = data.extra_fields?.cache_debug;
   if (!debug) return null;
@@ -388,7 +389,10 @@ function render({ data, answer }) {
   const box = $("#result");
   box.replaceChildren();
   if (!report) {
-    box.append(el("p", "empty", "The gateway answered, but no freshness report was attached. Is the plugin loaded?"));
+    box.append(el("p", "answer", answer));
+    box.append(el("p", "empty", data.extra_fields?.cache_debug
+      ? "The gateway answered, but no freshness report was attached. Is the plugin loaded?"
+      : "This answer was not going into the semantic cache, so BestBefore let it through without a check (check_scope: cached). Turn on the cache to see it checked."));
     box.style.display = "block";
     return;
   }
@@ -403,7 +407,7 @@ function render({ data, answer }) {
   if (routed?.model) meta.append(el("span", "pill", `answered by ${routed.model}${routed.is_fallback ? " (fallback)" : ""}`));
   const cache = cachePill(report, data);
   if (cache) meta.append(cache);
-  if (report.origin === "ledger") {
+  if (report.origin === "ledger" || report.origin === "revalidating") {
     meta.append(el("span", "pill", `no new check: last checked ${new Date(report.checked_at).toLocaleTimeString()}`));
   } else {
     meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
