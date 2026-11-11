@@ -1,6 +1,7 @@
-"""Ask a live model the same time-sensitive questions twice through two gateways
-that share one config except for eviction, and count how many stale answers each
-one serves back from its semantic cache.
+"""Ask a live model the same time-sensitive questions twice through two gateways:
+a plain TTL-only cache (the plugin only observes) and BestBefore. Record what
+users actually receive on each ask: a stale answer, a corrected one, or a fresh
+one, whether it came from the cache, and how long it took.
 
     docker compose --profile baseline up -d
     python eval/cache.py
@@ -31,15 +32,16 @@ QUESTIONS = [
 
 def ask_twice(gateway, model, question, key):
     messages = [{"role": "user", "content": question}]
-    first, _ = chat(gateway, model, messages, cache_key=key)
+    first, first_seconds = chat(gateway, model, messages, cache_key=key)
     time.sleep(3)
-    second, _ = chat(gateway, model, messages, cache_key=key)
-    pick = lambda body: {
+    second, second_seconds = chat(gateway, model, messages, cache_key=key)
+    pick = lambda body, seconds: {
         "answer": body["choices"][0]["message"]["content"],
         "cache_hit": body.get("extra_fields", {}).get("cache_debug", {}).get("cache_hit", False),
+        "seconds": round(seconds, 2),
         "bestbefore": body.get("bestbefore"),
     }
-    return pick(first), pick(second)
+    return pick(first, first_seconds), pick(second, second_seconds)
 
 
 def main():
