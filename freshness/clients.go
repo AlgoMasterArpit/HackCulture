@@ -20,7 +20,9 @@ type LLM interface {
 }
 
 type Searcher interface {
-	Search(ctx context.Context, query string) ([]Source, error)
+	// Search returns web results for query. A non-empty domains list
+	// restricts results to those sites.
+	Search(ctx context.Context, query string, domains []string) ([]Source, error)
 }
 
 type Source struct {
@@ -29,6 +31,9 @@ type Source struct {
 	Content       string  `json:"content"`
 	PublishedDate string  `json:"published_date,omitempty"`
 	Relevance     float64 `json:"score"`
+	// Official marks results from the site that publishes the claim's
+	// authoritative value.
+	Official bool `json:"official,omitempty"`
 }
 
 // GatewayLLM sends judge calls back through Bifrost, so they get the same
@@ -89,12 +94,16 @@ type Tavily struct {
 	HTTP       *http.Client
 }
 
-func (t *Tavily) Search(ctx context.Context, query string) ([]Source, error) {
-	body, _ := json.Marshal(map[string]any{
+func (t *Tavily) Search(ctx context.Context, query string, domains []string) ([]Source, error) {
+	request := map[string]any{
 		"query":        query,
 		"search_depth": "basic",
 		"max_results":  t.MaxResults,
-	})
+	}
+	if len(domains) > 0 {
+		request["include_domains"] = domains
+	}
+	body, _ := json.Marshal(request)
 	headers := map[string]string{}
 	if t.APIKey != "" {
 		headers["Authorization"] = "Bearer " + t.APIKey
