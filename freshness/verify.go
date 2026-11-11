@@ -34,6 +34,8 @@ type ClaimReport struct {
 	SourceURL    string  `json:"source_url,omitempty"`
 	SourceDate   string  `json:"source_date,omitempty"`
 	Quote        string  `json:"quote,omitempty"`
+	ModelVerdict string  `json:"model_verdict"`
+	Grounded     bool    `json:"grounded"`
 }
 
 type Report struct {
@@ -43,6 +45,7 @@ type Report struct {
 	CheckedAt    time.Time     `json:"checked_at"`
 	RecheckAfter time.Time     `json:"recheck_after"`
 	Searches     int           `json:"searches"`
+	JudgeTokens  int           `json:"judge_tokens"`
 	LatencyMs    int64         `json:"latency_ms"`
 	Error        string        `json:"error,omitempty"`
 }
@@ -70,7 +73,7 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 		return report
 	}
 
-	claims, err := v.extract(ctx, question, candidates)
+	claims, err := v.extract(ctx, question, candidates, &report.JudgeTokens)
 	if err != nil {
 		return fail(fmt.Errorf("claim extraction: %w", err))
 	}
@@ -91,7 +94,7 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 	wg.Wait()
 	report.Searches = len(claims)
 
-	verdicts, err := v.judge(ctx, claims, evidence, start)
+	verdicts, err := v.judge(ctx, claims, evidence, start, &report.JudgeTokens)
 	if err != nil {
 		return fail(fmt.Errorf("judging: %w", err))
 	}
@@ -121,7 +124,7 @@ Rules:
 - "kind" is one of: pricing, version, regulation, leadership, recency.
 Return JSON: {"claims":[{"text":"...","kind":"...","query":"..."}]}. Return {"claims":[]} if nothing qualifies.`
 
-func (v *Verifier) extract(ctx context.Context, question string, candidates []Candidate) ([]Claim, error) {
+func (v *Verifier) extract(ctx context.Context, question string, candidates []Candidate, tokens *int) ([]Claim, error) {
 	var b strings.Builder
 	if question != "" {
 		fmt.Fprintf(&b, "User question (context only):\n%s\n\n", question)
@@ -130,7 +133,8 @@ func (v *Verifier) extract(ctx context.Context, question string, candidates []Ca
 	for i, c := range candidates {
 		fmt.Fprintf(&b, "%d. %s\n", i+1, c.Sentence)
 	}
-	raw, err := v.LLM.CompleteJSON(ctx, extractSystem, b.String())
+	raw, used, err := v.LLM.CompleteJSON(ctx, extractSystem, b.String())
+	*tokens += used
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +177,7 @@ For each claim return:
 Prefer the most recent source. Do not use your own knowledge; if the sources are silent, answer "unverifiable".
 Return JSON: {"verdicts":[{"claim":1,"verdict":"...","source":1,"quote":"...","current_value":"..."}]}`
 
-func (v *Verifier) judge(ctx context.Context, claims []Claim, evidence [][]Source, now time.Time) ([]verdict, error) {
+func (v *Verifier) judge(ctx context.Context, claims []Claim, evidence [][]Source, now time.Time, tokens *int) ([]verdict, error) {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Today's date: %s\n", now.Format("2 January 2006"))
 	for i, c := range claims {
@@ -185,7 +189,8 @@ func (v *Verifier) judge(ctx context.Context, claims []Claim, evidence [][]Sourc
 			fmt.Fprintf(&b, "  Source %d [%s] %s %s\n  %s\n", j+1, s.URL, s.Title, s.PublishedDate, s.Content)
 		}
 	}
-	raw, err := v.LLM.CompleteJSON(ctx, judgeSystem, b.String())
+	raw, used, err := v.LLM.CompleteJSON(ctx, judgeSystem, b.String())
+	*tokens += used
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +225,7 @@ const (
 // verbatim in the source it cites. Anything else falls back to uncertain, so
 // a hallucinated verdict can never mark an answer stale.
 func scoreClaim(c Claim, vd verdict, sources []Source) ClaimReport {
-	cr := ClaimReport{Claim: c.Text, Kind: c.Kind, Score: scoreUnverifiable}
+	cr := ClaimReport{Claim: c.Text, Kind: c.Kind, Score: scoreUnverifiable, ModelVerdict: vd.Verdict}
 
 	base := scoreUnverifiable
 	switch vd.Verdict {
@@ -231,7 +236,7 @@ func scoreClaim(c Claim, vd verdict, sources []Source) ClaimReport {
 	}
 	if base != scoreUnverifiable && vd.Source >= 1 && vd.Source <= len(sources) {
 		src := sources[vd.Source-1]
-		if grounded(vd.Quote, src.Content) {
+		if cr.Grounded = grounded(vd.Quote, src.Content); cr.Grounded {
 			weight := min(1, 0.25+src.Relevance)
 			cr.Score = scoreUnverifiable + (base-scoreUnverifiable)*weight
 			cr.SourceURL, cr.SourceDate, cr.Quote = src.URL, src.PublishedDate, vd.Quote

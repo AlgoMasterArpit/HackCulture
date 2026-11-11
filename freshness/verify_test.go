@@ -14,13 +14,13 @@ type fakeLLM struct {
 	err     error
 }
 
-func (f *fakeLLM) CompleteJSON(context.Context, string, string) (string, error) {
+func (f *fakeLLM) CompleteJSON(context.Context, string, string) (string, int, error) {
 	if f.err != nil {
-		return "", f.err
+		return "", 0, f.err
 	}
 	r := f.replies[f.calls]
 	f.calls++
-	return r, nil
+	return r, 100, nil
 }
 
 type fakeSearch struct {
@@ -99,6 +99,9 @@ func TestContradictedClaimIsStale(t *testing.T) {
 	if !r.Stale() || len(r.Claims) != 1 {
 		t.Fatalf("want stale with one claim, got %+v", r)
 	}
+	if r.JudgeTokens != 200 || !r.Claims[0].Grounded || r.Claims[0].ModelVerdict != "contradicted" {
+		t.Errorf("tokens=%d grounded=%v verdict=%q", r.JudgeTokens, r.Claims[0].Grounded, r.Claims[0].ModelVerdict)
+	}
 	c := r.Claims[0]
 	if c.CurrentValue != "$15 per month" || c.SourceURL != "https://acme.test/pricing" || c.Score > staleAt {
 		t.Errorf("unexpected claim report: %+v", c)
@@ -127,6 +130,9 @@ func TestUngroundedVerdictNeverMarksStale(t *testing.T) {
 	r := newVerifier(llm, &fakeSearch{sources: acmeSource}).Verify(context.Background(), "", "Acme Pro costs $10 per month.")
 	if r.Status != StatusUncertain || r.Claims[0].CurrentValue != "" || r.Claims[0].SourceURL != "" {
 		t.Fatalf("a quote missing from the source must fall back to uncertain, got %+v", r)
+	}
+	if r.Claims[0].Grounded || r.Claims[0].ModelVerdict != "contradicted" {
+		t.Errorf("the rejected model verdict should still be recorded: %+v", r.Claims[0])
 	}
 }
 
@@ -169,6 +175,16 @@ func TestMaxClaimsCapsSearches(t *testing.T) {
 	r := v.Verify(context.Background(), "", "Plan a costs $1, plan b costs $2 and plan c costs $3 per month.")
 	if search.calls != 2 || len(r.Claims) != 2 {
 		t.Fatalf("want 2 searches and 2 claims, got %d and %d", search.calls, len(r.Claims))
+	}
+}
+
+func TestStripFence(t *testing.T) {
+	fence := "```"
+	inputs := []string{`{"a":1}`, fence + "json\n{\"a\":1}\n" + fence, fence + "\n{\"a\":1}" + fence}
+	for _, in := range inputs {
+		if got := stripFence(in); got != `{"a":1}` {
+			t.Errorf("stripFence(%q) = %q", in, got)
+		}
 	}
 }
 

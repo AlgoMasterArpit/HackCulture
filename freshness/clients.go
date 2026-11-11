@@ -14,7 +14,8 @@ import (
 const InternalHeader = "x-bestbefore-internal"
 
 type LLM interface {
-	CompleteJSON(ctx context.Context, system, user string) (string, error)
+	// CompleteJSON returns the model's JSON reply and the tokens it used.
+	CompleteJSON(ctx context.Context, system, user string) (string, int, error)
 }
 
 type Searcher interface {
@@ -34,12 +35,13 @@ type Source struct {
 type GatewayLLM struct {
 	BaseURL    string
 	Model      string
+	Fallbacks  []string
 	VirtualKey string
 	HTTP       *http.Client
 }
 
-func (g *GatewayLLM) CompleteJSON(ctx context.Context, system, user string) (string, error) {
-	body, _ := json.Marshal(map[string]any{
+func (g *GatewayLLM) CompleteJSON(ctx context.Context, system, user string) (string, int, error) {
+	request := map[string]any{
 		"model":           g.Model,
 		"temperature":     0,
 		"response_format": map[string]string{"type": "json_object"},
@@ -47,7 +49,11 @@ func (g *GatewayLLM) CompleteJSON(ctx context.Context, system, user string) (str
 			{"role": "system", "content": system},
 			{"role": "user", "content": user},
 		},
-	})
+	}
+	if len(g.Fallbacks) > 0 {
+		request["fallbacks"] = g.Fallbacks
+	}
+	body, _ := json.Marshal(request)
 	headers := map[string]string{InternalHeader: "1"}
 	if g.VirtualKey != "" {
 		headers["x-bf-vk"] = g.VirtualKey
@@ -58,14 +64,17 @@ func (g *GatewayLLM) CompleteJSON(ctx context.Context, system, user string) (str
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			TotalTokens int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 	if err := postJSON(ctx, g.HTTP, strings.TrimRight(g.BaseURL, "/")+"/v1/chat/completions", headers, body, &out); err != nil {
-		return "", err
+		return "", 0, err
 	}
 	if len(out.Choices) == 0 {
-		return "", fmt.Errorf("judge model returned no choices")
+		return "", out.Usage.TotalTokens, fmt.Errorf("judge model returned no choices")
 	}
-	return out.Choices[0].Message.Content, nil
+	return stripFence(out.Choices[0].Message.Content), out.Usage.TotalTokens, nil
 }
 
 // Tavily talks to api.tavily.com directly, or to a Bifrost relay when BaseURL
@@ -98,6 +107,16 @@ func (t *Tavily) Search(ctx context.Context, query string) ([]Source, error) {
 		return nil, err
 	}
 	return out.Results, nil
+}
+
+// stripFence unwraps replies a model sends as a ```json block despite JSON mode.
+func stripFence(s string) string {
+	s = strings.TrimSpace(s)
+	if !strings.HasPrefix(s, "```") {
+		return s
+	}
+	s = strings.TrimPrefix(strings.TrimPrefix(s, "```json"), "```")
+	return strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(s), "```"))
 }
 
 func postJSON(ctx context.Context, client *http.Client, url string, headers map[string]string, body []byte, out any) error {
