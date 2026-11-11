@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/AlgoMasterArpit/HackCulture/freshness"
@@ -22,6 +23,9 @@ const (
 	sweepModel  = "bestbefore/sweep"
 
 	questionKey schemas.BifrostContextKey = "bestbefore-question"
+	streamKey   schemas.BifrostContextKey = "bestbefore-stream"
+	// cacheKeyHeader is how a caller opts a request into the semantic cache.
+	cacheKeyHeader = "x-bf-cache-key"
 	// cacheNoStoreKey is the semantic cache's own per-request switch.
 	cacheNoStoreKey schemas.BifrostContextKey = "semantic_cache-no_store"
 )
@@ -30,11 +34,47 @@ const (
 // question so PostLLMHook can check the model's answer.
 func PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*schemas.BifrostRequest, *schemas.LLMPluginShortCircuit, error) {
 	p := activePlugin()
-	if p == nil || req.RequestType != schemas.ChatCompletionRequest || req.ChatRequest == nil || p.isInternalCall(ctx) {
+	if p == nil || req.ChatRequest == nil || p.isInternalCall(ctx) || !p.inScope(ctx) {
+		return req, nil, nil
+	}
+	switch req.RequestType {
+	case schemas.ChatCompletionRequest:
+	case schemas.ChatCompletionStreamRequest:
+		ctx.SetValue(streamKey, &streamText{})
+	default:
 		return req, nil, nil
 	}
 	ctx.SetValue(questionKey, lastUserText(req.ChatRequest.Input))
 	return req, nil, nil
+}
+
+// inScope reports whether this request's answer should be checked. By
+// default only answers that are going into the semantic cache are, because
+// those are the ones replayed to other users; the rest pass with no delay.
+func (p *plugin) inScope(ctx *schemas.BifrostContext) bool {
+	if p.cfg.CheckScope == "all" {
+		return true
+	}
+	headers, _ := ctx.Value(schemas.BifrostContextKeyRequestHeaders).(map[string]string)
+	return headers[cacheKeyHeader] != ""
+}
+
+// streamText collects a streamed answer chunk by chunk.
+type streamText struct {
+	mu sync.Mutex
+	b  strings.Builder
+}
+
+func (s *streamText) add(text string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.b.WriteString(text)
+}
+
+func (s *streamText) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.String()
 }
 
 // PostLLMHook runs before the semantic cache stores the answer, so a stale
@@ -44,7 +84,14 @@ func PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*sche
 func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bifrostErr *schemas.BifrostError) (*schemas.BifrostResponse, *schemas.BifrostError, error) {
 	p := activePlugin()
 	question, asked := ctx.Value(questionKey).(string)
-	if p == nil || !asked || bifrostErr != nil || resp == nil || resp.ChatResponse == nil || len(resp.ChatResponse.Choices) != 1 {
+	if p == nil || !asked || bifrostErr != nil || resp == nil || resp.ChatResponse == nil {
+		return resp, bifrostErr, nil
+	}
+	if stream, ok := ctx.Value(streamKey).(*streamText); ok {
+		p.checkStream(ctx, question, stream, resp.ChatResponse)
+		return resp, bifrostErr, nil
+	}
+	if len(resp.ChatResponse.Choices) != 1 {
 		return resp, bifrostErr, nil
 	}
 	msg := firstMessage(resp.ChatResponse)
@@ -62,6 +109,61 @@ func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bif
 	}
 	p.pending.put(pendingKey(resp.ChatResponse.ID, contentText(msg)), question, out)
 	return resp, bifrostErr, nil
+}
+
+// checkStream gathers a streamed answer and checks it on the final chunk.
+// The text has already reached the user, so a stale answer cannot be
+// rewritten in place: the correction is appended as one last delta, the
+// report rides on the final chunk, and the stale stream is kept out of the
+// cache so the next caller gets a fresh, checked answer.
+func (p *plugin) checkStream(ctx *schemas.BifrostContext, question string, stream *streamText, chunk *schemas.BifrostChatResponse) {
+	for _, choice := range chunk.Choices {
+		if choice.Index == 0 && choice.ChatStreamResponseChoice != nil && choice.Delta != nil && choice.Delta.Content != nil {
+			stream.add(*choice.Delta.Content)
+		}
+	}
+	if final, _ := ctx.Value(schemas.BifrostContextKeyStreamEndIndicator).(bool); !final {
+		return
+	}
+	answer := stream.String()
+	if answer == "" {
+		return
+	}
+	out := p.check(question, answer, true)
+	if out.Stale() || out.Healed {
+		ctx.SetValue(cacheNoStoreKey, true)
+	}
+	if out.Healed {
+		appendDelta(chunk, "\n\n---\nCorrected by BestBefore: "+out.Corrected)
+	}
+	if chunk.ExtraFields.RawResponse == nil {
+		chunk.ExtraFields.RawResponse = map[string]any{"bestbefore": out}
+	}
+}
+
+// appendDelta adds text to the final chunk's first choice, creating one if
+// the provider sent a final chunk without choices.
+func appendDelta(chunk *schemas.BifrostChatResponse, text string) {
+	for i := range chunk.Choices {
+		c := &chunk.Choices[i]
+		if c.Index != 0 || c.ChatStreamResponseChoice == nil {
+			continue
+		}
+		if c.Delta == nil {
+			c.Delta = &schemas.ChatStreamResponseChoiceDelta{}
+		}
+		joined := text
+		if c.Delta.Content != nil {
+			joined = *c.Delta.Content + text
+		}
+		c.Delta.Content = &joined
+		return
+	}
+	chunk.Choices = append(chunk.Choices, schemas.BifrostResponseChoice{
+		ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{
+			Delta: &schemas.ChatStreamResponseChoiceDelta{Content: &text},
+		},
+	})
 }
 
 // HTTPTransportPreHook serves three virtual models, so everything stays inside
@@ -116,6 +218,9 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	cacheID := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_id").String()
 	cacheHit := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_hit").Bool()
 	question := lastUserMessage(req.Body)
+	if p.cfg.CheckScope == "cached" && cacheID == "" {
+		return nil
+	}
 
 	if done, ok := p.takePending(cacheHit, gjson.GetBytes(resp.Body, "id").String(), answer); ok {
 		out := done.outcome
@@ -136,6 +241,20 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	if stored, ok := p.ledger.Current(cacheID, time.Now()); ok && cacheHit {
 		p.stats.ledgerHits.Add(1)
 		return annotate(resp, outcome{Report: stored, Origin: "ledger", CacheHit: true, Healed: stored.Status == freshness.StatusHealed})
+	}
+
+	if cacheHit && p.cfg.Revalidate == "background" {
+		// Past its best-before date: answer now, re-check behind the scenes.
+		// If it went stale, it is evicted and the next caller gets it healed.
+		p.revalidateLater(cacheID, question, answer)
+		last, known := p.ledger.Get(cacheID)
+		out := outcome{Origin: "revalidating", CacheHit: true}
+		if known {
+			out.Report, out.Healed = last.Report, last.Report.Status == freshness.StatusHealed
+		} else {
+			out.Report = freshness.Report{Status: freshness.StatusUnchecked, Score: 0.5, Claims: []freshness.ClaimReport{}, Error: "being re-checked in the background"}
+		}
+		return annotate(resp, out)
 	}
 
 	out := p.check(question, answer, true)
