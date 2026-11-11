@@ -1,6 +1,6 @@
 # Adversarial review
 
-We ran two adversarial reviews, each by a separate AI reviewer given the code, not our conclusions.
+We ran three adversarial reviews, each by a separate AI reviewer given the code, not our conclusions.
 
 ## First review: the checker
 
@@ -44,3 +44,20 @@ After adding self-healing and the background sweeper, we ran the same kind of re
 | 8–13 | Low | Multi-choice responses were only half checked; the ledger could evict due entries first and hold unbounded text; healing a healed answer duplicated its sources list; the active-plugin pointer was unsynchronised; counters double-counted. | Multi-choice responses are skipped; timeless entries are evicted first and text is capped; old source lists are stripped before healing; the pointer is atomic; the sweeper counts an eviction only when it succeeds (the overall eviction count includes the sweeper's). | `TestHealingAHealedAnswerKeepsOneSourcesList` and the suite under `-race` |
 
 **Accepted, documented:** the plugin assumes Bifrost's default placement for custom plugins (after the built-ins), which is what makes healing before the cache write work; a custom `pre_builtin` placement would break that ordering. It is listed in the README's Limits.
+
+## Third review: streaming, background revalidation, scope and official-site search
+
+After adding streaming, background revalidation, `check_scope` and the official-site search, a third reviewer attacked that code with scratch tests (four failed exactly as predicted before our fixes). Ten findings; these are fixed:
+
+| # | Severity | What broke | Fix | Test |
+|---|---|---|---|---|
+| 1 | High | A fresh streamed answer was cached with no best-before date: the ledger never sees streams, so it could be replayed for the whole cache TTL without a re-check. | Every answer BestBefore lets into the cache now carries a per-request cache TTL equal to its best-before date (the cache's own `semantic_cache-ttl` switch), so the cache itself drops it when it is due. This also covers answers whose ledger entry was lost on restart. | `TestCachedAnswersExpireAtTheirBestBeforeDate`, `TestFreshStreamIsCachedOnlyUntilItsBestBeforeDate`, e2e `test_fresh_stream_is_cached_and_replayed` |
+| 2 | Medium-high | When a request asked for the cache but the cache declined to store it (long conversations, large payloads), the answer could be rewritten yet arrive with no report. | A pending result is always reported before the scope check. | `TestHealedAnswerIsReportedEvenWhenTheCacheSkippedIt` |
+| 3 | Medium | Two background re-checks of an id unknown to the ledger could race, and the slower one evicted a newer healed answer. | After claiming the id, a re-check stops if the ledger holds anything newer than its snapshot. | `TestRecheckSkipsWhenTheLedgerHasANewerAnswer` |
+| 4 | Medium | The model-chosen "official site" could be steered by the question, or land on shared hosts (github.io, pypi.org, blogspot.com), making a planted page "official". | A site is searched as official only if the general results already cite it, and never if it is a shared host. | `TestBadOrMissingSiteFallsBackToOneSearch` |
+| 5 | Medium | A failed re-check of an unknown id stored nothing, so every hit paid again; background checks had no global bound. | Failures are stored with backoff; background revalidation runs in a pool of four and skips when full. | `TestFailedRecheckOfAnUnknownEntryIsRemembered` |
+| 6 | Medium | The end of a stream could wait up to two full timeouts for the check. | Streams get a 20-second budget; if it runs out the stream is simply not cached. | `TestStreamThatCannotBeCheckedIsNotCached` |
+| 9 | Test gap | The e2e stream test would have passed even if streams were never cached. | A positive control: a fresh stream is replayed from the cache. | e2e |
+| 10 | Low | `searches` counted claims, not Tavily calls. | It counts calls. | covered |
+
+**Accepted and documented** (README Limits): with raw-response capture turned on in Bifrost, a stream's report can be dropped from the final chunk (finding 7); a cache configured with `default_cache_key` caches requests without the header, which `check_scope: "cached"` does not see, so such deployments should set `check_scope: "all"`; only the first choice of a multi-choice stream is checked (finding 8).
