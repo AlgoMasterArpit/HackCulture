@@ -408,7 +408,9 @@ function render({ data, answer }) {
   const cache = cachePill(report, data);
   if (cache) meta.append(cache);
   if (report.origin === "ledger" || report.origin === "revalidating") {
-    meta.append(el("span", "pill", `no new check: last checked ${new Date(report.checked_at).toLocaleTimeString()}`));
+    if (!report.checked_at?.startsWith("0001")) {
+      meta.append(el("span", "pill", `served without waiting: last checked ${new Date(report.checked_at).toLocaleTimeString()}`));
+    }
   } else {
     meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
     meta.append(el("span", "pill", `${report.judge_tokens.toLocaleString()} judge tokens`));
