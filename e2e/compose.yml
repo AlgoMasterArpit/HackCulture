@@ -1,0 +1,15 @@
+services:
+  mock:
+    image: python:3.12-alpine
+    command: python /mock.py
+    volumes:
+      - ./mock.py:/mock.py:ro
+
+  gateway:
+    build: ..
+    image: bestbefore-gateway:dev
+    depends_on: [mock]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.json:/app/data/config.json:ro

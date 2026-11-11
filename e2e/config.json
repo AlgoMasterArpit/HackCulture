@@ -1,0 +1,40 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "config_store": { "enabled": false },
+  "providers": {
+    "mock": {
+      "custom_provider_config": { "base_provider_type": "openai" },
+      "network_config": { "base_url": "http://mock:9000", "allow_private_network": true },
+      "keys": [
+        { "name": "mock-key", "value": "mock-key", "models": ["*"], "weight": 1.0 }
+      ]
+    }
+  },
+  "vector_store": {
+    "enabled": true,
+    "type": "chromem",
+    "config": {}
+  },
+  "plugins": [
+    {
+      "enabled": true,
+      "name": "semantic_cache",
+      "config": {
+        "dimension": 1,
+        "ttl": "1h",
+        "cache_by_model": true,
+        "cache_by_provider": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "bestbefore",
+      "path": "/app/plugins/bestbefore.so",
+      "config": {
+        "judge_model": "mock/judge",
+        "tavily_url": "http://mock:9000",
+        "tavily_api_key": "tvly-mock"
+      }
+    }
+  ]
+}
