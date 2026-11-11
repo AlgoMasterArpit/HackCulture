@@ -1,55 +1,60 @@
-// BestBefore is a Bifrost plugin that re-verifies time-sensitive claims in
-// model answers against live web sources, scores their freshness, and keeps
-// stale answers out of the semantic cache.
+// BestBefore is a Bifrost plugin that keeps a semantic cache honest. It
+// re-verifies the time-sensitive claims in model answers against live web
+// sources, rewrites stale answers with the verified current values before
+// the cache stores them, and re-checks cached answers in the background when
+// their best-before date passes.
 package main
 
 import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/AlgoMasterArpit/HackCulture/freshness"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 const (
-	pluginName  = "bestbefore"
-	verifyModel = "bestbefore/verify"
+	pluginName = "bestbefore"
 
 	evictRetryDelay = 2 * time.Second
 )
 
 type config struct {
-	JudgeModel     string   `json:"judge_model"`
-	JudgeFallbacks []string `json:"judge_fallbacks"`
-	GatewayURL     string   `json:"gateway_url"`
-	TavilyURL      string   `json:"tavily_url"`
-	TavilyAPIKey   string   `json:"tavily_api_key"`
-	VirtualKey     string   `json:"virtual_key"`
-	MaxClaims      int      `json:"max_claims"`
-	MaxResults     int      `json:"max_results"`
-	TimeoutSeconds int      `json:"timeout_seconds"`
-	EvictStale     *bool    `json:"evict_stale"`
+	JudgeModel     string            `json:"judge_model"`
+	JudgeFallbacks []string          `json:"judge_fallbacks"`
+	GatewayURL     string            `json:"gateway_url"`
+	TavilyURL      string            `json:"tavily_url"`
+	TavilyAPIKey   string            `json:"tavily_api_key"`
+	VirtualKey     string            `json:"virtual_key"`
+	MaxClaims      int               `json:"max_claims"`
+	MaxResults     int               `json:"max_results"`
+	TimeoutSeconds int               `json:"timeout_seconds"`
+	EvictStale     *bool             `json:"evict_stale"`
+	Heal           *bool             `json:"heal"`
+	SweepInterval  string            `json:"sweep_interval"`
+	RecheckWindows map[string]string `json:"recheck_windows"`
 }
 
 type plugin struct {
 	cfg      config
 	verifier *freshness.Verifier
+	healer   *freshness.Healer
 	ledger   *freshness.Ledger
+	pending  *pendingChecks
+	stats    *stats
 	http     *http.Client
 	// token marks the plugin's own judge calls. It is random per process so a
 	// client cannot send the header itself to skip checking.
 	token string
+	stop  context.CancelFunc
 }
 
 var active *plugin
@@ -59,7 +64,11 @@ func Init(raw any) error {
 	if err != nil {
 		return fmt.Errorf("bestbefore: %w", err)
 	}
+	if active != nil && active.stop != nil {
+		active.stop()
+	}
 	active = p
+	p.startSweeper()
 	return nil
 }
 
@@ -70,6 +79,7 @@ func newPlugin(raw any) (*plugin, error) {
 		MaxClaims:      4,
 		MaxResults:     5,
 		TimeoutSeconds: 25,
+		SweepInterval:  "5m",
 	}
 	encoded, err := json.Marshal(raw)
 	if err != nil {
@@ -82,29 +92,67 @@ func newPlugin(raw any) (*plugin, error) {
 	cfg.VirtualKey = resolveEnv(cfg.VirtualKey)
 
 	if cfg.JudgeModel == "" {
-		return nil, fmt.Errorf("judge_model is required, for example \"openai/gpt-4o-mini\"")
+		return nil, errors.New(`judge_model is required, for example "openai/gpt-4o-mini"`)
 	}
 	if cfg.TavilyAPIKey == "" && cfg.VirtualKey == "" {
-		return nil, fmt.Errorf("set tavily_api_key, or virtual_key with tavily_url pointing at a Bifrost relay")
+		return nil, errors.New("set tavily_api_key, or virtual_key with tavily_url pointing at a Bifrost relay")
 	}
 	if cfg.MaxClaims <= 0 || cfg.MaxResults <= 0 || cfg.TimeoutSeconds <= 0 {
-		return nil, fmt.Errorf("max_claims, max_results and timeout_seconds must be positive")
+		return nil, errors.New("max_claims, max_results and timeout_seconds must be positive")
+	}
+	if _, err := cfg.sweepEvery(); err != nil {
+		return nil, err
+	}
+	if err := applyRecheckWindows(cfg.RecheckWindows); err != nil {
+		return nil, err
 	}
 
 	token := rand.Text()
 	client := &http.Client{Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second}
+	judge := &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, Token: token, HTTP: client}
 	return &plugin{
-		cfg:    cfg,
-		http:   client,
-		token:  token,
-		ledger: freshness.NewLedger(10000),
+		cfg:     cfg,
+		http:    client,
+		token:   token,
+		ledger:  freshness.NewLedger(10000),
+		pending: newPendingChecks(),
+		stats:   &stats{},
+		healer:  &freshness.Healer{LLM: judge},
 		verifier: &freshness.Verifier{
-			LLM:       &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, Token: token, HTTP: client},
+			LLM:       judge,
 			Search:    &freshness.Tavily{BaseURL: cfg.TavilyURL, APIKey: cfg.TavilyAPIKey, VirtualKey: cfg.VirtualKey, MaxResults: cfg.MaxResults, HTTP: client},
 			MaxClaims: cfg.MaxClaims,
 			Now:       time.Now,
 		},
 	}, nil
+}
+
+func (c config) sweepEvery() (time.Duration, error) {
+	if c.SweepInterval == "" || c.SweepInterval == "0" {
+		return 0, nil
+	}
+	d, err := time.ParseDuration(c.SweepInterval)
+	if err != nil || d < time.Second {
+		return 0, fmt.Errorf("sweep_interval must be a duration of at least 1s, or \"0\" to turn it off")
+	}
+	return d, nil
+}
+
+// applyRecheckWindows lets operators shorten or lengthen how long each kind of
+// claim is trusted, for example {"pricing": "6h"}.
+func applyRecheckWindows(windows map[string]string) error {
+	for kind, value := range windows {
+		k := freshness.Kind(kind)
+		if _, ok := freshness.RecheckWindow[k]; !ok {
+			return fmt.Errorf("recheck_windows: unknown claim kind %q", kind)
+		}
+		d, err := time.ParseDuration(value)
+		if err != nil || d <= 0 {
+			return fmt.Errorf("recheck_windows: %s must be a positive duration", kind)
+		}
+		freshness.RecheckWindow[k] = d
+	}
+	return nil
 }
 
 func resolveEnv(v string) string {
@@ -117,112 +165,60 @@ func resolveEnv(v string) string {
 func GetName() string { return pluginName }
 
 func Cleanup() error {
+	if p := active; p != nil && p.stop != nil {
+		p.stop()
+	}
 	active = nil
 	return nil
 }
 
-// HTTPTransportPreHook serves the "bestbefore/verify" virtual model: any
-// OpenAI-compatible client can hand over an existing answer and get its
-// freshness report back, without a second service or a new route.
-func HTTPTransportPreHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest) (*schemas.HTTPResponse, error) {
-	p := active
-	if p == nil || !isChatCompletion(req) || p.isInternal(req) {
-		return nil, nil
-	}
-	if gjson.GetBytes(req.Body, "model").String() != verifyModel {
-		return nil, nil
-	}
-	messages := gjson.GetBytes(req.Body, "messages").Array()
-	if len(messages) == 0 {
-		return jsonResponse(400, map[string]any{"error": map[string]string{
-			"message": "bestbefore/verify needs the answer to check as the last message",
-		}}), nil
-	}
-	answer := messageText(messages[len(messages)-1])
-	question := ""
-	if len(messages) > 1 {
-		question = messageText(messages[len(messages)-2])
-	}
-	report := p.verify(question, answer)
-	return jsonResponse(200, map[string]any{
-		"id":      "bestbefore-" + strconv.FormatInt(report.CheckedAt.UnixNano(), 36),
-		"object":  "chat.completion",
-		"created": report.CheckedAt.Unix(),
-		"model":   verifyModel,
-		"choices": []map[string]any{{
-			"index":         0,
-			"finish_reason": "stop",
-			"message":       map[string]string{"role": "assistant", "content": summarize(report)},
-		}},
-		"bestbefore": report,
-	}), nil
-}
-
-type annotation struct {
+// outcome is a report plus what the plugin did about it, as sent to callers.
+type outcome struct {
 	freshness.Report
-	Origin       string `json:"origin"`
-	CacheHit     bool   `json:"cache_hit"`
-	CacheEvicted bool   `json:"cache_evicted"`
+	Origin         string `json:"origin"`
+	CacheHit       bool   `json:"cache_hit"`
+	CacheEvicted   bool   `json:"cache_evicted"`
+	Healed         bool   `json:"healed"`
+	OriginalAnswer string `json:"original_answer,omitempty"`
+	HealError      string `json:"heal_error,omitempty"`
+
+	answer string
 }
 
-// HTTPTransportPostHook scores every non-streaming chat answer. It runs on
-// cache hits too, which is where a TTL-only cache would keep serving an
-// answer that has since gone stale.
-func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest, resp *schemas.HTTPResponse) error {
-	p := active
-	if p == nil || !isChatCompletion(req) || p.isInternal(req) || resp.StatusCode != 200 || len(resp.Body) == 0 {
-		return nil
-	}
-	if gjson.GetBytes(req.Body, "model").String() == verifyModel {
-		return nil
-	}
-	if gjson.GetBytes(req.Body, "stream").Bool() || !gjson.ValidBytes(resp.Body) {
-		return nil
-	}
-	answer := messageText(gjson.GetBytes(resp.Body, "choices.0.message"))
-	if answer == "" {
-		return nil
-	}
-	cacheID := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_id").String()
-	note := annotation{CacheHit: gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_hit").Bool()}
-
-	if stored, ok := p.ledger.Current(cacheID, time.Now()); ok && note.CacheHit {
-		note.Report, note.Origin = stored, "ledger"
-		return annotate(resp, note)
-	}
-
-	note.Report, note.Origin = p.verify(lastUserMessage(req.Body), answer), "verified"
-	if cacheID != "" {
-		switch {
-		case note.Stale() && p.evictsStale():
-			note.CacheEvicted = p.evict(cacheID) == nil
-			p.ledger.Delete(cacheID)
-			// The cache writes its entry in a goroutine that can finish after a
-			// fast verification, so clear it once more after that write lands.
-			go func() {
-				time.Sleep(evictRetryDelay)
-				p.evict(cacheID)
-			}()
-		case note.Status != freshness.StatusUnchecked:
-			p.ledger.Put(cacheID, note.Report)
-		}
-	}
-	return annotate(resp, note)
-}
-
-func (p *plugin) evictsStale() bool {
-	return p.cfg.EvictStale == nil || *p.cfg.EvictStale
-}
-
-func (p *plugin) verify(question, answer string) freshness.Report {
+// check verifies an answer and, when it is stale and heal is set, rewrites it.
+func (p *plugin) check(question, answer string, heal bool) outcome {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.cfg.TimeoutSeconds)*time.Second)
 	defer cancel()
-	report := p.verifier.Verify(ctx, question, answer)
-	if report.Detail != nil {
-		log.Printf("bestbefore: %s: %v", report.Error, report.Detail)
+	out := outcome{Report: p.verifier.Verify(ctx, question, answer), Origin: "verified", answer: answer}
+	if out.Detail != nil {
+		log.Printf("bestbefore: %s: %v", out.Error, out.Detail)
 	}
-	return report
+	p.stats.record(out.Report)
+	if !out.Stale() || !heal || !p.heals() {
+		return out
+	}
+	healed, tokens, err := p.healer.Heal(ctx, question, answer, out.Report)
+	out.JudgeTokens += tokens
+	if err != nil {
+		if !errors.Is(err, freshness.ErrNothingToHeal) {
+			out.HealError = "could not rewrite the answer"
+			log.Printf("bestbefore: heal failed: %v", err)
+		}
+		return out
+	}
+	p.stats.healed.Add(1)
+	out.Healed, out.OriginalAnswer, out.answer = true, answer, healed
+	out.Status = freshness.StatusHealed
+	return out
 }
+
+// ledgerEntry describes the answer that ends up in the cache.
+func (o outcome) ledgerEntry(question string) freshness.Entry {
+	return freshness.Entry{Report: o.Report, Question: question, Answer: o.answer}
+}
+
+func (p *plugin) heals() bool       { return p.cfg.Heal == nil || *p.cfg.Heal }
+func (p *plugin) evictsStale() bool { return p.cfg.EvictStale == nil || *p.cfg.EvictStale }
 
 func (p *plugin) evict(cacheID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -243,80 +239,16 @@ func (p *plugin) evict(cacheID string) error {
 	return nil
 }
 
-func annotate(resp *schemas.HTTPResponse, note annotation) error {
-	body, err := sjson.SetBytes(resp.Body, "bestbefore", note)
-	if err != nil {
-		return nil
+// evictTwice clears an entry now and again once the cache's own asynchronous
+// write has had time to land.
+func (p *plugin) evictTwice(cacheID string) bool {
+	ok := p.evict(cacheID) == nil
+	if ok {
+		p.stats.evicted.Add(1)
 	}
-	resp.Body = body
-	if resp.Headers == nil {
-		resp.Headers = map[string]string{}
-	}
-	resp.Headers["x-bestbefore-status"] = string(note.Status)
-	resp.Headers["x-bestbefore-score"] = strconv.FormatFloat(note.Score, 'f', 2, 64)
-	if note.CacheEvicted {
-		resp.Headers["x-bestbefore-cache-evicted"] = "true"
-	}
-	return nil
-}
-
-func isChatCompletion(req *schemas.HTTPRequest) bool {
-	return req.Method == http.MethodPost && strings.HasSuffix(req.Path, "/chat/completions")
-}
-
-func (p *plugin) isInternal(req *schemas.HTTPRequest) bool {
-	return req.CaseInsensitiveHeaderLookup(freshness.InternalHeader) == p.token
-}
-
-func lastUserMessage(body []byte) string {
-	users := gjson.GetBytes(body, `messages.#(role=="user")#`).Array()
-	if len(users) == 0 {
-		return ""
-	}
-	return messageText(users[len(users)-1])
-}
-
-// messageText reads both plain string content and multi-part content arrays.
-func messageText(message gjson.Result) string {
-	content := message.Get("content")
-	if !content.IsArray() {
-		return content.String()
-	}
-	var parts []string
-	for _, part := range content.Array() {
-		if text := part.Get("text").String(); text != "" {
-			parts = append(parts, text)
-		}
-	}
-	return strings.Join(parts, "\n")
-}
-
-func summarize(r freshness.Report) string {
-	var b strings.Builder
-	fmt.Fprintf(&b, "Freshness: %s (score %.2f)\n", r.Status, r.Score)
-	if r.Error != "" {
-		fmt.Fprintf(&b, "Could not verify: %s\n", r.Error)
-	}
-	for _, c := range r.Claims {
-		fmt.Fprintf(&b, "\n[%s %.2f] %s", strings.ToUpper(string(c.Status)), c.Score, c.Claim)
-		if c.CurrentValue != "" {
-			fmt.Fprintf(&b, "\n  now: %s", c.CurrentValue)
-		}
-		if c.SourceURL != "" {
-			fmt.Fprintf(&b, "\n  source: %s", c.SourceURL)
-		}
-	}
-	if len(r.Claims) == 0 && r.Error == "" {
-		b.WriteString("No time-sensitive claims found.")
-	}
-	return b.String()
-}
-
-func jsonResponse(status int, payload any) *schemas.HTTPResponse {
-	body, _ := json.Marshal(payload)
-	return &schemas.HTTPResponse{
-		StatusCode: status,
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       body,
-	}
+	go func() {
+		time.Sleep(evictRetryDelay)
+		p.evict(cacheID)
+	}()
+	return ok
 }
