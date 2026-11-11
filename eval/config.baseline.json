@@ -52,7 +52,9 @@
           "gemini/gemma-4-26b-a4b-it"
         ],
         "evict_stale": false,
-        "timeout_seconds": 60
+        "timeout_seconds": 60,
+        "heal": false,
+        "sweep_interval": "0"
       }
     }
   ]
