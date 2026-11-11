@@ -54,6 +54,7 @@ def main():
 
     stamp = int(time.time())
     runs = []
+    failures = 0
     for index, question in enumerate(QUESTIONS, 1):
         row = {"question": question}
         for name, gateway in (("baseline", args.baseline), ("bestbefore", args.bestbefore)):
@@ -61,6 +62,9 @@ def main():
             row[name] = {"first": first, "second": second}
             status = (first["bestbefore"] or {}).get("status")
             print(f"[{index:2}] {name:10} first={status:9} second_hit={second['cache_hit']}  {question[:50]}", flush=True)
+            failures = failures + 1 if status == "unchecked" else 0
+            if failures >= 3:
+                raise SystemExit("three checks in a row failed (network or quota); not saving a broken run")
             time.sleep(args.pace)
         runs.append(row)
 
