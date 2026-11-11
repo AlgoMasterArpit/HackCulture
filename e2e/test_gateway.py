@@ -141,6 +141,19 @@ def test_streamed_stale_answer_gets_a_correction_and_stays_out_of_the_cache():
     assert not debug.get("cache_hit"), "a stale stream must not be replayed from the cache"
 
 
+def test_fresh_stream_is_cached_and_replayed():
+    set_web(globex="$30")
+    key = f"fresh-stream-{time.time()}"
+    text, first = stream("How much is Globex Team?", key)
+    assert "Corrected" not in text, text
+    assert first[-1]["extra_fields"]["raw_response"]["bestbefore"]["status"] == "fresh", first[-1]
+
+    time.sleep(1)
+    again_text, again = stream("How much is Globex Team?", key)
+    assert again[-1].get("extra_fields", {}).get("cache_debug", {}).get("cache_hit"), "a fresh stream should be replayed from the cache"
+    assert again_text == text
+
+
 def test_verify_model_heals_a_pasted_answer():
     set_web(acme="$15")
     body = model("bestbefore/verify", [
