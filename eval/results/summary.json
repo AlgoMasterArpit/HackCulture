@@ -1,0 +1,82 @@
+{
+  "claims": {
+    "sizes": {
+      "stale": 20,
+      "fresh": 20,
+      "timeless": 20
+    },
+    "with": {
+      "recall": 80.0,
+      "false_alarm": 0.0
+    },
+    "without": {
+      "recall": 90.0,
+      "false_alarm": 0.0
+    },
+    "precision": 100.0,
+    "gate_skip": 85.0,
+    "checked": 37,
+    "tokens_per_checked": 2378.189189189189,
+    "searches_per_checked": 1,
+    "latency_p50": 8544,
+    "latency_p95": 15698
+  },
+  "claims_run1": {
+    "sizes": {
+      "stale": 20,
+      "fresh": 20,
+      "timeless": 20
+    },
+    "with": {
+      "recall": 65.0,
+      "false_alarm": 0.0
+    },
+    "without": {
+      "recall": 90.0,
+      "false_alarm": 0.0
+    },
+    "precision": 100.0,
+    "gate_skip": 85.0,
+    "checked": 36,
+    "tokens_per_checked": 2341.8333333333335,
+    "searches_per_checked": 1,
+    "latency_p50": 5663,
+    "latency_p95": 7755
+  },
+  "claims_run1_repeat": {
+    "sizes": {
+      "stale": 20,
+      "fresh": 20,
+      "timeless": 20
+    },
+    "with": {
+      "recall": 65.0,
+      "false_alarm": 0.0
+    },
+    "without": {
+      "recall": 90.0,
+      "false_alarm": 0.0
+    },
+    "precision": 100.0,
+    "gate_skip": 85.0,
+    "checked": 36,
+    "tokens_per_checked": 2278.277777777778,
+    "searches_per_checked": 1,
+    "latency_p50": 9164,
+    "latency_p95": 26481
+  },
+  "cache": {
+    "baseline": {
+      "questions": 10,
+      "stale_first": 10,
+      "served_stale": 10,
+      "hits": 10
+    },
+    "bestbefore": {
+      "questions": 10,
+      "stale_first": 10,
+      "served_stale": 0,
+      "hits": 0
+    }
+  }
+}
