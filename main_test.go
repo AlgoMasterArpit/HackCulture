@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/AlgoMasterArpit/HackCulture/freshness"
 	"github.com/maximhq/bifrost/core/schemas"
@@ -23,8 +24,8 @@ func startStubs(t *testing.T) *stubs {
 	s := &stubs{}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get(freshness.InternalHeader) == "" {
-			t.Error("judge call is missing the internal header")
+		if p := active; p == nil || r.Header.Get(freshness.InternalHeader) != p.token {
+			t.Error("judge call is missing the internal token")
 		}
 		content := `{\"claims\":[{\"text\":\"Acme Pro costs $10 per month\",\"kind\":\"pricing\",\"query\":\"Acme Pro price\"}]}`
 		if s.judgeCalls.Add(1)%2 == 0 {
@@ -73,12 +74,18 @@ func chatResponse(content, cacheDebug string) *schemas.HTTPResponse {
 
 const question = `{"model":"openai/gpt-4o-mini","messages":[{"role":"user","content":"How much is Acme Pro?"}]}`
 
-func TestInitRejectsMissingConfig(t *testing.T) {
-	if err := Init(map[string]any{"tavily_api_key": "k"}); err == nil {
-		t.Error("missing judge_model should fail")
+func TestInitRejectsBadConfig(t *testing.T) {
+	bad := map[string]map[string]any{
+		"missing judge_model":    {"tavily_api_key": "k"},
+		"missing search key":     {"judge_model": "m"},
+		"zero max_claims":        {"judge_model": "m", "tavily_api_key": "k", "max_claims": 0},
+		"negative timeout":       {"judge_model": "m", "tavily_api_key": "k", "timeout_seconds": -1},
+		"wrong type for a field": {"judge_model": "m", "tavily_api_key": "k", "max_claims": "four"},
 	}
-	if err := Init(map[string]any{"judge_model": "m"}); err == nil {
-		t.Error("missing search credentials should fail")
+	for name, cfg := range bad {
+		if err := Init(cfg); err == nil {
+			t.Errorf("%s: Init should fail", name)
+		}
 	}
 }
 
@@ -123,7 +130,7 @@ func TestTimelessAnswerMakesNoCalls(t *testing.T) {
 
 func TestCacheHitInsideWindowUsesLedger(t *testing.T) {
 	s := startStubs(t)
-	active.ledger.Put("warm", freshness.Report{Status: freshness.StatusTimeless, Score: 1})
+	active.ledger.Put("warm", freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(time.Hour)})
 	resp := chatResponse("Acme Pro costs $10 per month.", `{"cache_hit":true,"cache_id":"warm"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -136,12 +143,48 @@ func TestCacheHitInsideWindowUsesLedger(t *testing.T) {
 	}
 }
 
+func TestCacheHitPastItsWindowIsReverified(t *testing.T) {
+	s := startStubs(t)
+	active.ledger.Put("due", freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(-time.Minute)})
+	resp := chatResponse("Acme Pro costs $10 per month.", `{"cache_hit":true,"cache_id":"due"}`)
+
+	HTTPTransportPostHook(nil, chatRequest(question), resp)
+
+	if s.judgeCalls.Load() == 0 || gjson.GetBytes(resp.Body, "bestbefore.status").String() != "stale" {
+		t.Fatalf("a due cache hit must be checked again, got %s", gjson.GetBytes(resp.Body, "bestbefore").Raw)
+	}
+}
+
+func TestCacheIDIsEscapedInEvictionURL(t *testing.T) {
+	s := startStubs(t)
+	resp := chatResponse("Acme Pro costs $10 per month.", `{"cache_hit":false,"cache_id":"../../v1/x?y=1"}`)
+
+	HTTPTransportPostHook(nil, chatRequest(question), resp)
+
+	if s.evictedID.Load() != "../../v1/x?y=1" {
+		t.Errorf("evicted id = %v, want the raw id delivered to the clear route", s.evictedID.Load())
+	}
+}
+
+func TestForgedInternalHeaderIsStillChecked(t *testing.T) {
+	s := startStubs(t)
+	req := chatRequest(question)
+	req.Headers[freshness.InternalHeader] = "1"
+	resp := chatResponse("Acme Pro costs $10 per month.", "")
+
+	HTTPTransportPostHook(nil, req, resp)
+
+	if s.judgeCalls.Load() == 0 || resp.Headers["x-bestbefore-status"] != "stale" {
+		t.Fatal("a client-supplied internal header must not skip checking")
+	}
+}
+
 func TestSkipsStreamsErrorsAndOwnCalls(t *testing.T) {
 	s := startStubs(t)
 	answer := "Acme Pro costs $10 per month."
 
 	internal := chatRequest(question)
-	internal.Headers[freshness.InternalHeader] = "1"
+	internal.Headers[freshness.InternalHeader] = active.token
 	failed := chatResponse(answer, "")
 	failed.StatusCode = 500
 
@@ -153,6 +196,8 @@ func TestSkipsStreamsErrorsAndOwnCalls(t *testing.T) {
 		"stream":         {chatRequest(`{"stream":true,"messages":[]}`), chatResponse(answer, "")},
 		"error status":   {chatRequest(question), failed},
 		"other route":    {&schemas.HTTPRequest{Method: "POST", Path: "/v1/embeddings", Headers: map[string]string{}}, chatResponse(answer, "")},
+		"verify model":   {chatRequest(`{"model":"bestbefore/verify","messages":[]}`), chatResponse(answer, "")},
+		"nil body":       {chatRequest(question), &schemas.HTTPResponse{StatusCode: 200, Headers: map[string]string{}}},
 	}
 	for name, c := range cases {
 		HTTPTransportPostHook(nil, c.req, c.resp)
