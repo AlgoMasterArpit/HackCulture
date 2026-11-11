@@ -10,7 +10,7 @@ import (
 
 type stats struct {
 	checked, stale, healed, evicted, ledgerHits atomic.Int64
-	sweeps, swept, sweptStale                   atomic.Int64
+	sweeps, swept, sweptStale, revalidated      atomic.Int64
 }
 
 func (s *stats) record(r freshness.Report) {
@@ -33,6 +33,7 @@ func (s *stats) snapshot() map[string]int64 {
 		"sweeps":                    s.sweeps.Load(),
 		"rechecked_by_sweeper":      s.swept.Load(),
 		"evicted_by_sweeper":        s.sweptStale.Load(),
+		"revalidated_in_background": s.revalidated.Load(),
 	}
 }
 
@@ -119,29 +120,87 @@ func (p *plugin) sweep(all bool) (results []sweepResult, ran bool) {
 		if p.ctx.Err() != nil {
 			break
 		}
-		checkedAt := e.Report.CheckedAt
-		out := p.checkWithin(p.ctx, e.Question, freshness.StripSources(e.Answer), false)
-		p.stats.swept.Add(1)
-		r := sweepResult{CacheID: id, Question: e.Question, Status: out.Status}
-		switch {
-		case out.Status == freshness.StatusUnchecked:
-			// Do not keep vouching for an answer that could not be re-checked,
-			// and back off so an outage does not repeat paid calls every tick.
+		if r, ran := p.recheck(id, e, true); ran {
+			p.stats.swept.Add(1)
+			results = append(results, r)
+		}
+	}
+	return results, true
+}
+
+// recheck verifies one cached answer again and updates the ledger and cache.
+// known says whether e came from the ledger; updates are conditional on the
+// entry not having changed meanwhile. Only one recheck per cache id runs at a
+// time, so a burst of hits on an expired entry pays for a single check.
+func (p *plugin) recheck(id string, e freshness.Entry, known bool) (sweepResult, bool) {
+	if !p.inflight.claim(id) {
+		return sweepResult{}, false
+	}
+	defer p.inflight.release(id)
+
+	checkedAt := e.Report.CheckedAt
+	out := p.checkWithin(p.ctx, e.Question, freshness.StripSources(e.Answer), false)
+	r := sweepResult{CacheID: id, Question: e.Question, Status: out.Status}
+	switch {
+	case out.Status == freshness.StatusUnchecked:
+		// Do not keep vouching for an answer that could not be re-checked,
+		// and back off so an outage does not repeat paid calls every tick.
+		if known {
 			e.Failures++
 			e.Report.Status, e.Report.Score, e.Report.Error = freshness.StatusUnchecked, out.Score, out.Error
 			e.Report.RecheckAfter = time.Now().Add(min(time.Minute<<min(e.Failures, 6), time.Hour))
 			p.ledger.ReplaceIf(id, checkedAt, e)
-		case out.Stale():
-			if p.ledger.DeleteIf(id, checkedAt) && p.evictsStale() {
-				r.Evicted = p.evictTwice(id)
-				if r.Evicted {
-					p.stats.sweptStale.Add(1)
-				}
-			}
-		default:
-			p.ledger.ReplaceIf(id, checkedAt, out.ledgerEntry(e.Question))
 		}
-		results = append(results, r)
+	case out.Stale():
+		if (!known || p.ledger.DeleteIf(id, checkedAt)) && p.evictsStale() {
+			r.Evicted = p.evictTwice(id)
+			if r.Evicted {
+				p.stats.sweptStale.Add(1)
+			}
+		}
+	case known:
+		p.ledger.ReplaceIf(id, checkedAt, out.ledgerEntry(e.Question))
+	default:
+		p.ledger.Put(id, out.ledgerEntry(e.Question))
 	}
-	return results, true
+	return r, true
+}
+
+// revalidateLater serves the user now and re-checks a cache hit in the
+// background, like HTTP's stale-while-revalidate.
+func (p *plugin) revalidateLater(id, question, answer string) {
+	e, known := p.ledger.Get(id)
+	if !known {
+		e = freshness.Entry{Question: question, Answer: answer}
+	}
+	go func() {
+		if _, ran := p.recheck(id, e, known); ran {
+			p.stats.revalidated.Add(1)
+		}
+	}()
+}
+
+// inflight tracks cache ids being re-checked right now.
+type inflight struct {
+	mu  sync.Mutex
+	ids map[string]bool
+}
+
+func (f *inflight) claim(id string) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.ids == nil {
+		f.ids = map[string]bool{}
+	}
+	if f.ids[id] {
+		return false
+	}
+	f.ids[id] = true
+	return true
+}
+
+func (f *inflight) release(id string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	delete(f.ids, id)
 }
