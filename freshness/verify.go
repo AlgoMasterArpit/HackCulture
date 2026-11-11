@@ -176,7 +176,7 @@ func (v *Verifier) extract(ctx context.Context, question string, candidates []Ca
 			c.Kind = KindRecency
 		}
 		claims = append(claims, c)
-		if len(claims) == v.MaxClaims {
+		if v.MaxClaims > 0 && len(claims) == v.MaxClaims {
 			break
 		}
 	}
@@ -227,9 +227,10 @@ func (v *Verifier) judge(ctx context.Context, claims []Claim, evidence [][]Sourc
 	for i := range byClaim {
 		byClaim[i].Verdict = "unverifiable"
 	}
+	seen := make([]bool, len(claims))
 	for _, vd := range out.Verdicts {
-		if vd.Claim >= 1 && vd.Claim <= len(claims) {
-			byClaim[vd.Claim-1] = vd
+		if vd.Claim >= 1 && vd.Claim <= len(claims) && !seen[vd.Claim-1] {
+			byClaim[vd.Claim-1], seen[vd.Claim-1] = vd, true
 		}
 	}
 	return byClaim, nil
