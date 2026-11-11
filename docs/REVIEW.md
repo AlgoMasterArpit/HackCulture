@@ -1,5 +1,9 @@
 # Adversarial review
 
+We ran two adversarial reviews, each by a separate AI reviewer given the code, not our conclusions.
+
+## First review: the checker
+
 On 11 Nov 2026 we gave the code, not our conclusions, to a separate AI reviewer and asked it to break the plugin. It wrote attack tests and ran them in Docker. It found 12 problems. All are fixed except two parts that are accepted and listed in the README's Limits (see the end of this page). Each fix has a test that fails without it, except the demo page fix, which was checked by hand.
 
 | # | Severity | What broke | Fix | Test |
@@ -23,3 +27,20 @@ Test-suite problems it also found, now fixed: a data race in the search fake (ca
 **Accepted, not fixed** (in the README's Limits): there is no request coalescing, so many concurrent hits on one due entry each pay for a check; and a stale page that Tavily ranks highly can still make a stale answer look fresh, because one grounded source is enough.
 
 `go test -race ./...` passes after the fixes.
+
+## Second review: healing and the sweeper
+
+After adding self-healing and the background sweeper, we ran the same kind of review on the new code. It wrote attack tests, ran them under `-race`, and read Bifrost v2.5.1's source to check our assumptions about hook order and cache ids. It found 13 problems; these are fixed, each with a test:
+
+| # | Severity | What broke | Fix | Test |
+|---|---|---|---|---|
+| 1 | High | The rewrite check only looked for the new value. A draft that left the answer unchanged (when the new value already appeared elsewhere), kept the old value, or added a phishing link and new sentences was accepted, and the cache stored it as "healed". | A rewrite must change the answer, may use only words from the answer and the verified values, must not contain any number that was only in the outdated claim, must not contain a link, and must stay within twice the original length. | `TestHealRejectsDraftsThatAreStillStaleOrAddText` (6 attacks) |
+| 2 | High | Reloading the plugin wrote the shared best-before map while requests read it: a Go concurrent map write, which crashes the process. Overrides also leaked across reloads. | Each plugin instance gets its own copy; the package defaults are never written. | `TestRecheckWindowsBelongToOnePluginInstance` |
+| 3 | High | `bestbefore/sweep` let any caller trigger paid re-checks of every cached answer, any number of times in parallel, and `bestbefore/status` listed every cached question. | Both are off unless `admin_models` is set; only one sweep runs at a time. | `TestAdminModelsAreOffByDefault`, `TestOnlyOneSweepRunsAtATime` |
+| 4 | Medium | Results were matched to responses by the provider's response id alone; ids that repeat could attach one answer's result to another, and a cache hit could consume a miss's result. | Matched by id plus a hash of the answer text; cache hits never consume a result. | `TestResultsWithTheSameResponseIDDoNotCross` |
+| 5 | Medium | When a background re-check failed, the old "fresh" verdict kept being served and the failed check was repeated every minute. | The entry is marked `unchecked` and retried with exponential backoff, up to an hour. | `TestSweeperBacksOffAndStopsVouchingWhenACheckFails` |
+| 6 | Medium | A slow background re-check could overwrite or evict a newer, healed entry stored under the same cache id meanwhile, and the delayed second eviction could delete a fresh re-store. | The sweeper only updates or deletes the entry it actually checked (compare-and-swap on the check time); the second eviction is skipped if a newer answer was recorded. | `TestLedgerConditionalUpdates` |
+| 7 | Medium | A sweep in progress ignored plugin shutdown and kept spending. | Checks run under the plugin's context, which is cancelled on cleanup or reload. | covered by the race-enabled suite |
+| 8–13 | Low | Multi-choice responses were only half checked; the ledger could evict due entries first and hold unbounded text; healing a healed answer duplicated its sources list; the active-plugin pointer was unsynchronised; counters double-counted. | Multi-choice responses are skipped; timeless entries are evicted first and text is capped; old source lists are stripped before healing; the pointer is atomic; counters fixed. | `TestHealingAHealedAnswerKeepsOneSourcesList` and the suite under `-race` |
+
+**Accepted, documented:** the plugin assumes Bifrost's default placement for custom plugins (after the built-ins), which is what makes healing before the cache write work; a custom `pre_builtin` placement would break that ordering. It is listed in the README's Limits.
