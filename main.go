@@ -28,6 +28,7 @@ const (
 
 type config struct {
 	JudgeModel     string   `json:"judge_model"`
+	JudgeFallbacks []string `json:"judge_fallbacks"`
 	GatewayURL     string   `json:"gateway_url"`
 	TavilyURL      string   `json:"tavily_url"`
 	TavilyAPIKey   string   `json:"tavily_api_key"`
@@ -87,7 +88,7 @@ func newPlugin(raw any) (*plugin, error) {
 		http:   client,
 		ledger: freshness.NewLedger(10000),
 		verifier: &freshness.Verifier{
-			LLM:       &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, VirtualKey: cfg.VirtualKey, HTTP: client},
+			LLM:       &freshness.GatewayLLM{BaseURL: cfg.GatewayURL, Model: cfg.JudgeModel, Fallbacks: cfg.JudgeFallbacks, VirtualKey: cfg.VirtualKey, HTTP: client},
 			Search:    &freshness.Tavily{BaseURL: cfg.TavilyURL, APIKey: cfg.TavilyAPIKey, VirtualKey: cfg.VirtualKey, MaxResults: cfg.MaxResults, HTTP: client},
 			MaxClaims: cfg.MaxClaims,
 			Now:       time.Now,
