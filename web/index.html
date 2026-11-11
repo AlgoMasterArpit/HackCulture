@@ -22,6 +22,8 @@
     --uncertain-bg: #fef3c7;
     --neutral: #475569;
     --neutral-bg: #e2e8f0;
+    --healed: #0369a1;
+    --healed-bg: #e0f2fe;
     --code-bg: #f1f3f6;
     --shadow: 0 1px 2px rgba(16, 20, 26, .06), 0 8px 24px rgba(16, 20, 26, .06);
   }
@@ -42,6 +44,8 @@
       --uncertain-bg: #36290c;
       --neutral: #cbd5e1;
       --neutral-bg: #232b38;
+      --healed: #7dd3fc;
+      --healed-bg: #0c2a3d;
       --code-bg: #0f131a;
       --shadow: none;
     }
@@ -92,6 +96,18 @@
   .stale { color: var(--stale); background: var(--stale-bg); }
   .uncertain, .unchecked { color: var(--uncertain); background: var(--uncertain-bg); }
   .timeless { color: var(--neutral); background: var(--neutral-bg); }
+  .healed { color: var(--healed); background: var(--healed-bg); }
+  .original { color: var(--muted); border-left: 3px solid var(--stale); padding: 6px 12px; margin: 8px 0 0; background: var(--stale-bg); border-radius: 0 8px 8px 0; white-space: pre-wrap; }
+  .original b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--stale); margin-bottom: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 26px; letter-spacing: -.02em; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .countdown { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+  .countdown.due { color: var(--uncertain); }
   .answer { white-space: pre-wrap; margin: 0 0 6px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 10px; }
   .claims { display: grid; gap: 10px; }
@@ -116,6 +132,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
   @media (max-width: 640px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
     .row { grid-template-columns: 1fr; }
     .meta { margin-left: 0; }
   }
@@ -131,12 +148,13 @@
     <a href="https://github.com/AlgoMasterArpit/HackCulture" target="_blank" rel="noopener">GitHub ↗</a>
   </header>
 
-  <h1>Every answer through your gateway, checked against today's web.</h1>
-  <p class="lede">A Bifrost plugin that finds the time-sensitive claims in a model's answer, re-verifies them with Tavily, scores how fresh each one is, and keeps stale answers out of the semantic cache.</p>
+  <h1>A semantic cache that heals itself when the world changes.</h1>
+  <p class="lede">A Bifrost plugin that checks every answer's time-sensitive claims against today's web with Tavily, rewrites stale ones with the verified facts before they are cached, and re-checks cached answers when their best-before date passes.</p>
 
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="ask">Ask through the gateway</button>
     <button role="tab" aria-selected="false" data-tab="check">Check any answer</button>
+    <button role="tab" aria-selected="false" data-tab="cache">Cache freshness</button>
   </div>
 
   <form class="card" id="ask-form" data-panel="ask">
@@ -173,9 +191,22 @@
     </div>
   </form>
 
+  <section class="card" id="cache-panel" data-panel="cache" hidden>
+    <div class="stats" id="cache-stats"></div>
+    <div class="actions" style="margin-bottom: 12px">
+      <button class="primary" type="button" id="sweep-now">Re-check every cached answer now</button>
+      <span class="spinner" aria-hidden="true"></span>
+      <span class="empty" id="sweep-note"></span>
+    </div>
+    <table>
+      <thead><tr><th>Cached question</th><th>Status</th><th>Best before</th><th>Last checked</th></tr></thead>
+      <tbody id="cache-rows"></tbody>
+    </table>
+  </section>
+
   <section class="card" id="result" aria-live="polite"></section>
 
-  <footer>Requests go to <code>/v1/chat/completions</code> on your Bifrost gateway. The check tab uses the <code>bestbefore/verify</code> model the plugin adds.</footer>
+  <footer>Requests go to <code>/v1/chat/completions</code> on your Bifrost gateway. The check and cache tabs use the <code>bestbefore/verify</code>, <code>bestbefore/status</code> and <code>bestbefore/sweep</code> models the plugin adds.</footer>
 </div>
 
 <script>
@@ -201,6 +232,7 @@ for (const tab of document.querySelectorAll("[role=tab]")) {
     for (const t of document.querySelectorAll("[role=tab]")) t.setAttribute("aria-selected", t === tab);
     for (const p of document.querySelectorAll("[data-panel]")) p.hidden = p.dataset.panel !== tab.dataset.tab;
     $("#result").style.display = "none";
+    if (tab.dataset.tab === "cache") refreshCache();
   });
 }
 
@@ -264,6 +296,75 @@ $("#check-form").addEventListener("submit", (e) => {
   });
 });
 
+function until(iso) {
+  if (!iso || iso.startsWith("0001")) return { text: "never expires", due: false };
+  const seconds = Math.round((new Date(iso) - Date.now()) / 1000);
+  if (seconds <= 0) return { text: "due for a re-check", due: true };
+  const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60;
+  return { text: h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`, due: false };
+}
+
+function renderCache(status) {
+  const counts = status.counts;
+  const cards = [
+    ["Answers checked", counts.answers_checked],
+    ["Stale answers found", counts.stale_found],
+    ["Healed before caching", counts.healed],
+    ["Evicted by the sweeper", counts.evicted_by_sweeper],
+  ];
+  $("#cache-stats").replaceChildren(...cards.map(([label, value]) => {
+    const card = el("div", "stat");
+    card.append(el("b", null, value.toLocaleString()), el("span", null, label));
+    return card;
+  }));
+  const rows = status.entries.map((entry) => {
+    const tr = el("tr");
+    const left = until(entry.recheck_after);
+    tr.append(
+      el("td", null, entry.question || entry.cache_id),
+      el("td"),
+      el("td", `countdown${left.due ? " due" : ""}`, left.text),
+      el("td", null, new Date(entry.checked_at).toLocaleTimeString()),
+    );
+    tr.children[1].append(el("span", `pill ${entry.status}`, entry.status));
+    return tr;
+  });
+  if (!rows.length) {
+    const tr = el("tr");
+    const td = el("td", "empty", "Nothing cached yet. Ask a question with the semantic cache on.");
+    td.colSpan = 4;
+    tr.append(td);
+    rows.push(tr);
+  }
+  $("#cache-rows").replaceChildren(...rows);
+}
+
+async function refreshCache() {
+  try {
+    renderCache((await call({ model: "bestbefore/status", messages: [] })).bestbefore_status);
+  } catch (err) {
+    $("#sweep-note").textContent = err.message;
+  }
+}
+
+$("#sweep-now").addEventListener("click", async () => {
+  const panel = $("#cache-panel");
+  panel.classList.add("busy");
+  $("#sweep-now").disabled = true;
+  try {
+    const data = await call({ model: "bestbefore/sweep", messages: [] });
+    $("#sweep-note").textContent = data.choices[0].message.content;
+    renderCache(data.bestbefore_status);
+  } catch (err) {
+    $("#sweep-note").textContent = err.message;
+  } finally {
+    panel.classList.remove("busy");
+    $("#sweep-now").disabled = false;
+  }
+});
+
+setInterval(() => { if (!$("#cache-panel").hidden) refreshCache(); }, 3000);
+
 function safeURL(raw) {
   try {
     const url = new URL(raw);
@@ -274,8 +375,9 @@ function safeURL(raw) {
 }
 
 function cachePill(report, data) {
-  if (report.cache_evicted) return el("span", "pill stale", "Evicted from cache");
-  if (report.origin === "ledger") return el("span", "pill fresh", "Cache hit, still within recheck window");
+  if (report.cache_evicted) return el("span", "pill stale", "Stale copy evicted from cache");
+  if (report.origin === "ledger") return el("span", "pill fresh", "Cache hit, within its best-before date");
+  if (report.healed && data.extra_fields?.cache_debug && !data.extra_fields.cache_debug.cache_hit) return el("span", "pill healed", "Corrected answer cached");
   const debug = data.extra_fields?.cache_debug;
   if (!debug) return null;
   return el("span", "pill", debug.cache_hit ? "Cache hit, re-verified" : "Cache miss");
@@ -294,7 +396,7 @@ function render({ data, answer }) {
   const head = el("div", "verdict");
   head.append(el("span", `stamp ${report.status}`, report.status.toUpperCase()));
   const score = el("div", "score", report.freshness_score.toFixed(2));
-  score.append(el("small", null, "freshness score"));
+  score.append(el("small", null, report.healed ? "score of the original answer" : "freshness score"));
   head.append(score);
   const meta = el("div", "meta");
   const routed = data.extra_fields?.routing_info;
@@ -307,8 +409,14 @@ function render({ data, answer }) {
   head.append(meta);
   box.append(head);
 
-  box.append(el("h2", null, "Answer"));
-  box.append(el("p", "answer", answer));
+  box.append(el("h2", null, report.healed ? "Corrected answer" : "Answer"));
+  box.append(el("p", "answer", report.corrected_answer || answer));
+  if (report.healed) {
+    const original = el("p", "original");
+    original.append(el("b", null, "Original answer, outdated"));
+    original.append(report.original_answer);
+    box.append(original);
+  }
   if (report.error) box.append(el("p", "error", `Could not verify: ${report.error}`));
 
   box.append(el("h2", null, "Claims"));
