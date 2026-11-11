@@ -32,7 +32,8 @@ func (l *Ledger) Put(cacheID string, r Report) {
 	l.entries[cacheID] = r
 }
 
-// Current returns the stored report while it is still within its recheck window.
+// Current returns the stored report while it is still within its recheck
+// window. Reports with no window (no time-sensitive wording at all) never expire.
 func (l *Ledger) Current(cacheID string, now time.Time) (Report, bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -40,7 +41,7 @@ func (l *Ledger) Current(cacheID string, now time.Time) (Report, bool) {
 	if !ok {
 		return Report{}, false
 	}
-	if r.Status != StatusTimeless && !now.Before(r.RecheckAfter) {
+	if !r.RecheckAfter.IsZero() && !now.Before(r.RecheckAfter) {
 		return Report{}, false
 	}
 	return r, true
