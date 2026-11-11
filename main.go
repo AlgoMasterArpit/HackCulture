@@ -22,18 +22,20 @@ import (
 const (
 	pluginName  = "bestbefore"
 	verifyModel = "bestbefore/verify"
+
+	evictRetryDelay = 2 * time.Second
 )
 
 type config struct {
-	JudgeModel     string `json:"judge_model"`
-	GatewayURL     string `json:"gateway_url"`
-	TavilyURL      string `json:"tavily_url"`
-	TavilyAPIKey   string `json:"tavily_api_key"`
-	VirtualKey     string `json:"virtual_key"`
-	MaxClaims      int    `json:"max_claims"`
-	MaxResults     int    `json:"max_results"`
-	TimeoutSeconds int    `json:"timeout_seconds"`
-	EvictStale     *bool  `json:"evict_stale"`
+	JudgeModel     string   `json:"judge_model"`
+	GatewayURL     string   `json:"gateway_url"`
+	TavilyURL      string   `json:"tavily_url"`
+	TavilyAPIKey   string   `json:"tavily_api_key"`
+	VirtualKey     string   `json:"virtual_key"`
+	MaxClaims      int      `json:"max_claims"`
+	MaxResults     int      `json:"max_results"`
+	TimeoutSeconds int      `json:"timeout_seconds"`
+	EvictStale     *bool    `json:"evict_stale"`
 }
 
 type plugin struct {
@@ -178,12 +180,14 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	if cacheID != "" {
 		switch {
 		case note.Stale() && p.evictsStale():
-			// ponytail: the cache writes its entry asynchronously after the
-			// model call; verification takes seconds, so the entry exists by
-			// now. A sub-second verify could race it. Setting the cache's
-			// no_store context key from PostLLMHook would close that gap.
 			note.CacheEvicted = p.evict(cacheID) == nil
 			p.ledger.Delete(cacheID)
+			// The cache writes its entry in a goroutine that can finish after a
+			// fast verification, so clear it once more after that write lands.
+			go func() {
+				time.Sleep(evictRetryDelay)
+				p.evict(cacheID)
+			}()
 		case note.Status != freshness.StatusUnchecked:
 			p.ledger.Put(cacheID, note.Report)
 		}
