@@ -299,9 +299,9 @@ function render({ data, answer }) {
   const meta = el("div", "meta");
   const cache = cachePill(report, data);
   if (cache) meta.append(cache);
-  meta.append(el("span", "pill", `${report.searches} searches`));
-  meta.append(el("span", "pill", `${report.judge_tokens} judge tokens`));
-  meta.append(el("span", "pill", `${report.latency_ms} ms`));
+  meta.append(el("span", "pill", `${report.searches} ${report.searches === 1 ? "search" : "searches"}`));
+  meta.append(el("span", "pill", `${report.judge_tokens.toLocaleString()} judge tokens`));
+  meta.append(el("span", "pill", `${(report.latency_ms / 1000).toFixed(1)} s to check`));
   head.append(meta);
   box.append(head);
 
