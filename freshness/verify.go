@@ -20,6 +20,9 @@ const (
 	StatusUncertain Status = "uncertain"
 	StatusTimeless  Status = "timeless"
 	StatusUnchecked Status = "unchecked"
+	// StatusHealed marks an answer that was stale and has been rewritten with
+	// the verified current values.
+	StatusHealed Status = "healed"
 )
 
 type Claim struct {
@@ -369,7 +372,12 @@ func defang(s string) string {
 	return tagForger.Replace(s)
 }
 
-var tagForger = strings.NewReplacer("<source", "‹source", "</source", "‹/source", "<question", "‹question", "</question", "‹/question")
+var tagForger = strings.NewReplacer(
+	"<source", "‹source", "</source", "‹/source",
+	"<question", "‹question", "</question", "‹/question",
+	"<answer", "‹answer", "</answer", "‹/answer",
+	"<correction", "‹correction", "</correction", "‹/correction",
+)
 
 func normalize(s string) string {
 	return strings.Join(strings.Fields(strings.ToLower(s)), " ")
