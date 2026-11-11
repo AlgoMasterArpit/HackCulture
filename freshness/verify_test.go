@@ -158,6 +158,30 @@ func TestContradictionsThatProveNothingAreUncertain(t *testing.T) {
 	}
 }
 
+// Real verdicts from the first eval run that a literal string match rejected.
+func TestContradictionsWithRealWorldWording(t *testing.T) {
+	cases := []struct {
+		name, claim, quote, current, source string
+		wantStale                           bool
+	}{
+		{"short version line", "The latest major version of React is React 18", "Latest version: 19.3", "React 19.3",
+			"react.dev | Latest version: 19.3 | Released 2026", true},
+		{"value named differently", "Java 17 is the latest long-term support release of Java",
+			"JDK 25 is the latest Long-Term Support (LTS) release", "Java 25",
+			"JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.", true},
+		{"invented version", "Java 17 is the latest long-term support release of Java",
+			"JDK 25 is the latest Long-Term Support (LTS) release", "Java 26",
+			"JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.", false},
+	}
+	for _, c := range cases {
+		vd := verdict{Verdict: "contradicted", Source: 1, Quote: c.quote, CurrentValue: c.current}
+		got := scoreClaim(Claim{Text: c.claim, Kind: KindVersion}, vd, []Source{{URL: "https://x.test", Content: c.source, Relevance: 0.9}})
+		if (got.Status == StatusStale) != c.wantStale {
+			t.Errorf("%s: stale=%v, want %v (%+v)", c.name, got.Status == StatusStale, c.wantStale, got)
+		}
+	}
+}
+
 func TestFirstVerdictPerClaimWins(t *testing.T) {
 	both := `{"verdicts":[` +
 		`{"claim":1,"verdict":"unverifiable","source":1,"quote":""},` +
