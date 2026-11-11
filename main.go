@@ -198,7 +198,10 @@ func (p *plugin) check(question, answer string, heal bool) outcome {
 	if !out.Stale() || !heal || !p.heals() {
 		return out
 	}
-	healed, tokens, err := p.healer.Heal(ctx, question, answer, out.Report)
+	// The rewrite gets its own budget, so a slow check does not starve it.
+	healCtx, cancelHeal := context.WithTimeout(context.Background(), time.Duration(p.cfg.TimeoutSeconds)*time.Second)
+	defer cancelHeal()
+	healed, tokens, err := p.healer.Heal(healCtx, question, answer, out.Report)
 	out.JudgeTokens += tokens
 	if err != nil {
 		if !errors.Is(err, freshness.ErrNothingToHeal) {
