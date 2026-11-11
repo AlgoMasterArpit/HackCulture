@@ -10,9 +10,10 @@ from collections import Counter
 HERE = pathlib.Path(__file__).parent
 IMG = HERE.parent / "docs" / "img"
 
-STATUSES = ["stale", "uncertain", "unchecked", "fresh", "timeless", "error"]
+STATUSES = ["stale", "healed", "uncertain", "unchecked", "fresh", "timeless", "error"]
 COLORS = {
     "stale": "#dc2626",
+    "healed": "#0284c7",
     "uncertain": "#d97706",
     "unchecked": "#a8a29e",
     "fresh": "#16a34a",
@@ -88,6 +89,7 @@ def cache_metrics(data):
             "questions": len(rows),
             "stale_first": sum(status(row["first"]) in ("stale", "healed") for row in rows),
             "stale_delivered": sum(status(ask) == "stale" for ask in asks),
+            "unproven_delivered": sum(status(ask) in ("uncertain", "unchecked") for ask in asks),
             "asks": len(asks),
             "hits": sum(row["second"]["cache_hit"] for row in rows),
             "served_stale": sum(row["second"]["cache_hit"] and status(row["second"]) == "stale" for row in rows),
@@ -128,7 +130,7 @@ def verdict_chart(metrics):
     for status in STATUSES[:-1]:
         parts.append(f'<rect x="{x}" y="{legend_y - 10}" width="12" height="12" rx="2" fill="{COLORS[status]}"/>')
         parts.append(f'<text x="{x + 18}" y="{legend_y}" font-size="13" fill="{MUTED}">{status}</text>')
-        x += 100
+        x += 92
     return svg(width, legend_y + 26, "".join(parts), "What BestBefore said about 60 hand-labelled answers")
 
 
@@ -238,9 +240,13 @@ def cache_rows(cache):
         "|---|---|---|",
         f"| The model's first answer was out of date | {b['stale_first']} of {b['questions']} | {o['stale_first']} of {o['questions']} |",
         f"| **Stale answers delivered to users** | **{b['stale_delivered']} of {b['asks']}** | **{o['stale_delivered']} of {o['asks']}** |",
+        f"| Answers that could not be proven either way, delivered flagged | {b['unproven_delivered']} | {o['unproven_delivered']} |",
         f"| Repeat asks served from cache | {b['hits']} | {o['hits']} |",
         f"| ...with the corrected answer | {b['served_corrected']} | {o['served_corrected']} |",
-        f"| Repeat-ask time, median | {b['repeat_seconds_p50']:.1f}s | {o['repeat_seconds_p50']:.1f}s |",
+        f"| Repeat-ask time, median | not comparable¹ | {o['repeat_seconds_p50']:.2f}s |",
+        "",
+        "¹ The baseline gateway runs the plugin as an observer so stale answers can be counted, and the observer re-checks "
+        "every cache hit, which makes its repeat asks slow. A real TTL-only cache answers a hit as fast as BestBefore does.",
     ]
 
 
@@ -268,8 +274,9 @@ def update_readme(claims, cache, run1=None, repeat=None):
                 "[attack tests](docs/REVIEW.md) show the judge alone would act on."
             )
         proof.append(
-            f"On {total} hand-labelled answers, BestBefore flagged {claims['with']['recall']:.0f}% of the stale ones "
-            f"and wrongly flagged {claims['with']['false_alarm']:.0f}% of the good ones. {grounding} "
+            f"On {total} hand-labelled answers, BestBefore caught {claims['with']['recall']:.0f}% of the stale ones, "
+            f"healed {claims['heal_rate']:.0f}% of those it caught, and wrongly flagged {claims['with']['false_alarm']:.0f}% "
+            f"of the good ones. {grounding} "
             f"{claims['gate_skip']:.0f}% of timeless answers cost nothing at all."
         )
         rows += [
@@ -306,8 +313,9 @@ def update_readme(claims, cache, run1=None, repeat=None):
         proof.insert(0,
             f"Live, {b['questions']} time-sensitive questions asked twice through each gateway: a TTL-only cache delivered "
             f"{b['stale_delivered']} stale answers out of {b['asks']}; with BestBefore, {o['stale_delivered']}, and "
-            f"{o['served_corrected']} repeat asks were served the corrected answer straight from the cache in "
-            f"{o['repeat_seconds_p50']:.1f}s."
+            f"{o['served_corrected']} repeat asks were served the corrected answer straight from the cache "
+            f"(median {o['repeat_seconds_p50']:.2f}s). {o['unproven_delivered']} answers could not be proven either way "
+            "and were delivered flagged."
         )
         rows = cache_rows(cache) + [""] + rows
     text = replace_block(text, "proof", " ".join(proof) or "Run eval/report.py.")
