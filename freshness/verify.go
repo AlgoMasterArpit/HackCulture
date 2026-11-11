@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/url"
 	"regexp"
 	"strings"
 	"sync"
@@ -87,22 +88,27 @@ func (v *Verifier) window(k Kind) time.Duration {
 
 var siteName = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+$`)
 
-// gather runs the general search and, when the claim names an official
-// site, a second search restricted to it. Official results come first.
-func (v *Verifier) gather(ctx context.Context, c Claim) ([]Source, error) {
+// sharedHosts serve anyone's content, so a result there is never "official".
+var sharedHosts = map[string]bool{
+	"github.com": true, "github.io": true, "gitlab.com": true, "pypi.org": true, "npmjs.com": true,
+	"medium.com": true, "substack.com": true, "blogspot.com": true, "wordpress.com": true,
+	"reddit.com": true, "x.com": true, "twitter.com": true, "youtube.com": true, "linkedin.com": true,
+	"wikipedia.org": true, "quora.com": true, "stackoverflow.com": true, "dev.to": true, "vercel.app": true,
+}
+
+// gather runs the general search and, when the claim names an official site
+// that the general results already point to, a second search restricted to
+// it. Requiring the open web to agree stops a question or answer from
+// steering the model into treating an attacker's site as official.
+func (v *Verifier) gather(ctx context.Context, c Claim) ([]Source, int, error) {
+	general, generalErr := v.Search.Search(ctx, c.Query, nil)
 	site := strings.TrimPrefix(strings.ToLower(strings.TrimSpace(c.Site)), "www.")
-	if !siteName.MatchString(site) {
-		return v.Search.Search(ctx, c.Query, nil)
+	if !siteName.MatchString(site) || sharedHosts[site] || !citedBy(general, site) {
+		return general, 1, generalErr
 	}
-	var general, official []Source
-	var generalErr, officialErr error
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() { defer wg.Done(); general, generalErr = v.Search.Search(ctx, c.Query, nil) }()
-	go func() { defer wg.Done(); official, officialErr = v.Search.Search(ctx, c.Query, []string{site}) }()
-	wg.Wait()
+	official, officialErr := v.Search.Search(ctx, c.Query, []string{site})
 	if generalErr != nil && officialErr != nil {
-		return nil, errors.Join(generalErr, officialErr)
+		return nil, 2, errors.Join(generalErr, officialErr)
 	}
 	seen := map[string]bool{}
 	var merged []Source
@@ -116,7 +122,22 @@ func (v *Verifier) gather(ctx context.Context, c Claim) ([]Source, error) {
 			merged = append(merged, s)
 		}
 	}
-	return merged, nil
+	return merged, 2, nil
+}
+
+// citedBy reports whether any result is hosted on site or one of its subdomains.
+func citedBy(results []Source, site string) bool {
+	for _, s := range results {
+		u, err := url.Parse(s.URL)
+		if err != nil {
+			continue
+		}
+		host := strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
+		if host == site || strings.HasSuffix(host, "."+site) {
+			return true
+		}
+	}
+	return false
 }
 
 func countNil(errs []error) int {
@@ -159,16 +180,19 @@ func (v *Verifier) Verify(ctx context.Context, question, answer string) Report {
 
 	evidence := make([][]Source, len(claims))
 	searchErrs := make([]error, len(claims))
+	calls := make([]int, len(claims))
 	var wg sync.WaitGroup
 	for i, c := range claims {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			evidence[i], searchErrs[i] = v.gather(ctx, c)
+			evidence[i], calls[i], searchErrs[i] = v.gather(ctx, c)
 		}()
 	}
 	wg.Wait()
-	report.Searches = len(claims)
+	for _, n := range calls {
+		report.Searches += n
+	}
 	if countNil(searchErrs) == 0 {
 		return fail("search", errors.Join(searchErrs...))
 	}
