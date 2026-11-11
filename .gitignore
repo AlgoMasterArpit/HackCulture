@@ -5,3 +5,5 @@ build/
 node_modules/
 __pycache__/
 .playwright-mcp/
+HUMAN.md
+docs/DEMO.md

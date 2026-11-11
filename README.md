@@ -298,7 +298,7 @@ config.json             gateway config used by docker compose
 web/                    demo page and its nginx proxy
 e2e/                    offline end-to-end test with a mock provider and mock Tavily
 eval/                   labelled answers, eval scripts, RESULTS.md
-docs/                   images, pitch deck, decision log, review log, demo script, upstream PR draft
+docs/                   images, pitch deck, decision log, review log, upstream PR draft, deck source
 scripts/align-deps.sh   pins the plugin's shared modules to the gateway's exact versions
 ```
 
