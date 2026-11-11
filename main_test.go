@@ -34,7 +34,7 @@ func startStubs(t *testing.T, overrides map[string]any) *stubs {
 	s.price.Store("$15")
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
-		if p := active; p == nil || r.Header.Get(freshness.InternalHeader) != p.token {
+		if p := activePlugin(); p == nil || r.Header.Get(freshness.InternalHeader) != p.token {
 			t.Error("judge call is missing the internal token")
 		}
 		var req struct {
@@ -173,7 +173,8 @@ func TestStaleAnswerIsHealedBeforeTheCacheStoresIt(t *testing.T) {
 	}
 
 	calls := s.judgeCalls.Load()
-	annotated := chatResponse("r1", "healed text", `{"cache_hit":false,"cache_id":"c1"}`)
+	escaped, _ := json.Marshal(stored)
+	annotated := chatResponse("r1", string(escaped[1:len(escaped)-1]), `{"cache_hit":false,"cache_id":"c1"}`)
 	HTTPTransportPostHook(nil, chatRequest(question), annotated)
 	note := gjson.GetBytes(annotated.Body, "bestbefore")
 	if note.Get("status").String() != "healed" || note.Get("original_answer").String() != staleText || s.judgeCalls.Load() != calls {
@@ -182,7 +183,7 @@ func TestStaleAnswerIsHealedBeforeTheCacheStoresIt(t *testing.T) {
 	if annotated.Headers["x-bestbefore-healed"] != "true" || s.evictions.Load() != 0 {
 		t.Errorf("headers=%v evictions=%d", annotated.Headers, s.evictions.Load())
 	}
-	if r, ok := active.ledger.Current("c1", time.Now()); !ok || r.Status != freshness.StatusHealed {
+	if r, ok := activePlugin().ledger.Current("c1", time.Now()); !ok || r.Status != freshness.StatusHealed {
 		t.Errorf("ledger should track the healed cache entry, got %+v %v", r, ok)
 	}
 }
@@ -210,7 +211,7 @@ func TestStaleAnswerThatCannotBeHealedIsNeverCached(t *testing.T) {
 func TestPluginSkipsItsOwnJudgeCallsInLLMHooks(t *testing.T) {
 	s := startStubs(t, nil)
 	ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
-	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{freshness.InternalHeader: active.token})
+	ctx.SetValue(schemas.BifrostContextKeyRequestHeaders, map[string]string{freshness.InternalHeader: activePlugin().token})
 	text := "Acme Pro price?"
 	PreLLMHook(ctx, &schemas.BifrostRequest{RequestType: schemas.ChatCompletionRequest, ChatRequest: &schemas.BifrostChatRequest{
 		Input: []schemas.ChatMessage{{Role: schemas.ChatMessageRoleUser, Content: &schemas.ChatMessageContent{ContentStr: &text}}},
@@ -272,7 +273,7 @@ func TestTimelessAnswerMakesNoCalls(t *testing.T) {
 
 func TestCacheHitInsideItsBestBeforeDateUsesLedger(t *testing.T) {
 	s := startStubs(t, nil)
-	active.ledger.Put("warm", freshness.Entry{Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(time.Hour)}})
+	activePlugin().ledger.Put("warm", freshness.Entry{Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(time.Hour)}})
 	resp := chatResponse("hit-3", staleText, `{"cache_hit":true,"cache_id":"warm"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -284,7 +285,7 @@ func TestCacheHitInsideItsBestBeforeDateUsesLedger(t *testing.T) {
 
 func TestCacheHitPastItsBestBeforeDateIsCheckedAgain(t *testing.T) {
 	s := startStubs(t, nil)
-	active.ledger.Put("due", freshness.Entry{Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(-time.Minute)}})
+	activePlugin().ledger.Put("due", freshness.Entry{Report: freshness.Report{Status: freshness.StatusFresh, Score: 0.9, RecheckAfter: time.Now().Add(-time.Minute)}})
 	resp := chatResponse("hit-4", staleText, `{"cache_hit":true,"cache_id":"due"}`)
 
 	HTTPTransportPostHook(nil, chatRequest(question), resp)
@@ -299,44 +300,44 @@ func TestCacheHitPastItsBestBeforeDateIsCheckedAgain(t *testing.T) {
 func TestSweeperEvictsAnswersThatWentStaleInTheCache(t *testing.T) {
 	s := startStubs(t, nil)
 	past := time.Now().Add(-time.Minute)
-	active.ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
+	activePlugin().ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
 		Report: freshness.Report{Status: freshness.StatusFresh, RecheckAfter: past}})
-	active.ledger.Put("later", freshness.Entry{Question: "q", Answer: answerText,
+	activePlugin().ledger.Put("later", freshness.Entry{Question: "q", Answer: answerText,
 		Report: freshness.Report{Status: freshness.StatusFresh, RecheckAfter: time.Now().Add(time.Hour)}})
 
 	s.price.Store("$20")
-	results := active.sweep(false)
+	results, _ := activePlugin().sweep(false)
 
 	if len(results) != 1 || results[0].CacheID != "acme" || !results[0].Evicted || s.evictedID.Load() != "acme" {
 		t.Fatalf("sweep results = %+v", results)
 	}
-	if _, ok := active.ledger.Current("acme", time.Now()); ok {
+	if _, ok := activePlugin().ledger.Current("acme", time.Now()); ok {
 		t.Error("an evicted entry must leave the ledger")
 	}
-	if _, ok := active.ledger.Current("later", time.Now()); !ok {
+	if _, ok := activePlugin().ledger.Current("later", time.Now()); !ok {
 		t.Error("an entry inside its best-before date must not be touched")
 	}
-	if active.stats.sweptStale.Load() != 1 || s.healCalls.Load() != 0 {
-		t.Errorf("evicted_by_sweeper=%d heal calls=%d", active.stats.sweptStale.Load(), s.healCalls.Load())
+	if activePlugin().stats.sweptStale.Load() != 1 || s.healCalls.Load() != 0 {
+		t.Errorf("evicted_by_sweeper=%d heal calls=%d", activePlugin().stats.sweptStale.Load(), s.healCalls.Load())
 	}
 }
 
 func TestSweeperRenewsAnswersThatAreStillTrue(t *testing.T) {
 	s := startStubs(t, nil)
-	active.ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
+	activePlugin().ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
 		Report: freshness.Report{Status: freshness.StatusFresh, RecheckAfter: time.Now().Add(-time.Minute)}})
 
-	active.sweep(false)
+	activePlugin().sweep(false)
 
-	r, ok := active.ledger.Current("acme", time.Now())
+	r, ok := activePlugin().ledger.Current("acme", time.Now())
 	if !ok || r.Status != freshness.StatusFresh || s.evictions.Load() != 0 {
 		t.Fatalf("a still-true answer should get a new best-before date, got %+v %v", r, ok)
 	}
 }
 
 func TestStatusAndSweepModels(t *testing.T) {
-	startStubs(t, nil)
-	active.ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
+	startStubs(t, map[string]any{"admin_models": true})
+	activePlugin().ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
 		Report: freshness.Report{Status: freshness.StatusFresh, RecheckAfter: time.Now().Add(time.Hour)}})
 
 	status, _ := HTTPTransportPreHook(nil, chatRequest(`{"model":"bestbefore/status","messages":[]}`))
@@ -376,7 +377,7 @@ func TestForgedInternalHeaderIsStillChecked(t *testing.T) {
 func TestSkipsStreamsErrorsAndOwnCalls(t *testing.T) {
 	s := startStubs(t, nil)
 	internal := chatRequest(question)
-	internal.Headers[freshness.InternalHeader] = active.token
+	internal.Headers[freshness.InternalHeader] = activePlugin().token
 	failed := chatResponse("x", staleText, "")
 	failed.StatusCode = 500
 
@@ -423,5 +424,80 @@ func TestOrdinaryRequestsPassThroughPreHook(t *testing.T) {
 	startStubs(t, nil)
 	if resp, err := HTTPTransportPreHook(nil, chatRequest(question)); resp != nil || err != nil {
 		t.Fatalf("ordinary request was intercepted: %v %v", resp, err)
+	}
+}
+
+func TestRecheckWindowsBelongToOnePluginInstance(t *testing.T) {
+	startStubs(t, map[string]any{"recheck_windows": map[string]string{"pricing": "6h"}})
+	if activePlugin().verifier.Windows[freshness.KindPricing] != 6*time.Hour {
+		t.Fatal("the override should apply to this plugin")
+	}
+	if freshness.RecheckWindow[freshness.KindPricing] != 24*time.Hour {
+		t.Fatal("the package defaults must never be modified")
+	}
+	if err := Init(map[string]any{"judge_model": "m", "tavily_api_key": "k", "sweep_interval": "0",
+		"recheck_windows": map[string]string{"pricing": "1h", "weather": "1h"}}); err == nil {
+		t.Fatal("an unknown kind should fail Init")
+	}
+	if activePlugin().verifier.Windows[freshness.KindPricing] != 6*time.Hour {
+		t.Fatal("a failed Init must leave the running plugin untouched")
+	}
+}
+
+func TestAdminModelsAreOffByDefault(t *testing.T) {
+	startStubs(t, nil)
+	for _, model := range []string{"bestbefore/status", "bestbefore/sweep"} {
+		resp, _ := HTTPTransportPreHook(nil, chatRequest(`{"model":"`+model+`","messages":[]}`))
+		if resp == nil || resp.StatusCode != 403 {
+			t.Errorf("%s should be refused unless admin_models is set", model)
+		}
+	}
+}
+
+func TestOnlyOneSweepRunsAtATime(t *testing.T) {
+	startStubs(t, map[string]any{"admin_models": true})
+	p := activePlugin()
+	p.sweeping.Lock()
+	defer p.sweeping.Unlock()
+	if _, ran := p.sweep(true); ran {
+		t.Fatal("a second sweep must not start while one is running")
+	}
+	resp, _ := HTTPTransportPreHook(nil, chatRequest(`{"model":"bestbefore/sweep","messages":[]}`))
+	if !gjson.GetBytes(resp.Body, "bestbefore_status.busy").Bool() {
+		t.Fatalf("got %s", resp.Body)
+	}
+}
+
+func TestSweeperBacksOffAndStopsVouchingWhenACheckFails(t *testing.T) {
+	s := startStubs(t, nil)
+	s.server.Close()
+	p := activePlugin()
+	p.ledger.Put("acme", freshness.Entry{Question: "How much is Acme Pro?", Answer: answerText,
+		Report: freshness.Report{Status: freshness.StatusFresh, CheckedAt: time.Now().Add(-time.Hour), RecheckAfter: time.Now().Add(-time.Minute)}})
+
+	p.sweep(false)
+
+	if _, ok := p.ledger.Current("acme", time.Now()); !ok {
+		t.Fatal("a failed re-check should keep the entry, with a later date")
+	}
+	r, _ := p.ledger.Current("acme", time.Now())
+	if r.Status != freshness.StatusUnchecked || time.Until(r.RecheckAfter) < time.Minute {
+		t.Fatalf("want unchecked with backoff, got %+v", r)
+	}
+}
+
+func TestResultsWithTheSameResponseIDDoNotCross(t *testing.T) {
+	startStubs(t, nil)
+	p := activePlugin()
+	p.pending.put(pendingKey("dup", "answer A"), "question A", outcome{Origin: "A"})
+	p.pending.put(pendingKey("dup", "answer B"), "question B", outcome{Origin: "B"})
+
+	if got, ok := p.takePending(true, "dup", "answer A"); ok {
+		t.Fatalf("a cache hit must not consume a pending result, got %+v", got)
+	}
+	a, okA := p.takePending(false, "dup", "answer A")
+	b, okB := p.takePending(false, "dup", "answer B")
+	if !okA || !okB || a.Origin != "A" || b.Origin != "B" {
+		t.Fatalf("a=%+v b=%+v", a, b)
 	}
 }
