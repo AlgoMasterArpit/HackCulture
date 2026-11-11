@@ -51,7 +51,8 @@
         "sweep_interval": "1s",
         "recheck_windows": {
           "pricing": "4s"
-        }
+        },
+        "admin_models": true
       }
     }
   ]
