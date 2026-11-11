@@ -1,0 +1,62 @@
+"""Score every labelled answer in claims.json through the bestbefore/verify model.
+
+    python eval/run.py --gateway http://localhost:8080 --pace 8
+"""
+import argparse
+import json
+import pathlib
+import sys
+import time
+from datetime import datetime, timezone
+
+from gateway import chat
+
+HERE = pathlib.Path(__file__).parent
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gateway", default="http://localhost:8080")
+    parser.add_argument("--pace", type=float, default=8, help="seconds between checked answers, for free-tier rate limits")
+    parser.add_argument("--only", help="comma-separated item ids")
+    args = parser.parse_args()
+
+    dataset = json.loads((HERE / "claims.json").read_text(encoding="utf-8"))
+    items = dataset["items"]
+    if args.only:
+        wanted = set(args.only.split(","))
+        items = [item for item in items if item["id"] in wanted]
+
+    started = time.monotonic()
+    runs = []
+    for index, item in enumerate(items, 1):
+        messages = [
+            {"role": "user", "content": item["question"]},
+            {"role": "assistant", "content": item["answer"]},
+        ]
+        try:
+            body, seconds = chat(args.gateway, "bestbefore/verify", messages)
+            report = body["bestbefore"]
+        except Exception as error:
+            report, seconds = {"status": "error", "error": str(error), "claims": []}, 0
+        runs.append({**item, "report": report, "wall_seconds": round(seconds, 2)})
+        print(f"[{index:2}/{len(items)}] {item['id']} {item['label']:9} -> {report['status']:9} {item['answer'][:60]}", flush=True)
+        if report.get("searches"):
+            time.sleep(args.pace)
+
+    out = {
+        "ran_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "gateway": args.gateway,
+        "labelled_on": dataset["labelled_on"],
+        "duration_seconds": round(time.monotonic() - started),
+        "runs": runs,
+    }
+    results = HERE / "results"
+    results.mkdir(exist_ok=True)
+    (results / "claims.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    print(f"\nwrote {results / 'claims.json'}")
+    return 0 if all(run["report"]["status"] != "error" for run in runs) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
