@@ -106,8 +106,8 @@
   <h2>What users actually received.</h2>
   <div class="grid2" style="grid-template-columns: 1fr 1.3fr">
     <div class="stats" style="grid-template-columns: 1fr">
-      <div class="stat"><div class="big" style="color:#94a3b8"><span data-n="cache.baseline.stale_delivered"></span><span style="font-size:40px"> / <span data-n="cache.baseline.asks"></span></span></div><span>stale answers delivered by a TTL-only Bifrost cache</span></div>
-      <div class="stat"><div class="big" style="color:var(--accent)"><span data-n="cache.bestbefore.stale_delivered"></span><span style="font-size:40px"> / <span data-n="cache.bestbefore.asks"></span></span></div><span>with BestBefore; <b data-n="cache.bestbefore.served_corrected"></b> repeat asks got the corrected answer straight from cache</span></div>
+      <div class="stat"><div class="big" style="color:#94a3b8"><b data-n="cache.baseline.stale_delivered"></b><small style="font-size:40px"> / <b data-n="cache.baseline.asks"></b></small></div><span>stale answers delivered by a TTL-only Bifrost cache</span></div>
+      <div class="stat"><div class="big" style="color:var(--accent)"><b data-n="cache.bestbefore.stale_delivered"></b><small style="font-size:40px"> / <b data-n="cache.bestbefore.asks"></b></small></div><span>with BestBefore; <b data-n="cache.bestbefore.served_corrected"></b> repeat asks got the corrected answer straight from cache</span></div>
     </div>
     <img class="full" src="../img/eval-cache.svg" alt="">
   </div>
@@ -129,8 +129,8 @@
 <section class="slide">
   <div class="kicker">Best-before dates</div>
   <h2>Every cached answer knows when to be re-checked.</h2>
-  <img class="full" src="../img/dashboard.png" alt="" style="max-height: 420px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
-  <p style="margin: 18px 0 0">Prices 24h, versions 72h, leaders and laws 7 days. A background sweeper re-checks answers when their date passes, before any user asks, and evicts them if the world changed. Proven end to end: change a price on the mock web, and the sweeper evicts the cached answer on its own.</p>
+  <img class="full" src="../img/dashboard.png" alt="" style="max-height: 340px; object-fit: contain; border: 1px solid var(--line); border-radius: 12px">
+  <p style="margin: 16px 0 0; font-size: 19px">Prices 24h, versions 72h, leaders and laws 7 days. A background sweeper re-checks answers when their date passes, before any user asks, and evicts them if the world changed. Proven end to end: change a price on the mock web, and the sweeper evicts the cached answer on its own.</p>
   <div class="foot"><span>Cache freshness tab · bestbefore/status</span><span>7</span></div>
 </section>
 
