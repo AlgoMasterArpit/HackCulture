@@ -14,12 +14,13 @@
       "false_alarm": 0.0
     },
     "precision": 100.0,
+    "heal_rate": 87.5,
     "gate_skip": 85.0,
-    "checked": 37,
-    "tokens_per_checked": 2378.189189189189,
+    "checked": 38,
+    "tokens_per_checked": 2433.8947368421054,
     "searches_per_checked": 1,
-    "latency_p50": 8544,
-    "latency_p95": 15698
+    "latency_p50": 10881,
+    "latency_p95": 21163
   },
   "claims_run1": {
     "sizes": {
@@ -36,6 +37,7 @@
       "false_alarm": 0.0
     },
     "precision": 100.0,
+    "heal_rate": 0.0,
     "gate_skip": 85.0,
     "checked": 36,
     "tokens_per_checked": 2341.8333333333335,
@@ -58,6 +60,7 @@
       "false_alarm": 0.0
     },
     "precision": 100.0,
+    "heal_rate": 0.0,
     "gate_skip": 85.0,
     "checked": 36,
     "tokens_per_checked": 2278.277777777778,
@@ -68,15 +71,25 @@
   "cache": {
     "baseline": {
       "questions": 10,
-      "stale_first": 10,
-      "served_stale": 10,
-      "hits": 10
+      "stale_first": 9,
+      "stale_delivered": 17,
+      "unproven_delivered": 1,
+      "asks": 20,
+      "hits": 10,
+      "served_stale": 8,
+      "served_corrected": 0,
+      "repeat_seconds_p50": 11.2
     },
     "bestbefore": {
       "questions": 10,
-      "stale_first": 10,
+      "stale_first": 8,
+      "stale_delivered": 0,
+      "unproven_delivered": 3,
+      "asks": 20,
+      "hits": 10,
       "served_stale": 0,
-      "hits": 0
+      "served_corrected": 9,
+      "repeat_seconds_p50": 0.14
     }
   }
 }
