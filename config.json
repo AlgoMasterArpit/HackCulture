@@ -50,7 +50,8 @@
         "judge_fallbacks": [
           "gemini/gemini-flash-lite-latest",
           "gemini/gemini-3.5-flash"
-        ]
+        ],
+        "timeout_seconds": 60
       }
     }
   ]
