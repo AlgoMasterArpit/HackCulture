@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -26,8 +27,13 @@ const (
 	streamKey   schemas.BifrostContextKey = "bestbefore-stream"
 	// cacheKeyHeader is how a caller opts a request into the semantic cache.
 	cacheKeyHeader = "x-bf-cache-key"
-	// cacheNoStoreKey is the semantic cache's own per-request switch.
+	// cacheNoStoreKey and cacheTTLKey are the semantic cache's own
+	// per-request switches: skip the write, or expire the entry at a time.
 	cacheNoStoreKey schemas.BifrostContextKey = "semantic_cache-no_store"
+	cacheTTLKey     schemas.BifrostContextKey = "semantic_cache-ttl"
+
+	// streamCheckBudget bounds how long the end of a stream waits for its check.
+	streamCheckBudget = 20 * time.Second
 )
 
 // PreLLMHook runs only when the semantic cache missed. It remembers the
@@ -104,11 +110,26 @@ func PostLLMHook(ctx *schemas.BifrostContext, resp *schemas.BifrostResponse, bif
 	case out.Healed:
 		healed := out.answer
 		msg.Content = &schemas.ChatMessageContent{ContentStr: &healed}
+		expireAtBestBefore(ctx, out.Report)
 	case out.Stale() && p.evictsStale():
 		ctx.SetValue(cacheNoStoreKey, true)
+	default:
+		expireAtBestBefore(ctx, out.Report)
 	}
 	p.pending.put(pendingKey(resp.ChatResponse.ID, contentText(msg)), question, out)
 	return resp, bifrostErr, nil
+}
+
+// expireAtBestBefore makes the cache entry itself expire when the answer is
+// due for a re-check, so it can never be replayed past its best-before date,
+// even if the ledger is lost on restart or never sees the entry (streams).
+func expireAtBestBefore(ctx *schemas.BifrostContext, r freshness.Report) {
+	if r.RecheckAfter.IsZero() {
+		return
+	}
+	if ttl := time.Until(r.RecheckAfter); ttl > 0 {
+		ctx.SetValue(cacheTTLKey, ttl)
+	}
 }
 
 // checkStream gathers a streamed answer and checks it on the final chunk.
@@ -129,9 +150,16 @@ func (p *plugin) checkStream(ctx *schemas.BifrostContext, question string, strea
 	if answer == "" {
 		return
 	}
-	out := p.check(question, answer, true)
-	if out.Stale() || out.Healed {
+	// The end of the stream waits for this, so it gets a short budget; if it
+	// runs out the answer is unchecked and simply not cached.
+	budget, cancel := context.WithTimeout(p.ctx, streamCheckBudget)
+	defer cancel()
+	out := p.checkWithin(budget, question, answer, true)
+	switch {
+	case out.Stale() || out.Healed || out.Status == freshness.StatusUnchecked:
 		ctx.SetValue(cacheNoStoreKey, true)
+	default:
+		expireAtBestBefore(ctx, out.Report)
 	}
 	if out.Healed {
 		appendDelta(chunk, "\n\n---\nCorrected by BestBefore: "+out.Corrected)
@@ -218,11 +246,12 @@ func HTTPTransportPostHook(ctx *schemas.BifrostContext, req *schemas.HTTPRequest
 	cacheID := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_id").String()
 	cacheHit := gjson.GetBytes(resp.Body, "extra_fields.cache_debug.cache_hit").Bool()
 	question := lastUserMessage(req.Body)
-	if p.cfg.CheckScope == "cached" && cacheID == "" {
+	done, checked := p.takePending(cacheHit, gjson.GetBytes(resp.Body, "id").String(), answer)
+	if !checked && p.cfg.CheckScope == "cached" && cacheID == "" {
 		return nil
 	}
 
-	if done, ok := p.takePending(cacheHit, gjson.GetBytes(resp.Body, "id").String(), answer); ok {
+	if checked {
 		out := done.outcome
 		if cacheID != "" {
 			switch {
