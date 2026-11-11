@@ -18,4 +18,7 @@ def chat(gateway, model, messages, cache_key=None, retries=4):
         except urllib.error.HTTPError as error:
             if error.code not in (429, 500, 502, 503) or attempt == retries:
                 raise RuntimeError(f"{error.code}: {error.read()[:300]!r}") from error
+        except (urllib.error.URLError, ConnectionError, TimeoutError):
+            if attempt == retries:
+                raise
         time.sleep(15 * (attempt + 1))
