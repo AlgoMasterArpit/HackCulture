@@ -1,0 +1,57 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "config_store": {
+    "enabled": false
+  },
+  "providers": {
+    "gemini": {
+      "keys": [
+        {
+          "name": "gemini-key",
+          "value": "env.GEMINI_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ],
+      "network_config": {
+        "default_request_timeout_in_seconds": 60,
+        "max_retries": 4,
+        "retry_backoff_initial": "1s",
+        "retry_backoff_max": "10s"
+      }
+    }
+  },
+  "vector_store": {
+    "enabled": true,
+    "type": "chromem",
+    "config": {}
+  },
+  "plugins": [
+    {
+      "enabled": true,
+      "name": "semantic_cache",
+      "config": {
+        "dimension": 1,
+        "ttl": "24h",
+        "cache_by_model": true,
+        "cache_by_provider": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "bestbefore",
+      "path": "/app/plugins/bestbefore.so",
+      "config": {
+        "judge_model": "gemini/gemini-2.5-flash",
+        "tavily_api_key": "env.TAVILY_API_KEY",
+        "max_claims": 4,
+        "judge_fallbacks": [
+          "gemini/gemini-flash-lite-latest",
+          "gemini/gemini-3.5-flash"
+        ]
+      }
+    }
+  ]
+}
