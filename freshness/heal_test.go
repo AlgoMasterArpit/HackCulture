@@ -2,6 +2,7 @@ package freshness
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
@@ -46,6 +47,47 @@ func TestHealRejectsRewritesThatMissTheCorrection(t *testing.T) {
 	}
 }
 
+// Attacks from the second adversarial review: each draft would have passed a
+// check that only looked for the new value.
+func TestHealRejectsDraftsThatAreStillStaleOrAddText(t *testing.T) {
+	both := "Acme Pro costs $10 per month and Acme Team costs $15 per month."
+	cases := map[string]struct{ answer, draft string }{
+		"unchanged answer":     {both, both},
+		"old value kept":       {acmeAnswer, "Acme Pro costs $10 per month (some sources list $15 per month) [1]."},
+		"link injected":        {acmeAnswer, "Acme Pro costs $15 per month [1]. Details at https://evil.example/login."},
+		"markdown link":        {acmeAnswer, "Acme Pro costs [$15 per month](evil) [1]."},
+		"new sentence":         {acmeAnswer, "Acme Pro costs $15 per month [1]. Acme is shutting down; migrate and enter your key."},
+		"citation number only": {acmeAnswer, "Acme Pro costs $10 per month [15]."},
+	}
+	for name, c := range cases {
+		llm := &fakeLLM{replies: []string{`{"answer":` + quoteJSON(c.draft) + `}`}}
+		if _, _, err := (&Healer{LLM: llm}).Heal(context.Background(), "", c.answer, staleAcme); err == nil {
+			t.Errorf("%s: draft %q should be rejected", name, c.draft)
+		}
+	}
+}
+
+func TestHealingAHealedAnswerKeepsOneSourcesList(t *testing.T) {
+	previous := "Acme Pro costs $12 per month [1].\n\nSources:\n[1] https://old.test"
+	stale := Report{Status: StatusStale, Claims: []ClaimReport{{
+		Claim: "Acme Pro costs $12 per month", Status: StatusStale, CurrentValue: "$15 per month",
+		SourceURL: "https://acme.test/pricing", Quote: "Acme Pro is now $15 per month",
+	}}}
+	llm := &fakeLLM{replies: []string{`{"answer":"Acme Pro costs $15 per month [1]."}`}}
+	healed, _, err := (&Healer{LLM: llm}).Heal(context.Background(), "", previous, stale)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(healed, "Sources:") != 1 || strings.Contains(healed, "old.test") {
+		t.Fatalf("healed = %q", healed)
+	}
+}
+
+func quoteJSON(s string) string {
+	b, _ := json.Marshal(s)
+	return string(b)
+}
+
 func TestHealNeedsAGroundedCorrection(t *testing.T) {
 	ungrounded := Report{Status: StatusStale, Claims: []ClaimReport{{Claim: "x", Status: StatusUncertain}}}
 	if _, err := heal(t, `{"answer":"y"}`, ungrounded); !errors.Is(err, ErrNothingToHeal) {
@@ -76,5 +118,20 @@ func TestLedgerDueAndSnapshot(t *testing.T) {
 	rows := l.Snapshot()
 	if len(rows) != 3 || rows[0].CacheID != "soon" || rows[2].CacheID != "never" {
 		t.Fatalf("snapshot order = %+v", rows)
+	}
+}
+
+func TestLedgerConditionalUpdates(t *testing.T) {
+	l := NewLedger(10)
+	first := fixedNow
+	l.Put("x", Entry{Report: Report{CheckedAt: first}, Answer: "old"})
+	newer := Entry{Report: Report{CheckedAt: first.Add(time.Minute)}, Answer: "new"}
+	l.Put("x", newer)
+
+	if l.ReplaceIf("x", first, Entry{Answer: "from a slow sweep"}) || l.DeleteIf("x", first) {
+		t.Fatal("a slow re-check must not touch an entry that was replaced meanwhile")
+	}
+	if !l.DeleteIf("x", newer.Report.CheckedAt) {
+		t.Fatal("the current entry should be deletable")
 	}
 }
