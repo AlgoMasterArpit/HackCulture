@@ -246,7 +246,7 @@ $("#ask-form").addEventListener("submit", (e) => {
     const data = await call({
       model: $("#model").value.trim(),
       messages: [{ role: "user", content: question }],
-      fallbacks: ["gemini/gemini-flash-lite-latest"],
+      fallbacks: ["gemini/gemma-4-26b-a4b-it"],
     }, headers);
     return { data, answer: data.choices?.[0]?.message?.content ?? "" };
   });
