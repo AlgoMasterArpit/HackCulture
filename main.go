@@ -180,6 +180,7 @@ type outcome struct {
 	CacheEvicted   bool   `json:"cache_evicted"`
 	Healed         bool   `json:"healed"`
 	OriginalAnswer string `json:"original_answer,omitempty"`
+	Corrected      string `json:"corrected_answer,omitempty"`
 	HealError      string `json:"heal_error,omitempty"`
 
 	answer string
@@ -207,7 +208,7 @@ func (p *plugin) check(question, answer string, heal bool) outcome {
 		return out
 	}
 	p.stats.healed.Add(1)
-	out.Healed, out.OriginalAnswer, out.answer = true, answer, healed
+	out.Healed, out.OriginalAnswer, out.Corrected, out.answer = true, answer, healed, healed
 	out.Status = freshness.StatusHealed
 	return out
 }
