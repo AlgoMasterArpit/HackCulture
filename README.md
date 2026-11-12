@@ -177,12 +177,12 @@ x-bestbefore-score: 0.10
 | Bifrost cache switch `semantic_cache-no_store` | A stale answer that could not be healed is never written to the cache. | [`hooks.go`](hooks.go) |
 | Bifrost `PreLLMHook` + request headers in context | Captures the question on cache misses, checks only requests that carry `x-bf-cache-key`, and skips the plugin's own judge calls by a per-process token. | [`hooks.go`](hooks.go) |
 | Bifrost streaming, `PostLLMHook` per chunk + stream-end flag | Collects a stream, checks it on the final chunk, appends a correction and keeps a stale stream out of the cache. | [`hooks.go`](hooks.go) |
-| Bifrost `HTTPTransportPostHook` | Sees every answer, cache hits included: annotates it, enforces best-before dates on hits, and heals stale hits for the user. | [`hooks.go`](hooks.go) |
+| Bifrost `HTTPTransportPostHook` | Sees every answer, cache hits included: annotates it and enforces best-before dates on hits: re-checks them in the background, or before answering (and heals them) with `revalidate: "inline"`. | [`hooks.go`](hooks.go) |
 | Bifrost `HTTPTransportPreHook` | Serves three virtual models inside the OpenAI API: `bestbefore/verify` (check any answer), `bestbefore/status` (the ledger and counters) and `bestbefore/sweep` (re-check everything now). | [`hooks.go`](hooks.go) |
 | Bifrost cache API, `cache_debug.cache_id` + `DELETE /api/cache/clear/{id}` | Ties each answer to its cache entry, and evicts entries that went stale. | [`main.go`](main.go), [`sweeper.go`](sweeper.go) |
 | Bifrost `/v1/chat/completions` with `fallbacks` and retries | The judge's and healer's own calls go back through the gateway, so they get model fallback, retries on 503s, logs and budgets. | [`freshness/clients.go`](freshness/clients.go) |
 | Tavily `/search` | Live evidence for each claim: URL, page text, date and a relevance score that weights the freshness score. | [`freshness/clients.go`](freshness/clients.go) |
-| Tavily `include_domains` | A second search restricted to the claim's official site, so the judge sees the authoritative page first. | [`freshness/verify.go`](freshness/verify.go) |
+| Tavily `include_domains` | A second search restricted to the claim's official site, so the judge sees the authoritative page first. | [`freshness/clients.go`](freshness/clients.go), [`freshness/verify.go`](freshness/verify.go) |
 | Tavily through a Bifrost relay (optional) | Point `tavily_url` at `/relay/tavily` and set `virtual_key`, and searches are logged and costed in Bifrost too. Supported in code; we ran with direct Tavily. | [`freshness/clients.go`](freshness/clients.go) |
 
 **Gemini** writes the answers in the demo and is the judge and healer. Any provider Bifrost supports works: change `judge_model`.
@@ -201,7 +201,7 @@ docker compose pull gateway   # prebuilt Bifrost + plugin image from GitHub Cont
 docker compose up -d
 ```
 
-The image is built and published by [CI](.github/workflows/image.yml) on every push. To build it yourself instead, run `docker compose up -d --build` (it compiles Bifrost from source, 15–30 minutes).
+The image is built and published by [CI](.github/workflows/image.yml) on every push, for x86-64. On an Apple Silicon Mac, or to build it yourself, run `docker compose up -d --build` instead (it compiles Bifrost from source, 15–30 minutes).
 
 Then open:
 
@@ -216,6 +216,8 @@ No keys yet? Run the whole thing offline against a mock provider and a mock web 
 docker compose -f e2e/compose.yml up -d --build
 python e2e/test_gateway.py      # expect: 8 of 8 passed
 ```
+
+The mock stack also uses port 8080, so stop the live stack first (`docker compose down`), and stop the mock stack when you are done (`docker compose -f e2e/compose.yml down`). Where `python` is Python 2 or missing, use `python3`.
 
 If the build fails on Windows with `invalid file request`, the repo is probably inside a OneDrive folder: OneDrive turns files into cloud placeholders that Docker cannot read. Clone it somewhere else, such as `C:\code`.
 
@@ -259,6 +261,20 @@ curl -s localhost:8080/v1/chat/completions -H "Content-Type: application/json" \
   -d '{"model": "bestbefore/sweep", "messages": []}' | jq .bestbefore_status.swept
 ```
 
+## Add BestBefore to your own Bifrost
+
+The plugin is a Go plugin (`.so`), so it must be built with the same Go version and dependency versions as the gateway, and the gateway must be built dynamically linked. The official Bifrost image is static and cannot load plugins.
+
+```bash
+git clone --depth 1 --branch transports/v2.5.1 https://github.com/maximhq/bifrost
+cd bifrost && make build DYNAMIC=1 && cd ..           # Go 1.27.3; a dynamically linked gateway
+git clone https://github.com/AlgoMasterArpit/HackCulture.git bestbefore
+sh bestbefore/scripts/align-deps.sh bifrost/transports bestbefore   # pin shared modules to the gateway's
+cd bestbefore && go build -buildmode=plugin -o bestbefore.so .
+```
+
+Then add the plugin entry below to the gateway's `config.json`, with `path` pointing at `bestbefore.so`, and turn on the semantic cache. The [Dockerfile](Dockerfile) does exactly these steps.
+
 ## Configuration
 
 The plugin entry in [config.json](config.json):
@@ -274,7 +290,8 @@ The plugin entry in [config.json](config.json):
     "tavily_api_key": "env.TAVILY_API_KEY",
     "max_claims": 4,
     "timeout_seconds": 60,
-    "sweep_interval": "1m"
+    "sweep_interval": "1m",
+    "admin_models": true
   }
 }
 ```
@@ -288,7 +305,7 @@ The plugin entry in [config.json](config.json):
 | `check_scope` | `cached` | Check only answers headed for the semantic cache (requests with `x-bf-cache-key`), or `all` to check every chat answer. |
 | `revalidate` | `background` | For a cache hit past its best-before date: serve it now and re-check behind the scenes, or `inline` to re-check before answering. |
 | `sweep_interval` | `5m` | How often the sweeper looks for cached answers past their best-before date. `"0"` turns it off. |
-| `recheck_windows` | prices 24h, versions 72h, recency 24h, leadership 7d, regulation 7d | Override how long each claim kind is trusted, for example `{"pricing": "6h"}`. |
+| `recheck_windows` | prices 24h, versions 72h, recency 24h, leadership 7d, regulation 7d | Override how long each claim kind is trusted, for example `{"pricing": "6h"}`. Keys: `pricing`, `version`, `recency`, `leadership`, `regulation`. |
 | `evict_stale` | `true` | Set `false` to flag stale answers without touching the cache. |
 | `admin_models` | `false` | Turn on `bestbefore/status` and `bestbefore/sweep`. They list cached questions and trigger paid re-checks, so keep them off on a shared gateway. The demo config turns them on for the dashboard. |
 | `max_claims` | 4 | Claims checked per answer. Bounds cost. |
@@ -304,6 +321,7 @@ The plugin entry in [config.json](config.json):
 docker compose --profile baseline up -d   # adds a TTL-only gateway on :8081 where the plugin only observes
 python eval/cache.py                      # 10 live questions, asked twice through each gateway
 python eval/run.py                        # 60 labelled answers through bestbefore/verify
+python eval/run.py --dataset holdout      # 16 held-out answers, labelled before they were ever run
 python eval/report.py                     # writes eval/RESULTS.md, the README numbers and docs/img/eval-*.svg
 ```
 
@@ -319,7 +337,7 @@ python e2e/test_gateway.py        # end to end against a real Bifrost with the p
 The unit tests run inside the Docker build, so the image cannot build if they fail. Without Go installed:
 
 ```bash
-docker run --rm -v "$PWD:/w" -w /w -e CGO_ENABLED=0 golang:1.27.3-alpine3.24 go test ./...
+docker run --rm -v "${PWD}:/w" -w /w -e CGO_ENABLED=0 golang:1.27.3-alpine3.24 go test ./...
 ```
 
 **End to end, against a real Bifrost gateway** (8 of 8 pass, on every push in [CI](.github/workflows/ci.yml)): a stale answer is healed and the cache keeps the corrected text, so the second ask is a cache hit with the fix; when the mock web changes a price, the background sweeper evicts the now-stale cached answer before anyone asks, and the next ask gets a newly healed answer; a streamed stale answer gets a correction appended and is not replayed from the cache, while a fresh stream is cached and replayed; an answer not headed for the cache passes untouched; timeless answers cost nothing; `bestbefore/verify` heals a pasted answer; `bestbefore/status` lists cached answers with their best-before dates.
@@ -337,6 +355,7 @@ We would rather you read these here than find them yourself.
 - **The first answer to a stale question is slower.** Checking and healing take extra model and search calls (see latency above). Only answers headed for the cache pay this, once per best-before window; repeat asks are served from cache, and uncached and timeless answers add nothing.
 - **Deployments with `default_cache_key`** cache requests that carry no `x-bf-cache-key` header, which `check_scope: "cached"` cannot see; set `check_scope: "all"` there.
 - **With raw-response capture on**, Bifrost may strip a stream's report from the final chunk. The correction text and the cache protection still apply.
+- **Only the first choice is checked.** A request for several choices (`n` > 1) has only its first choice checked and corrected.
 - **A streamed answer is corrected, not rewritten.** The stale text has already reached the user, so the correction is appended at the end, and the end of the stream waits for the check.
 - **Background revalidation serves one answer on trust.** A hit past its best-before date is answered before its re-check finishes. The sweeper usually re-checks entries before that happens; set `revalidate: "inline"` to never serve without a fresh check.
 - **The sweeper evicts but cannot pre-write.** Bifrost's cache has no API for a plugin to insert an entry, so after a sweep the next ask pays for one model call, which is then healed and cached.
