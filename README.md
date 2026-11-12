@@ -10,7 +10,7 @@
 [![Built 1–15 Nov 2026](https://img.shields.io/badge/built-1%E2%80%9315%20Nov%202026-4f46e5.svg)](#built-during-the-hackathon)
 [![Bifrost v2.5.1](https://img.shields.io/badge/Bifrost-v2.5.1-312e81.svg)](https://github.com/maximhq/bifrost)
 [![Tavily](https://img.shields.io/badge/search-Tavily-0891b2.svg)](https://tavily.com)
-[![Go tests](https://img.shields.io/badge/go%20test%20%2B%20e2e-passing-16a34a.svg)](#tests)
+[![CI](https://github.com/AlgoMasterArpit/HackCulture/actions/workflows/ci.yml/badge.svg)](https://github.com/AlgoMasterArpit/HackCulture/actions/workflows/ci.yml)
 
 **[Pitch deck](docs/pitch-deck.pdf)** · **[Eval results](eval/RESULTS.md)** · **[Adversarial reviews](docs/REVIEW.md)**
 
@@ -51,9 +51,11 @@ Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source 
 
 **1. It heals instead of just flagging.** Other answer-checkers stop at "this looks outdated". BestBefore corrects the answer from the evidence, cites the source, and caches the corrected version. The first user gets the right answer, and so does everyone after them, served from cache. A rewrite only counts if Go finds every verified new value in it; otherwise the stale answer is not cached at all.
 
-**2. Cached answers carry a best-before date.** Each claim kind is trusted for a set time (prices 24h, versions 72h, leadership and laws 7 days). Inside that window, cache hits cost nothing. When it passes, a background sweeper re-checks the answer **before any user asks again**, and evicts it if the world changed.
+**2. Cached answers carry a best-before date.** Each claim kind is trusted for a set time (prices 24h, versions 72h, leadership and laws 7 days). Inside that window, cache hits cost nothing. The cache entry's own TTL is set to the same date, so even an answer the ledger never saw cannot be replayed past it. When it passes, a background sweeper re-checks the answer **before any user asks again**, and evicts it if the world changed.
 
-**3. Every decision carries its proof, and it fails safe.** The model drafts and advises; Go decides. Each claim ships with its source, its verbatim quote and, when a verdict is thrown out, the reason. If the checker or search is down, nothing is evicted.
+**3. It costs nothing where it does not matter.** Only answers headed for the cache are checked; everything else passes with no delay. A cache hit past its best-before date is served at once and re-checked in the background (stale-while-revalidate), and a burst of hits on one entry pays for a single check. Streams are checked when they finish: a stale stream gets a correction appended and is kept out of the cache.
+
+**4. Every decision carries its proof, and it fails safe.** The model drafts and advises; Go decides. Each claim ships with its source, its verbatim quote and, when a verdict is thrown out, the reason. If the checker or search is down, nothing is evicted.
 
 <p align="center"><img src="docs/img/dashboard.png" alt="The Cache freshness dashboard: counts of answers checked, stale answers found, answers healed before caching and answers evicted by the sweeper, and a table of cached questions with their status and best-before countdown" width="820"></p>
 
@@ -107,8 +109,8 @@ Bifrost runs plugin hooks on the way back in reverse order, so BestBefore's `Pos
 
 1. **Regex gate (free).** [`freshness/detect.go`](freshness/detect.go) looks for prices, version numbers, laws, leadership words and "latest / currently / as of". An answer with none of them is `timeless` and costs nothing: no model call, no search.
 2. **Extract claims.** The judge model rewrites the flagged sentences into atomic, self-contained claims, each with a kind and a search query. At most `max_claims` per answer.
-3. **Search.** Each claim is searched with Tavily, in parallel.
-4. **Judge with proof.** The judge gets the sources and must return `supported`, `contradicted` or `unverifiable`, the source number and an exact quote from it.
+3. **Search.** Each claim is searched with Tavily, in parallel. When the extractor names the site that publishes the authoritative value (python.org, kubernetes.io, gov.uk), a second search restricted to that site runs alongside, and its results are marked official and listed first.
+4. **Judge with proof.** The judge gets the sources, is told to prefer official and recent ones, and must return `supported`, `contradicted` or `unverifiable`, the source number and an exact quote from it.
 5. **Score in Go.** [`scoreClaim`](freshness/verify.go) keeps a verdict only if the quote appears word for word in that source (at least five words for support, three for a contradiction). For a contradiction, the words of the stated current value that are not already in the claim must all be in the quote, so quoting the old value back or inventing a new one proves nothing. A kept verdict moves the score toward 0.9 or 0.1, weighted by Tavily's relevance. The answer's score is its weakest claim's.
 6. **Heal if stale.** [`freshness/heal.go`](freshness/heal.go) asks the model to rewrite only the outdated statements, with numbered citations. Go accepts the draft only if it changes the answer, contains every verified new value, no longer contains any number that was only in the outdated claim, uses no words beyond the original answer and the verified values, has no links, and stays within twice the original length. Go then appends the source URLs itself. The accepted text replaces the answer before the cache stores it.
 
@@ -120,7 +122,11 @@ Bifrost runs plugin hooks on the way back in reverse order, so BestBefore's `Pos
 | `uncertain` / `unchecked` | The answer, flagged | The answer; nothing is ever evicted on a guess or an outage |
 | `timeless` | The answer | The answer, never re-checked |
 
-**On a cache hit**, the stored report is reused while the answer is inside its best-before date. Past it, the answer is checked again; if it went stale, the user gets a healed copy and the old entry is evicted, so the next miss caches a corrected one. **In the background**, the sweeper does the same check on a timer, without waiting for a user.
+**On a cache hit**, the stored report is reused while the answer is inside its best-before date. Past it, the hit is served at once and re-checked in the background (`revalidate: "background"`, the default); if it went stale, the entry is evicted, so the next miss caches a healed one. With `revalidate: "inline"` the hit waits for the check and the user gets a healed copy. **On a timer**, the sweeper re-checks entries past their date without waiting for any user.
+
+**Streams** are collected chunk by chunk and checked on the final chunk. The text has already reached the user, so a stale stream cannot be rewritten in place: the correction is appended as a last delta ("Corrected by BestBefore: ..."), the report rides on the final chunk at `extra_fields.raw_response.bestbefore`, and the stale stream is kept out of the cache.
+
+**Scope.** By default (`check_scope: "cached"`) only requests that opt into the semantic cache with `x-bf-cache-key` are checked, because those answers are replayed to other users. Set `check_scope: "all"` to check every chat answer.
 
 Every checked response carries the report in its body and as `x-bestbefore-*` headers. This is the report from the live run in the screenshot above, unedited:
 
@@ -169,12 +175,14 @@ x-bestbefore-score: 0.10
 |---|---|---|
 | Bifrost plugin order, `PostLLMHook` | Runs before the built-in semantic cache writes the response, so a stale answer is replaced with the corrected one and the cache stores the fix. | [`hooks.go`](hooks.go) |
 | Bifrost cache switch `semantic_cache-no_store` | A stale answer that could not be healed is never written to the cache. | [`hooks.go`](hooks.go) |
-| Bifrost `PreLLMHook` + request headers in context | Captures the question on cache misses, and skips the plugin's own judge calls by a per-process token. | [`hooks.go`](hooks.go) |
+| Bifrost `PreLLMHook` + request headers in context | Captures the question on cache misses, checks only requests that carry `x-bf-cache-key`, and skips the plugin's own judge calls by a per-process token. | [`hooks.go`](hooks.go) |
+| Bifrost streaming, `PostLLMHook` per chunk + stream-end flag | Collects a stream, checks it on the final chunk, appends a correction and keeps a stale stream out of the cache. | [`hooks.go`](hooks.go) |
 | Bifrost `HTTPTransportPostHook` | Sees every answer, cache hits included: annotates it, enforces best-before dates on hits, and heals stale hits for the user. | [`hooks.go`](hooks.go) |
 | Bifrost `HTTPTransportPreHook` | Serves three virtual models inside the OpenAI API: `bestbefore/verify` (check any answer), `bestbefore/status` (the ledger and counters) and `bestbefore/sweep` (re-check everything now). | [`hooks.go`](hooks.go) |
 | Bifrost cache API, `cache_debug.cache_id` + `DELETE /api/cache/clear/{id}` | Ties each answer to its cache entry, and evicts entries that went stale. | [`main.go`](main.go), [`sweeper.go`](sweeper.go) |
 | Bifrost `/v1/chat/completions` with `fallbacks` and retries | The judge's and healer's own calls go back through the gateway, so they get model fallback, retries on 503s, logs and budgets. | [`freshness/clients.go`](freshness/clients.go) |
 | Tavily `/search` | Live evidence for each claim: URL, page text, date and a relevance score that weights the freshness score. | [`freshness/clients.go`](freshness/clients.go) |
+| Tavily `include_domains` | A second search restricted to the claim's official site, so the judge sees the authoritative page first. | [`freshness/verify.go`](freshness/verify.go) |
 | Tavily through a Bifrost relay (optional) | Point `tavily_url` at `/relay/tavily` and set `virtual_key`, and searches are logged and costed in Bifrost too. Supported in code; we ran with direct Tavily. | [`freshness/clients.go`](freshness/clients.go) |
 
 **Gemini** writes the answers in the demo and is the judge and healer. Any provider Bifrost supports works: change `judge_model`.
@@ -189,21 +197,24 @@ You need Docker, a [Gemini API key](https://aistudio.google.com/apikey) and a [T
 git clone https://github.com/AlgoMasterArpit/HackCulture.git bestbefore
 cd bestbefore
 cp .env.example .env          # then paste your two keys into .env
-docker compose up -d --build  # the first build compiles Bifrost from source: 15–30 minutes
+docker compose pull gateway   # prebuilt Bifrost + plugin image from GitHub Container Registry
+docker compose up -d
 ```
+
+The image is built and published by [CI](.github/workflows/image.yml) on every push. To build it yourself instead, run `docker compose up -d --build` (it compiles Bifrost from source, 15–30 minutes).
 
 Then open:
 
 - **http://localhost:3000** for the demo page: ask through the gateway, check any answer, and watch the Cache freshness tab.
 - **http://localhost:8080** for the Bifrost dashboard. Its Logs page shows the judge and healer calls.
 
-Why the build is slow: Go plugins only load into a gateway built with the exact same Go version, libc and dependency versions, and the official Bifrost image is statically linked so it cannot load plugins at all. The [Dockerfile](Dockerfile) builds Bifrost v2.5.1 and the plugin side by side, and [scripts/align-deps.sh](scripts/align-deps.sh) pins every shared module to the gateway's version, including Bifrost's own `replace` of `mcp-go`, without which `plugin.Open` refuses the plugin. The Go tests run during the build too.
+Why building is slow: Go plugins only load into a gateway built with the exact same Go version, libc and dependency versions, and the official Bifrost image is statically linked so it cannot load plugins at all. The [Dockerfile](Dockerfile) builds Bifrost v2.5.1 and the plugin side by side, and [scripts/align-deps.sh](scripts/align-deps.sh) pins every shared module to the gateway's version, including Bifrost's own `replace` of `mcp-go`, without which `plugin.Open` refuses the plugin. The Go tests run during the build too.
 
 No keys yet? Run the whole thing offline against a mock provider and a mock web whose prices the test can change:
 
 ```bash
 docker compose -f e2e/compose.yml up -d --build
-python e2e/test_gateway.py      # expect: 5 of 5 passed
+python e2e/test_gateway.py      # expect: 8 of 8 passed
 ```
 
 If the build fails on Windows with `invalid file request`, the repo is probably inside a OneDrive folder: OneDrive turns files into cloud placeholders that Docker cannot read. Clone it somewhere else, such as `C:\code`.
@@ -274,6 +285,8 @@ The plugin entry in [config.json](config.json):
 | `judge_fallbacks` | none | Models Bifrost falls back to when the judge fails. |
 | `tavily_api_key` | required unless `virtual_key` | Tavily key, or `env.NAME` to read it from the environment. |
 | `heal` | `true` | Rewrite stale answers with the verified values. Set `false` to only flag and evict. |
+| `check_scope` | `cached` | Check only answers headed for the semantic cache (requests with `x-bf-cache-key`), or `all` to check every chat answer. |
+| `revalidate` | `background` | For a cache hit past its best-before date: serve it now and re-check behind the scenes, or `inline` to re-check before answering. |
 | `sweep_interval` | `5m` | How often the sweeper looks for cached answers past their best-before date. `"0"` turns it off. |
 | `recheck_windows` | prices 24h, versions 72h, recency 24h, leadership 7d, regulation 7d | Override how long each claim kind is trusted, for example `{"pricing": "6h"}`. |
 | `evict_stale` | `true` | Set `false` to flag stale answers without touching the cache. |
@@ -309,24 +322,26 @@ The unit tests run inside the Docker build, so the image cannot build if they fa
 docker run --rm -v "$PWD:/w" -w /w -e CGO_ENABLED=0 golang:1.27.3-alpine3.24 go test ./...
 ```
 
-**End to end, against a real Bifrost gateway** (5 of 5 pass): a stale answer is healed and the cache keeps the corrected text, so the second ask is a cache hit with the fix; when the mock web changes a price, the background sweeper evicts the now-stale cached answer before anyone asks, and the next ask gets a newly healed answer; timeless answers cost nothing; `bestbefore/verify` heals a pasted answer; `bestbefore/status` lists cached answers with their best-before dates.
+**End to end, against a real Bifrost gateway** (8 of 8 pass, on every push in [CI](.github/workflows/ci.yml)): a stale answer is healed and the cache keeps the corrected text, so the second ask is a cache hit with the fix; when the mock web changes a price, the background sweeper evicts the now-stale cached answer before anyone asks, and the next ask gets a newly healed answer; a streamed stale answer gets a correction appended and is not replayed from the cache, while a fresh stream is cached and replayed; an answer not headed for the cache passes untouched; timeless answers cost nothing; `bestbefore/verify` heals a pasted answer; `bestbefore/status` lists cached answers with their best-before dates.
 
 **Unit tests pin down:** six kinds of bad rewrite are rejected (unchanged, old value kept, a link, a markdown link, an injected sentence, a fake citation) and the stale answer is then not cached; six kinds of contradiction that prove nothing are never `stale`; web pages, questions and answers cannot forge prompt tags; a model or search outage is `unchecked`, never evicted; the plugin never checks its own judge calls; a client cannot forge the internal header. They pass under `go test -race`.
 
 ### Adversarial review
 
-We asked a separate AI reviewer to break the plugin twice, given only the code: once for the checker and once for healing and the sweeper. Between them they found 25 problems, including six high-severity ones such as a rewrite check that would have cached a "corrected" answer carrying a phishing link. Each is fixed with a test that fails without the fix, apart from three trade-offs we document under Limits. The findings, fixes and tests are in [docs/REVIEW.md](docs/REVIEW.md).
+We asked a separate AI reviewer to break the plugin three times, given only the code: the checker, then healing and the sweeper, then streaming, background revalidation and the official-site search. Between them they found 35 problems, including seven high-severity ones such as a rewrite check that would have cached a "corrected" answer carrying a phishing link, and fresh streams cached with no best-before date. Each is fixed with a test that fails without the fix, apart from three trade-offs we document under Limits. The findings, fixes and tests are in [docs/REVIEW.md](docs/REVIEW.md).
 
 ## Limits
 
 We would rather you read these here than find them yourself.
 
-- **The first answer to a stale question is slower.** Checking and healing take extra model and search calls (see latency above); every repeat ask is then served from cache. Timeless answers add nothing.
-- **Streaming responses are not checked.** Bifrost commits stream headers before the answer exists. Streams pass through untouched.
+- **The first answer to a stale question is slower.** Checking and healing take extra model and search calls (see latency above). Only answers headed for the cache pay this, once per best-before window; repeat asks are served from cache, and uncached and timeless answers add nothing.
+- **Deployments with `default_cache_key`** cache requests that carry no `x-bf-cache-key` header, which `check_scope: "cached"` cannot see; set `check_scope: "all"` there.
+- **With raw-response capture on**, Bifrost may strip a stream's report from the final chunk. The correction text and the cache protection still apply.
+- **A streamed answer is corrected, not rewritten.** The stale text has already reached the user, so the correction is appended at the end, and the end of the stream waits for the check.
+- **Background revalidation serves one answer on trust.** A hit past its best-before date is answered before its re-check finishes. The sweeper usually re-checks entries before that happens; set `revalidate: "inline"` to never serve without a fresh check.
 - **The sweeper evicts but cannot pre-write.** Bifrost's cache has no API for a plugin to insert an entry, so after a sweep the next ask pays for one model call, which is then healed and cached.
 - **The ledger and the demo cache live in memory.** Best-before dates reset on restart and are not shared between replicas; the demo uses Bifrost's in-process vector store, so its cache resets too. A persistent vector store and storing dates in its metadata would fix both.
 - **The judge can still be wrong in a grounded way.** A real quote can be misread. In our final run it accepted "Gemini 1.5 Pro is Google's most capable Gemini model" as fresh, because Wikipedia calls it "the most capable model in the Gemini 1.5 family". One grounded source is enough, so an outdated or narrowly worded page can make a stale answer look fresh. Requiring two sources on different hosts would cut this, at the cost of recall.
-- **No request coalescing.** Many concurrent hits on one entry that is due for a re-check each pay for their own check.
 - **The demo stack has no auth.** Ports 3000 and 8080 let anyone on your network spend your keys, and the demo turns on `admin_models`, so anyone who can reach it can trigger a sweep. Run it locally, or put Bifrost's virtual keys in front before exposing it.
 - **Healing relies on Bifrost's default plugin order.** Custom plugins run after the built-in cache on the way in and before it on the way back. A custom `pre_builtin` placement would reverse that, and the cache would store the answer before it is healed.
 - **Rewrites are deliberately conservative.** A correction may only reuse words from the answer and the verified values, so a rewrite that rephrases more than it needs to is rejected. The answer is then flagged and kept out of the cache, not healed.
@@ -346,6 +361,7 @@ config.json             gateway config used by docker compose
 web/                    demo page (ask, check, cache freshness) and its nginx proxy
 e2e/                    end-to-end suite with a mock provider and a mock web whose prices can change
 eval/                   labelled answers, eval scripts, RESULTS.md
+.github/workflows/      CI (Go tests + end-to-end) and the image publish
 docs/                   images, pitch deck, decision log, review log, upstream PR draft, deck source
 scripts/align-deps.sh   pins the plugin's shared modules and replaces to the gateway's exact versions
 ```
