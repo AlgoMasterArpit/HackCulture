@@ -32,7 +32,7 @@ var kindPatterns = []struct {
 }{
 	{KindPricing, regexp.MustCompile(`(?i)[$€£₹]\s?\d|\d\s?(usd|eur|inr|dollars?|cents?)\b|\b(pric(e|es|ed|ing)|costs?|free tier|per (month|year|seat|user|token|million|1m|1k)|/(mo|month|yr|year)\b|subscription|billed)\b`)},
 	{KindVersion, regexp.MustCompile(`(?i)\bv?\d+\.\d+(\.\d+)?\b|\b(latest|newest|most recent|deprecated|end[- ]of[- ]life|eol|lts|stable release|current version|version \d+|sunset)\b`)},
-	{KindRegulation, regexp.MustCompile(`(?i)\b(regulations?|law|legislation|directive|gdpr|hipaa|compliance|tax rate|gst|vat|effective (from|date|as of)|mandate[sd]?|ruling|statute|enforcement|deadline|legal(ly)? require[sd]?)\b`)},
+	{KindRegulation, regexp.MustCompile(`(?i)\b(regulations?|law|legislation|directive|gdpr|hipaa|compliance|tax rate|gst|vat|effective (from|date|as of)|mandate[sd]?|ruling|statute|enforcement|deadline|legal(ly)? require[sd]?|act|adopted|enacted|bills?|in force)\b`)},
 	{KindLeadership, regexp.MustCompile(`(?i)\b(ceo|cto|cfo|coo|chief \w+ officer|president|chair(man|woman|person)?|founder|head of|prime minister|led by|acquired( by)?|merged with|headquartered|valuation|market cap|employees)\b`)},
 	{KindRecency, regexp.MustCompile(`(?i)\b(as of|currently|at present|right now|this year|recently|to date|20\d\d)\b`)},
 }

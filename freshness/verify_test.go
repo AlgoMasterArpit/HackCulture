@@ -77,6 +77,8 @@ func TestDetect(t *testing.T) {
 		{"The latest stable release is 3.12.4 at the moment.", KindVersion},
 		{"Satya Nadella is the CEO of Microsoft.", KindLeadership},
 		{"GDPR fines can reach four percent of turnover.", KindRegulation},
+		{"The EU AI Act has been proposed but has not yet been adopted.", KindRegulation},
+		{"The Online Safety Bill has not yet been enacted.", KindRegulation},
 		{"The standard will be revised again in 2031.", KindRecency},
 		{"A binary search halves the search space on every step.", ""},
 		{"Photosynthesis converts light into chemical energy in plants.", ""},
