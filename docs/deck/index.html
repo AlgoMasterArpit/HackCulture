@@ -141,7 +141,7 @@
     <div class="card"><h3>Verdicts need proof</h3><p>Every verdict needs a word-for-word quote from the cited source, and a contradiction must name a new value that is in that quote and not in the claim.</p></div>
     <div class="card"><h3>Rewrites are checked</h3><p>A correction may reuse only words from the answer and the verified values, must drop every old number and may not add links. Go appends the sources itself.</p></div>
     <div class="card"><h3>Fails safe, stays fast</h3><p>Can't prove or heal it: flagged and never cached. Checker down: nothing evicted. Only cached answers are checked; expired hits are served at once and re-checked in the background.</p></div>
-    <div class="card"><h3>Broken on purpose, twice</h3><p>Two adversarial AI reviews found 25 problems, six high-severity, including a phishing link that would have been cached. Each is fixed with a test.</p></div>
+    <div class="card"><h3>Broken on purpose, twice</h3><p>Three adversarial AI reviews found 35 problems, seven high-severity, including a phishing link that would have been cached. Each is fixed with a test.</p></div>
   </div>
   <div class="foot"><span>docs/REVIEW.md</span><span>8</span></div>
 </section>
@@ -183,7 +183,7 @@
 <section class="slide dark">
   <div class="kicker">Run it</div>
   <h1 style="font-size:52px">Three commands.</h1>
-  <pre style="font-size:26px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git
+  <pre style="font-size:26px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git && cd HackCulture
 cp .env.example .env     # add Gemini + Tavily keys
 docker compose pull gateway && docker compose up -d</pre>
   <p style="margin-top:auto; font-size: 24px">Team stackoverflow · github.com/AlgoMasterArpit/HackCulture</p>
