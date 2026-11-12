@@ -4,9 +4,9 @@
 ARG BIFROST_REF=transports/v2.5.1
 ARG BIFROST_VERSION=2.5.1
 
-FROM alpine/git:latest AS source
+FROM alpine:3.24 AS source
 ARG BIFROST_REF
-RUN git clone --depth 1 --branch "${BIFROST_REF}" https://github.com/maximhq/bifrost /src
+RUN apk add --no-cache git && git clone --depth 1 --branch "${BIFROST_REF}" https://github.com/maximhq/bifrost /src
 
 FROM node:25-alpine3.23 AS ui
 WORKDIR /app
@@ -37,7 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build sh /usr/local/bin/align-deps
 RUN --mount=type=cache,target=/root/.cache/go-build go test ./...
 RUN --mount=type=cache,target=/root/.cache/go-build go build -buildmode=plugin -trimpath -o /out/bestbefore.so .
 
-FROM alpine:3.23
+FROM alpine:3.24
 RUN apk add --no-cache musl libgcc ca-certificates zlib && \
     adduser -D -s /bin/sh appuser && \
     mkdir -p /app/data /app/plugins && chown -R appuser /app
