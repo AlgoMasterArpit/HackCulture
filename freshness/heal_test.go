@@ -33,6 +33,27 @@ func TestHealAppliesCorrectionAndAddsSources(t *testing.T) {
 	}
 }
 
+func TestHealMayUseGrammarWordsButNoNewFacts(t *testing.T) {
+	adopted := Report{Status: StatusStale, Claims: []ClaimReport{{
+		Claim:        "The EU AI Act has not yet been adopted",
+		Status:       StatusStale,
+		CurrentValue: "In June 2024, the EU adopted the world's first rules on AI.",
+		SourceURL:    "https://europa.test/ai-act",
+	}}}
+	answer := "The EU AI Act has been proposed but has not yet been adopted."
+	draft := func(text string) error {
+		llm := &fakeLLM{replies: []string{`{"answer":` + quoteJSON(text) + `}`}}
+		_, _, err := (&Healer{LLM: llm}).Heal(context.Background(), "", answer, adopted)
+		return err
+	}
+	if err := draft("The EU AI Act was adopted in June 2024 as the world's first rules on AI [1]."); err != nil {
+		t.Fatalf("fluent rewrite rejected: %v", err)
+	}
+	if err := draft("The EU AI Act was adopted in June 2024 as the world's first rules on AI [1]. It was repealed."); err == nil {
+		t.Fatal("a rewrite adding a new fact was accepted")
+	}
+}
+
 func TestHealRejectsRewritesThatMissTheCorrection(t *testing.T) {
 	cases := map[string]string{
 		"value not applied": `{"answer":"Acme Pro costs $10 per month."}`,
