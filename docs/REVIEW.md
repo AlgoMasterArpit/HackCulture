@@ -24,7 +24,7 @@ On 11 Nov 2026 we gave the code, not our conclusions, to a separate AI reviewer 
 
 Test-suite problems it also found, now fixed: a data race in the search fake (caught with `go test -race`), and a ledger test that used a timeless report, so it never tested the recheck window.
 
-**Accepted, not fixed** (in the README's Limits): there is no request coalescing, so many concurrent hits on one due entry each pay for a check; and a stale page that Tavily ranks highly can still make a stale answer look fresh, because one grounded source is enough.
+**Accepted at the time:** there was no request coalescing, so many concurrent hits on one due entry each paid for a check (fixed after the third review: a burst of hits on one entry now pays for a single check). **Still accepted** (in the README's Limits): a stale page that Tavily ranks highly can still make a stale answer look fresh, because one grounded source is enough.
 
 `go test -race ./...` passes after the fixes.
 
