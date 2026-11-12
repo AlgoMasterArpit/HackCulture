@@ -123,7 +123,7 @@
     <div class="stat"><div class="big" style="color:#0369a1" data-n="claims.heal_rate" data-unit="%"></div><span>of caught answers healed with the verified value</span></div>
   </div>
   <img class="full" src="../img/eval-verdicts.svg" alt="" style="max-height: 230px; object-fit: contain; margin-top: 22px">
-  <div class="foot"><span>From eval/run.py. Grounding rule tuned on this set after a first run that caught <b data-n="claims_run1.with.recall" data-unit="%"></b>; all runs published.</span><span>6</span></div>
+  <div class="foot"><span>Rule tuned on this set (first run: <b data-n="claims_run1.with.recall" data-unit="%"></b>). Held-out set, labelled before its only run: <b data-n="holdout.with.recall" data-unit="%"></b> caught, <b data-n="holdout.with.false_alarm" data-unit="%"></b> wrongly flagged.</span><span>6</span></div>
 </section>
 
 <section class="slide">
@@ -183,7 +183,7 @@
 <section class="slide dark">
   <div class="kicker">Run it</div>
   <h1 style="font-size:52px">Three commands.</h1>
-  <pre style="font-size:26px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git && cd HackCulture
+  <pre style="font-size:23px; background: rgba(15,23,42,.55); color:#e0e7ff; padding: 26px 30px; border-radius: 16px; line-height:1.6">git clone https://github.com/AlgoMasterArpit/HackCulture.git && cd HackCulture
 cp .env.example .env     # add Gemini + Tavily keys
 docker compose pull gateway && docker compose up -d</pre>
   <p style="margin-top:auto; font-size: 24px">Team stackoverflow · github.com/AlgoMasterArpit/HackCulture</p>
