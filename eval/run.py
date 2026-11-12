@@ -1,6 +1,7 @@
-"""Score every labelled answer in claims.json through the bestbefore/verify model.
+"""Score every labelled answer in a dataset through the bestbefore/verify model.
 
     python eval/run.py --gateway http://localhost:8080 --pace 8
+    python eval/run.py --dataset holdout
 """
 import argparse
 import json
@@ -19,9 +20,10 @@ def main():
     parser.add_argument("--gateway", default="http://localhost:8080")
     parser.add_argument("--pace", type=float, default=8, help="seconds between checked answers, for free-tier rate limits")
     parser.add_argument("--only", help="comma-separated item ids")
+    parser.add_argument("--dataset", default="claims", help="claims (development set) or holdout")
     args = parser.parse_args()
 
-    dataset = json.loads((HERE / "claims.json").read_text(encoding="utf-8"))
+    dataset = json.loads((HERE / f"{args.dataset}.json").read_text(encoding="utf-8"))
     items = dataset["items"]
     if args.only:
         wanted = set(args.only.split(","))
@@ -56,8 +58,9 @@ def main():
     }
     results = HERE / "results"
     results.mkdir(exist_ok=True)
-    (results / "claims.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
-    print(f"\nwrote {results / 'claims.json'}")
+    out_path = results / f"{args.dataset}.json"
+    out_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    print(f"\nwrote {out_path}")
     return 0 if all(run["report"]["status"] != "error" for run in runs) else 1
 
 

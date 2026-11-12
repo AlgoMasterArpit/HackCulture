@@ -227,8 +227,6 @@ def results_markdown(claims_data, claims, cache_data, cache):
         lines += [
             f"## Semantic cache ({cache_data['model']}, run {cache_data['ran_at']})",
             "",
-            "| | Bifrost cache, TTL only | Bifrost cache + BestBefore |",
-            "|---|---|---|",
         ] + cache_rows(cache) + [""]
     (HERE / "RESULTS.md").write_text("\n".join(lines), encoding="utf-8")
 
@@ -257,7 +255,7 @@ def replace_block(text, name, body):
     return head + start + body + end + tail
 
 
-def update_readme(claims, cache, run1=None, repeat=None):
+def update_readme(claims, cache, run1=None, repeat=None, holdout=None):
     path = HERE.parent / "README.md"
     text = path.read_text(encoding="utf-8")
     proof, rows = [], []
@@ -308,6 +306,15 @@ def update_readme(claims, cache, run1=None, repeat=None):
                 "carries its reason.",
                 "",
             ]
+        if holdout:
+            rows += [
+                f"**Held-out test.** {sum(holdout['sizes'].values())} more answers about prices, laws and leadership were written "
+                "and labelled after the rule was settled, committed, and only then run once "
+                "([eval/holdout.json](eval/holdout.json)). BestBefore caught "
+                f"**{holdout['with']['recall']:.0f}%** of the stale ones, wrongly flagged **{holdout['with']['false_alarm']:.0f}%** "
+                f"of the good ones, and rewrote {holdout['heal_rate']:.0f}% of the answers it flagged with the verified values.",
+                "",
+            ]
     if cache:
         b, o = cache["baseline"], cache["bestbefore"]
         proof.insert(0,
@@ -337,9 +344,11 @@ def main():
     cache = cache_metrics(cache_data) if cache_data else None
     write_charts(claims, cache)
     results_markdown(claims_data, claims, cache_data, cache)
-    update_readme(claims, cache, run1, repeat)
+    holdout_data = load("holdout.json")
+    holdout = claim_metrics(holdout_data["runs"]) if holdout_data else None
+    update_readme(claims, cache, run1, repeat, holdout)
     keep = lambda m: {k: v for k, v in (m or {}).items() if k not in ("rejected", "counts")}
-    summary = {"claims": keep(claims), "claims_run1": keep(run1), "claims_run1_repeat": keep(repeat), "cache": cache}
+    summary = {"claims": keep(claims), "claims_run1": keep(run1), "claims_run1_repeat": keep(repeat), "holdout": keep(holdout), "cache": cache}
     (HERE / "results" / "summary.json").write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
     print(json.dumps(summary, indent=2, default=str))
 
