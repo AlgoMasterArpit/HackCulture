@@ -78,11 +78,22 @@ def claim_metrics(runs):
     }
 
 
+def replay_status(row):
+    """A cache hit replays the first answer's exact text, so when the hit itself
+    could not be re-checked (quota, outage) it carries the first answer's verdict."""
+    first, second = row["first"], row["second"]
+    own = (second["bestbefore"] or {}).get("status")
+    if second["cache_hit"] and own in (None, "unchecked") and second["answer"] == first["answer"]:
+        return (first["bestbefore"] or {}).get("status")
+    return own
+
+
 def cache_metrics(data):
     status = lambda ask: (ask["bestbefore"] or {}).get("status")
     out = {}
     for name in ("baseline", "bestbefore"):
-        rows = [run[name] for run in data["runs"]]
+        rows = [{**run[name], "second": {**run[name]["second"], "bestbefore": {"status": replay_status(run[name])}}}
+                for run in data["runs"]]
         asks = [row[k] for row in rows for k in ("first", "second")]
         repeat = sorted(row["second"].get("seconds", 0) for row in rows)
         out[name] = {
@@ -244,7 +255,9 @@ def cache_rows(cache):
         f"| Repeat-ask time, median | not comparable¹ | {o['repeat_seconds_p50']:.2f}s |",
         "",
         "¹ The baseline gateway runs the plugin as an observer so stale answers can be counted, and the observer re-checks "
-        "every cache hit, which makes its repeat asks slow. A real TTL-only cache answers a hit as fast as BestBefore does.",
+        "every cache hit, which makes its repeat asks slow. A real TTL-only cache answers a hit as fast as BestBefore does. "
+        "When the observer could not re-check a hit (free-tier quota), the hit is the first answer's exact text, so it is "
+        "counted with that answer's verdict.",
     ]
 
 
@@ -300,8 +313,9 @@ def update_readme(claims, cache, run1=None, repeat=None, holdout=None):
                 "**Earlier runs, also published.** Our first run used a stricter quote rule, which threw out real contradictions "
                 "worded differently from the source (\"JDK 25\" for \"Java 25\", a three-word \"Latest version: 19.3\"). "
                 f"It caught {run1['with']['recall']:.0f}% of stale answers and wrongly flagged {run1['with']['false_alarm']:.0f}% "
-                f"of good ones{repeat_note}. We changed the rule after reading those misses, then re-ran the same 60 answers; "
-                "the table above is that run. Because the rule was tuned after seeing this data, treat these as development "
+                f"of good ones{repeat_note}. We changed the rule after reading those misses, and later stopped the extractor "
+                "dropping negations (\"not yet adopted\") after reading another; the table above is the same 60 answers "
+                "on the final build. Because the rule was tuned after seeing this data, treat these as development "
                 "numbers, not a held-out test. Every run is in [eval/results/](eval/results/), and every rejected verdict "
                 "carries its reason.",
                 "",
@@ -312,7 +326,10 @@ def update_readme(claims, cache, run1=None, repeat=None, holdout=None):
                 "and labelled after the rule was settled, committed, and only then run once "
                 "([eval/holdout.json](eval/holdout.json)). BestBefore caught "
                 f"**{holdout['with']['recall']:.0f}%** of the stale ones, wrongly flagged **{holdout['with']['false_alarm']:.0f}%** "
-                f"of the good ones, and rewrote {holdout['heal_rate']:.0f}% of the answers it flagged with the verified values.",
+                f"of the good ones, and rewrote {holdout['heal_rate']:.0f}% of the answers it flagged with the verified values. "
+                "It ran on the build before the last two fixes (the extractor keeping negations, plain grammar words in "
+                "rewrites), and we did not re-run it. The one false alarm (hf3) is likely our label's fault: we wrote that "
+                "Spotify raised the price in July 2024, and the cited CNBC article says June 2024. It stays counted against us.",
                 "",
             ]
     if cache:
