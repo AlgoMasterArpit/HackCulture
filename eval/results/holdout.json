@@ -1,0 +1,567 @@
+{
+  "ran_at": "2026-11-12T11:36:26+00:00",
+  "gateway": "http://localhost:8080",
+  "labelled_on": "2026-11-12",
+  "duration_seconds": 300,
+  "runs": [
+    {
+      "id": "hp1",
+      "label": "stale",
+      "question": "How much is Netflix's Standard plan in the US?",
+      "answer": "Netflix's Standard plan costs $15.49 per month in the US.",
+      "why": "Raised to $17.99 in January 2025.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Netflix's Standard plan costs $15.49 per month in the US.",
+            "kind": "pricing",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "$19.99 / month",
+            "source_url": "https://help.netflix.com/en/node/24926",
+            "source_official": true,
+            "quote": "Standard: $19.99 / month",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:31:26.614079825Z",
+        "recheck_after": "2026-11-13T11:31:26.614079825Z",
+        "searches": 2,
+        "judge_tokens": 4085,
+        "latency_ms": 7630,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "Netflix's Standard plan costs $15.49 per month in the US.",
+        "corrected_answer": "Netflix's Standard plan costs $19.99 / month in the US[1].\n\nSources:\n[1] https://help.netflix.com/en/node/24926"
+      },
+      "wall_seconds": 8.88
+    },
+    {
+      "id": "hp2",
+      "label": "stale",
+      "question": "How much is Spotify Premium in the US?",
+      "answer": "Spotify Premium Individual costs $10.99 per month in the US.",
+      "why": "Raised to $11.99 in July 2024.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Spotify Premium Individual costs $10.99 per month in the US.",
+            "kind": "pricing",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "$12.99",
+            "source_url": "https://www.spotify.com/us/premium",
+            "source_official": true,
+            "quote": "Premium Individual only. $0 for 1 month, then $12.99 per month after.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:31:43.474686924Z",
+        "recheck_after": "2026-11-13T11:31:43.474686924Z",
+        "searches": 2,
+        "judge_tokens": 4058,
+        "latency_ms": 8827,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "Spotify Premium Individual costs $10.99 per month in the US.",
+        "corrected_answer": "Spotify Premium Individual costs $12.99 per month in the US [1].\n\nSources:\n[1] https://www.spotify.com/us/premium"
+      },
+      "wall_seconds": 10.8
+    },
+    {
+      "id": "hp3",
+      "label": "stale",
+      "question": "How much is Amazon Prime per year in the US?",
+      "answer": "Amazon Prime costs $119 per year in the US.",
+      "why": "Raised to $139 in February 2022.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Amazon Prime costs $119 per year in the US.",
+            "kind": "pricing",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "$139",
+            "source_url": "https://www.amazon.com/gp/help/customer/display.html?nodeId=G34EUPKVMYFW8N2U",
+            "source_official": true,
+            "quote": "$139 per year",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:32:02.293935969Z",
+        "recheck_after": "2026-11-13T11:32:02.293935969Z",
+        "searches": 2,
+        "judge_tokens": 4015,
+        "latency_ms": 13402,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "Amazon Prime costs $119 per year in the US.",
+        "corrected_answer": "Amazon Prime costs $139 per year in the US[1].\n\nSources:\n[1] https://www.amazon.com/gp/help/customer/display.html?nodeId=G34EUPKVMYFW8N2U"
+      },
+      "wall_seconds": 15.05
+    },
+    {
+      "id": "hp4",
+      "label": "stale",
+      "question": "How much is Disney+ Premium in the US?",
+      "answer": "Disney+ Premium costs $13.99 per month in the US.",
+      "why": "Raised in October 2024 and again in October 2025.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Disney+ Premium costs $13.99 per month in the US.",
+            "kind": "pricing",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "contradicted",
+            "grounded": false,
+            "rejected_because": "quote is not in the cited source",
+            "rejected_quote": "Disney+ Premium: Disney+ (No Ads) for the price of $21.49/month or $214.99/year"
+          }
+        ],
+        "checked_at": "2026-11-12T11:32:25.322342802Z",
+        "recheck_after": "2026-11-13T11:32:25.322342802Z",
+        "searches": 2,
+        "judge_tokens": 4270,
+        "latency_ms": 9088,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 9.11
+    },
+    {
+      "id": "hl1",
+      "label": "stale",
+      "question": "Is the EU Digital Markets Act law yet?",
+      "answer": "The EU Digital Markets Act has been proposed but has not been adopted yet.",
+      "why": "Adopted in 2022; entered into force on 1 November 2022.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.15,
+        "claims": [
+          {
+            "claim": "The EU Digital Markets Act has not been adopted yet.",
+            "kind": "regulation",
+            "status": "stale",
+            "freshness_score": 0.15,
+            "current_value": "adopted by the European Parliament and the Council on 14 September 2022",
+            "source_url": "https://digital-markets-act.ec.europa.eu/about-dma_en",
+            "source_official": true,
+            "quote": "the Regulation was adopted by the European Parliament and the Council on 14 September 2022",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:32:42.424869703Z",
+        "recheck_after": "2026-11-19T11:32:42.424869703Z",
+        "searches": 2,
+        "judge_tokens": 3681,
+        "latency_ms": 7881,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false,
+        "heal_error": "could not rewrite the answer"
+      },
+      "wall_seconds": 9.61
+    },
+    {
+      "id": "hl2",
+      "label": "stale",
+      "question": "Has India passed its data protection law?",
+      "answer": "India's Digital Personal Data Protection Act has not yet been passed by Parliament.",
+      "why": "Passed and given assent in August 2023.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "India's Digital Personal Data Protection Act has not yet been passed by Parliament.",
+            "kind": "regulation",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Digital Personal Data Protection Act, 2023",
+            "source_url": "https://en.wikipedia.org/wiki/Digital_Personal_Data_Protection_Act,_2023",
+            "quote": "Digital Personal Data Protection Bill, 2023 was passed by Lok Sabha",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:33:00.061111489Z",
+        "recheck_after": "2026-11-19T11:33:00.061111489Z",
+        "searches": 2,
+        "judge_tokens": 4400,
+        "latency_ms": 18387,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "India's Digital Personal Data Protection Act has not yet been passed by Parliament.",
+        "corrected_answer": "India's Digital Personal Data Protection Act, 2023 [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/Digital_Personal_Data_Protection_Act,_2023"
+      },
+      "wall_seconds": 43.83
+    },
+    {
+      "id": "hl3",
+      "label": "stale",
+      "question": "Is the UK Online Safety Bill law?",
+      "answer": "The UK's Online Safety Bill has not yet become law.",
+      "why": "Received Royal Assent on 26 October 2023.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "The UK's Online Safety Bill has not yet become law.",
+            "kind": "regulation",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "received Royal Assent",
+            "source_url": "https://www.gov.uk/government/news/overwhelming-support-for-online-safety-act-as-rules-making-uk-the-safest-place-in-the-world-to-be-online-become-law",
+            "source_official": true,
+            "quote": "The Online Safety Bill yesterday (Thursday 26 October) received Royal Assent, heralding a new era of internet safety and choice by placing world-first legal duties on social media platforms.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:33:51.885350054Z",
+        "recheck_after": "2026-11-19T11:33:51.885350054Z",
+        "searches": 2,
+        "judge_tokens": 3675,
+        "latency_ms": 8439,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "The UK's Online Safety Bill has not yet become law.",
+        "corrected_answer": "The UK's Online Safety Bill has received Royal Assent [1].\n\nSources:\n[1] https://www.gov.uk/government/news/overwhelming-support-for-online-safety-act-as-rules-making-uk-the-safest-place-in-the-world-to-be-online-become-law"
+      },
+      "wall_seconds": 10.11
+    },
+    {
+      "id": "hc1",
+      "label": "stale",
+      "question": "Who is the CEO of Disney?",
+      "answer": "Bob Chapek is the CEO of Disney.",
+      "why": "Replaced by Bob Iger in November 2022.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Bob Chapek is the CEO of Disney.",
+            "kind": "leadership",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "Josh D'Amaro",
+            "source_url": "https://en.wikipedia.org/wiki/Josh_D%27Amaro",
+            "quote": "Josh D'Amaro (born February 10, 1971) is an American business executive who has been the chief executive officer of the Walt Disney Company since 2026, succeeding Bob Iger.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:34:09.981831511Z",
+        "recheck_after": "2026-11-19T11:34:09.981831511Z",
+        "searches": 2,
+        "judge_tokens": 4846,
+        "latency_ms": 9260,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "Bob Chapek is the CEO of Disney.",
+        "corrected_answer": "Josh D'Amaro is the CEO of Disney [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/Josh_D%27Amaro"
+      },
+      "wall_seconds": 12.05
+    },
+    {
+      "id": "hc2",
+      "label": "stale",
+      "question": "Who runs Activision Blizzard?",
+      "answer": "Bobby Kotick is the CEO of Activision Blizzard.",
+      "why": "Left at the end of 2023 after Microsoft's acquisition.",
+      "report": {
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "Bobby Kotick is the CEO of Activision Blizzard.",
+            "kind": "leadership",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "was the CEO of Activision Blizzard from 2008 to 2023",
+            "source_url": "https://en.wikipedia.org/wiki/Activision_Blizzard",
+            "quote": "Bobby Kotick_(pictured in 2012)_ was the CEO of Activision Blizzard from 2008 to 2023.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:34:30.047941645Z",
+        "recheck_after": "2026-11-19T11:34:30.047941645Z",
+        "searches": 1,
+        "judge_tokens": 2082,
+        "latency_ms": 4372,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": true,
+        "original_answer": "Bobby Kotick is the CEO of Activision Blizzard.",
+        "corrected_answer": "Bobby Kotick was the CEO of Activision Blizzard from 2008 to 2023 [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/Activision_Blizzard"
+      },
+      "wall_seconds": 5.98
+    },
+    {
+      "id": "hf1",
+      "label": "fresh",
+      "question": "When did Amazon raise the Prime fee?",
+      "answer": "Amazon raised the US Prime annual fee to $139 in February 2022.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "uncertain",
+        "freshness_score": 0.5,
+        "claims": [
+          {
+            "claim": "Amazon raised the US Prime annual fee to $139 in February 2022.",
+            "kind": "pricing",
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "unverifiable",
+            "grounded": false
+          }
+        ],
+        "checked_at": "2026-11-12T11:34:44.02689493Z",
+        "recheck_after": "2026-11-13T11:34:44.02689493Z",
+        "searches": 1,
+        "judge_tokens": 2627,
+        "latency_ms": 4368,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 4.39
+    },
+    {
+      "id": "hf2",
+      "label": "fresh",
+      "question": "When did Netflix last raise the Standard plan?",
+      "answer": "Netflix raised its US Standard plan to $17.99 per month in January 2025.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.84,
+        "claims": [
+          {
+            "claim": "Netflix raised its US Standard plan to $17.99 per month in January 2025.",
+            "kind": "pricing",
+            "status": "fresh",
+            "freshness_score": 0.84,
+            "source_url": "https://www.cnbc.com/2025/01/21/netflix-raises-prices.html?msockid=194d5094d31b602423404659d20a61dd",
+            "quote": "its standard plan without commercials will increase from $15.49 a month to $17.99.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:34:56.42470682Z",
+        "recheck_after": "2026-11-13T11:34:56.42470682Z",
+        "searches": 2,
+        "judge_tokens": 4049,
+        "latency_ms": 6240,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 6.27
+    },
+    {
+      "id": "hf3",
+      "label": "fresh",
+      "question": "When did Spotify raise Premium prices?",
+      "answer": "Spotify raised US Premium Individual to $11.99 per month in July 2024.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "stale",
+        "freshness_score": 0.19,
+        "claims": [
+          {
+            "claim": "Spotify raised US Premium Individual to $11.99 per month in July 2024.",
+            "kind": "pricing",
+            "status": "stale",
+            "freshness_score": 0.19,
+            "current_value": "June 2024",
+            "source_url": "https://www.cnbc.com/2026/01/15/spotify-subscription-price-premium-us.html?msockid=0499b7eb3dca603236bfa1083ccc6103",
+            "quote": "Spotify last bumped the Premium price for U.S. users in June 2024 to $11.99 per month.",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:35:10.680789012Z",
+        "recheck_after": "2026-11-13T11:35:10.680789012Z",
+        "searches": 1,
+        "judge_tokens": 2552,
+        "latency_ms": 6491,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false,
+        "heal_error": "could not rewrite the answer"
+      },
+      "wall_seconds": 7.88
+    },
+    {
+      "id": "hf4",
+      "label": "fresh",
+      "question": "When did the Digital Markets Act take effect?",
+      "answer": "The EU Digital Markets Act entered into force on 1 November 2022.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "The EU Digital Markets Act entered into force on 1 November 2022.",
+            "kind": "regulation",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://digital-markets-act.ec.europa.eu/about-dma_en?prefLang=es",
+            "source_official": true,
+            "quote": "The DMA entered into force on 1 November 2022",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:35:26.565309339Z",
+        "recheck_after": "2026-11-19T11:35:26.565309339Z",
+        "searches": 2,
+        "judge_tokens": 3680,
+        "latency_ms": 7412,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 7.42
+    },
+    {
+      "id": "hf5",
+      "label": "fresh",
+      "question": "When did India's data protection act become law?",
+      "answer": "India's Digital Personal Data Protection Act received presidential assent in August 2023.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "India's Digital Personal Data Protection Act received presidential assent in August 2023.",
+            "kind": "recency",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/Digital_Personal_Data_Protection_Act,_2023",
+            "quote": "11 August 2023: President of India gave assent to the Digital Personal Data Protection Bill, 2023",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:35:41.996669557Z",
+        "recheck_after": "2026-11-13T11:35:41.996669557Z",
+        "searches": 1,
+        "judge_tokens": 2341,
+        "latency_ms": 6636,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 6.67
+    },
+    {
+      "id": "hf6",
+      "label": "fresh",
+      "question": "When did the UK Online Safety Act become law?",
+      "answer": "The UK Online Safety Act received Royal Assent in October 2023.",
+      "why": "A dated fact that cannot change.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "The UK Online Safety Act received Royal Assent in October 2023.",
+            "kind": "regulation",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://www.gov.uk/government/publications/online-safety-act-new-criminal-offences-circular/online-safety-act-new-criminal-offences-circular",
+            "source_official": true,
+            "quote": "The Act received Royal Assent on 26 October 2023",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:35:56.66162956Z",
+        "recheck_after": "2026-11-19T11:35:56.66162956Z",
+        "searches": 2,
+        "judge_tokens": 3341,
+        "latency_ms": 7169,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 7.19
+    },
+    {
+      "id": "hf7",
+      "label": "fresh",
+      "question": "What is the US federal minimum wage?",
+      "answer": "The US federal minimum wage is $7.25 per hour.",
+      "why": "Unchanged since 2009.",
+      "report": {
+        "status": "fresh",
+        "freshness_score": 0.9,
+        "claims": [
+          {
+            "claim": "The US federal minimum wage is $7.25 per hour.",
+            "kind": "regulation",
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://www.dol.gov/agencies/whd/flsa",
+            "source_official": true,
+            "quote": "The federal minimum wage is $7.25 per hour effective July 24, 2009.",
+            "model_verdict": "supported",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T11:36:11.844017405Z",
+        "recheck_after": "2026-11-19T11:36:11.844017405Z",
+        "searches": 2,
+        "judge_tokens": 3679,
+        "latency_ms": 6875,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 6.91
+    }
+  ]
+}

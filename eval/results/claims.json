@@ -1,8 +1,8 @@
 {
-  "ran_at": "2026-11-11T17:56:04+00:00",
+  "ran_at": "2026-11-12T12:21:10+00:00",
   "gateway": "http://localhost:8080",
   "labelled_on": "2026-11-11",
-  "duration_seconds": 552,
+  "duration_seconds": 628,
   "runs": [
     {
       "id": "s01",
@@ -12,33 +12,34 @@
       "why": "3.12 (Oct 2023), 3.13 (Oct 2024) and 3.14 (Oct 2025) have since shipped.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.1,
+        "freshness_score": 0.12,
         "claims": [
           {
             "claim": "The latest stable version of Python is Python 3.11.",
             "kind": "version",
             "status": "stale",
-            "freshness_score": 0.1,
-            "current_value": "Python 3.15",
-            "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-            "quote": "As of October 2026( Python 3.15 is the latest stable release.",
+            "freshness_score": 0.12,
+            "current_value": "Python 3.15.1",
+            "source_url": "https://www.python.org/downloads/source",
+            "source_official": true,
+            "quote": "Latest Python 3 Release - Python 3.15.1",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:46:53.118201281Z",
-        "recheck_after": "2026-11-14T17:46:53.118201281Z",
-        "searches": 1,
-        "judge_tokens": 2815,
-        "latency_ms": 10890,
+        "checked_at": "2026-11-12T12:10:43.032412565Z",
+        "recheck_after": "2026-11-15T12:10:43.032412565Z",
+        "searches": 2,
+        "judge_tokens": 5485,
+        "latency_ms": 5544,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "The latest stable version of Python is Python 3.11.",
-        "corrected_answer": "The latest stable version of Python is Python 3.15[1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/History_of_Python"
+        "corrected_answer": "The latest stable version of Python is Python 3.15.1[1].\n\nSources:\n[1] https://www.python.org/downloads/source"
       },
-      "wall_seconds": 12.8
+      "wall_seconds": 7.17
     },
     {
       "id": "s02",
@@ -47,7 +48,7 @@
       "answer": "Parag Agrawal is the CEO of Twitter.",
       "why": "Agrawal was removed in October 2022.",
       "report": {
-        "status": "stale",
+        "status": "healed",
         "freshness_score": 0.1,
         "claims": [
           {
@@ -55,25 +56,26 @@
             "kind": "leadership",
             "status": "stale",
             "freshness_score": 0.1,
-            "current_value": "Elon Musk",
-            "source_url": "https://www.historyoasis.com/post/twitter-x-ceo-history",
-            "quote": "Elon Musk, whose xAI acquired X in March 2025 (both folded into SpaceX in February 2026), has run the platform directly ever since\u2014and as of July 2026, the job remains unfilled",
+            "current_value": "Linda Yaccarino",
+            "source_url": "https://finance.yahoo.com/news/musk-names-nbcuniversals-linda-yaccarino-twitter-ceo-162404429.html",
+            "quote": "Elon Musk has hired former NBCUniversal executive Linda Yaccarino as the next Twitter CEO.",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:47:08.413470763Z",
-        "recheck_after": "2026-11-18T17:47:08.413470763Z",
+        "checked_at": "2026-11-12T12:10:58.097156805Z",
+        "recheck_after": "2026-11-19T12:10:58.097156805Z",
         "searches": 1,
-        "judge_tokens": 2579,
-        "latency_ms": 6911,
+        "judge_tokens": 2537,
+        "latency_ms": 4932,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": false,
-        "heal_error": "could not rewrite the answer"
+        "healed": true,
+        "original_answer": "Parag Agrawal is the CEO of Twitter.",
+        "corrected_answer": "Linda Yaccarino is the CEO of Twitter[1].\n\nSources:\n[1] https://finance.yahoo.com/news/musk-names-nbcuniversals-linda-yaccarino-twitter-ceo-162404429.html"
       },
-      "wall_seconds": 8.62
+      "wall_seconds": 6.51
     },
     {
       "id": "s03",
@@ -92,21 +94,21 @@
             "freshness_score": 0.5,
             "model_verdict": "contradicted",
             "grounded": false,
-            "rejected_because": "current value is not in the quote",
-            "rejected_quote": "Node.js 18 | EOL (Apr 30, 2025) | Upgrade to 22/24, or adopt NES"
+            "rejected_because": "quote is not in the cited source",
+            "rejected_quote": "Node.js 18 is EOL (Apr 30, 2025)"
           }
         ],
-        "checked_at": "2026-11-11T17:47:18.720031206Z",
-        "recheck_after": "2026-11-14T17:47:18.720031206Z",
+        "checked_at": "2026-11-12T12:11:12.58752838Z",
+        "recheck_after": "2026-11-15T12:11:12.58752838Z",
         "searches": 1,
-        "judge_tokens": 2733,
-        "latency_ms": 20085,
+        "judge_tokens": 2891,
+        "latency_ms": 4348,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 20.08
+      "wall_seconds": 4.38
     },
     {
       "id": "s04",
@@ -115,7 +117,7 @@
       "answer": "GitHub Copilot has no free tier; every plan is paid.",
       "why": "GitHub launched Copilot Free in December 2024.",
       "report": {
-        "status": "stale",
+        "status": "healed",
         "freshness_score": 0.1,
         "claims": [
           {
@@ -123,25 +125,26 @@
             "kind": "pricing",
             "status": "stale",
             "freshness_score": 0.1,
-            "current_value": "$0 for the Free tier",
-            "source_url": "https://www.cloudzero.com/blog/github-copilot-cost",
-            "quote": "The GitHub Copilot cost runs from $0 for the Free tier",
+            "current_value": "GitHub Copilot Free is a new free pricing tier",
+            "source_url": "https://github.com/features/copilot/plans",
+            "quote": "GitHub Copilot Free is a new free pricing tier with limited functionality for individual developers.",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:47:40.885436925Z",
-        "recheck_after": "2026-11-12T17:47:40.885436925Z",
+        "checked_at": "2026-11-12T12:11:24.968501683Z",
+        "recheck_after": "2026-11-13T12:11:24.968501683Z",
         "searches": 1,
-        "judge_tokens": 2706,
-        "latency_ms": 4699,
+        "judge_tokens": 2973,
+        "latency_ms": 4121,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": false,
-        "heal_error": "could not rewrite the answer"
+        "healed": true,
+        "original_answer": "GitHub Copilot has no free tier; every plan is paid.",
+        "corrected_answer": "GitHub Copilot Free is a new free pricing tier [1].\n\nSources:\n[1] https://github.com/features/copilot/plans"
       },
-      "wall_seconds": 5.88
+      "wall_seconds": 5.45
     },
     {
       "id": "s05",
@@ -159,25 +162,26 @@
             "status": "stale",
             "freshness_score": 0.1,
             "current_value": "Andy Burnham",
-            "source_url": "https://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom",
-            "quote": "The current prime minister is Andy Burnham",
+            "source_url": "https://www.gov.uk/government/ministers/prime-minister",
+            "source_official": true,
+            "quote": "Andy Burnham became Prime Minister on 20 July 2026.",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:47:48.784849303Z",
-        "recheck_after": "2026-11-18T17:47:48.784849303Z",
-        "searches": 1,
-        "judge_tokens": 2342,
-        "latency_ms": 4916,
+        "checked_at": "2026-11-12T12:11:38.468421281Z",
+        "recheck_after": "2026-11-19T12:11:38.468421281Z",
+        "searches": 2,
+        "judge_tokens": 4226,
+        "latency_ms": 8613,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Rishi Sunak is the Prime Minister of the United Kingdom.",
-        "corrected_answer": "Andy Burnham is the Prime Minister of the United Kingdom [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom"
+        "corrected_answer": "Andy Burnham is the Prime Minister of the United Kingdom[1].\n\nSources:\n[1] https://www.gov.uk/government/ministers/prime-minister"
       },
-      "wall_seconds": 6.22
+      "wall_seconds": 9.86
     },
     {
       "id": "s06",
@@ -186,31 +190,29 @@
       "answer": "Gemini 1.5 Pro is currently Google's most capable Gemini model.",
       "why": "Gemini 2.5 Pro (2025) and later models replaced it.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
-            "claim": "Gemini 1.5 Pro is Google's most capable Gemini model.",
+            "claim": "Gemini 1.5 Pro is currently Google's most capable Gemini model.",
             "kind": "version",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://en.wikipedia.org/wiki/Gemini_(language_model)",
-            "quote": "It is designed to be the most capable model in the Gemini 1.5 family.",
-            "model_verdict": "supported",
-            "grounded": true
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "unverifiable",
+            "grounded": false
           }
         ],
-        "checked_at": "2026-11-11T17:47:56.88440377Z",
-        "recheck_after": "2026-11-14T17:47:56.88440377Z",
+        "checked_at": "2026-11-12T12:11:56.300793873Z",
+        "recheck_after": "2026-11-15T12:11:56.300793873Z",
         "searches": 1,
-        "judge_tokens": 2154,
-        "latency_ms": 7739,
+        "judge_tokens": 2201,
+        "latency_ms": 4932,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 7.78
+      "wall_seconds": 4.99
     },
     {
       "id": "s07",
@@ -220,25 +222,26 @@
       "why": "React 19 was released in December 2024.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.15,
+        "freshness_score": 0.1,
         "claims": [
           {
             "claim": "The latest major version of React is React 18.",
             "kind": "version",
             "status": "stale",
-            "freshness_score": 0.15,
+            "freshness_score": 0.1,
             "current_value": "19.3",
             "source_url": "https://react.dev/versions",
+            "source_official": true,
             "quote": "Latest version: 19.3",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:48:06.904632984Z",
-        "recheck_after": "2026-11-14T17:48:06.904632984Z",
-        "searches": 1,
-        "judge_tokens": 2521,
-        "latency_ms": 4992,
+        "checked_at": "2026-11-12T12:12:09.578905556Z",
+        "recheck_after": "2026-11-15T12:12:09.578905556Z",
+        "searches": 2,
+        "judge_tokens": 3969,
+        "latency_ms": 7502,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
@@ -246,7 +249,7 @@
         "original_answer": "The latest major version of React is React 18.",
         "corrected_answer": "The latest major version of React is React 19.3[1].\n\nSources:\n[1] https://react.dev/versions"
       },
-      "wall_seconds": 6.59
+      "wall_seconds": 9.08
     },
     {
       "id": "s08",
@@ -255,34 +258,31 @@
       "answer": "Ubuntu 22.04 is the newest Ubuntu LTS release.",
       "why": "Ubuntu 24.04 LTS (April 2024) and 26.04 LTS (April 2026) followed.",
       "report": {
-        "status": "healed",
-        "freshness_score": 0.14,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
-            "claim": "Ubuntu 22.04 is the newest Ubuntu LTS release.",
+            "claim": "Ubuntu 22.04 is the newest Ubuntu LTS release",
             "kind": "version",
-            "status": "stale",
-            "freshness_score": 0.14,
-            "current_value": "26.04 LTS",
-            "source_url": "https://ubuntu.com/about/release-cycle",
-            "quote": "26.04 LTS    Ubuntu  Supported architectures  amd64, armhf, arm64, s390x, riscv64, ppc64el-p9  ---  Upgrade path  26.10    Ubuntu 26.04 LTS Released: Apr 2026",
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "model_verdict": "contradicted",
-            "grounded": true
+            "grounded": false,
+            "rejected_because": "current value is not in the quote",
+            "rejected_quote": "The latest LTS version of Ubuntu Server."
           }
         ],
-        "checked_at": "2026-11-11T17:48:15.429238832Z",
-        "recheck_after": "2026-11-14T17:48:15.429238832Z",
-        "searches": 1,
-        "judge_tokens": 2449,
-        "latency_ms": 3386,
+        "checked_at": "2026-11-12T12:12:26.386474106Z",
+        "recheck_after": "2026-11-15T12:12:26.386474106Z",
+        "searches": 2,
+        "judge_tokens": 4047,
+        "latency_ms": 4562,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": true,
-        "original_answer": "Ubuntu 22.04 is the newest Ubuntu LTS release.",
-        "corrected_answer": "Ubuntu 26.04 LTS is the newest Ubuntu LTS release.[1]\n\nSources:\n[1] https://ubuntu.com/about/release-cycle"
+        "healed": false
       },
-      "wall_seconds": 4.47
+      "wall_seconds": 4.62
     },
     {
       "id": "s09",
@@ -292,33 +292,34 @@
       "why": "GPT-4o, GPT-4.1 and GPT-5 followed it.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.13,
+        "freshness_score": 0.19,
         "claims": [
           {
             "claim": "GPT-4 Turbo is OpenAI's newest flagship model.",
             "kind": "version",
             "status": "stale",
-            "freshness_score": 0.13,
-            "current_value": "GPT-6 Astra",
-            "source_url": "https://developers.openai.com/api/docs/models",
-            "quote": "If you're not sure where to start, use GPT-6 Astra, our flagship model for complex reasoning and coding.",
+            "freshness_score": 0.19,
+            "current_value": "An older high-intelligence GPT model",
+            "source_url": "https://developers.openai.com/api/docs/models/all",
+            "source_official": true,
+            "quote": "gpt-4-turbo\n\nGPT-4 Turbo\n\nDeprecated\n\nAn older high-intelligence GPT model",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:48:21.758377749Z",
-        "recheck_after": "2026-11-14T17:48:21.758377749Z",
-        "searches": 1,
-        "judge_tokens": 2558,
-        "latency_ms": 3440,
+        "checked_at": "2026-11-12T12:12:39.022167666Z",
+        "recheck_after": "2026-11-15T12:12:39.022167666Z",
+        "searches": 2,
+        "judge_tokens": 4482,
+        "latency_ms": 7154,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "GPT-4 Turbo is currently OpenAI's newest flagship model.",
-        "corrected_answer": "GPT-6 Astra is currently OpenAI's newest flagship model[1].\n\nSources:\n[1] https://developers.openai.com/api/docs/models"
+        "corrected_answer": "An older high-intelligence GPT model is currently OpenAI's newest flagship model[1].\n\nSources:\n[1] https://developers.openai.com/api/docs/models/all"
       },
-      "wall_seconds": 4.75
+      "wall_seconds": 8.89
     },
     {
       "id": "s10",
@@ -328,33 +329,34 @@
       "why": "Biden's term ended in January 2025.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.1,
+        "freshness_score": 0.13,
         "claims": [
           {
-            "claim": "Joe Biden is the President of the United States.",
+            "claim": "Joe Biden is the current President of the United States.",
             "kind": "leadership",
             "status": "stale",
-            "freshness_score": 0.1,
-            "current_value": "Donald John Trump",
-            "source_url": "https://www.usa.gov/presidents",
-            "quote": "The 47th and current president of the United States is Donald John Trump.",
+            "freshness_score": 0.13,
+            "current_value": "Donald J. Trump",
+            "source_url": "https://www.whitehouse.gov/administration",
+            "source_official": true,
+            "quote": "President Donald J. Trump\n\n45th & 47th President of the United States",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:48:27.674018867Z",
-        "recheck_after": "2026-11-18T17:48:27.674018867Z",
-        "searches": 1,
-        "judge_tokens": 2233,
-        "latency_ms": 3922,
+        "checked_at": "2026-11-12T12:12:55.872391676Z",
+        "recheck_after": "2026-11-19T12:12:55.872391676Z",
+        "searches": 2,
+        "judge_tokens": 3238,
+        "latency_ms": 7312,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Joe Biden is the current President of the United States.",
-        "corrected_answer": "Donald John Trump is the current President of the United States [1].\n\nSources:\n[1] https://www.usa.gov/presidents"
+        "corrected_answer": "Donald J. Trump is the current President of the United States[1].\n\nSources:\n[1] https://www.whitehouse.gov/administration"
       },
-      "wall_seconds": 4.92
+      "wall_seconds": 8.8
     },
     {
       "id": "s11",
@@ -373,24 +375,24 @@
             "freshness_score": 0.1,
             "current_value": "1.37.2",
             "source_url": "https://www.versio.io/en/product-release-end-of-life-eol-linux-foundation-kubernetes.html",
-            "quote": "The latest version of Kubernetes is 1.37.2, released as part of the 1.37 release on 27 October 2026.",
+            "quote": "The latest version of Kubernetes is 1.37.2",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:48:34.580076628Z",
-        "recheck_after": "2026-11-14T17:48:34.580076628Z",
-        "searches": 1,
-        "judge_tokens": 2725,
-        "latency_ms": 5884,
+        "checked_at": "2026-11-12T12:13:12.674407526Z",
+        "recheck_after": "2026-11-15T12:13:12.674407526Z",
+        "searches": 2,
+        "judge_tokens": 4509,
+        "latency_ms": 7902,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Kubernetes 1.28 is the latest Kubernetes release.",
-        "corrected_answer": "Kubernetes 1.37.2 is the latest Kubernetes release [1].\n\nSources:\n[1] https://www.versio.io/en/product-release-end-of-life-eol-linux-foundation-kubernetes.html"
+        "corrected_answer": "Kubernetes 1.37.2 is the latest Kubernetes release[1].\n\nSources:\n[1] https://www.versio.io/en/product-release-end-of-life-eol-linux-foundation-kubernetes.html"
       },
-      "wall_seconds": 7.05
+      "wall_seconds": 9.34
     },
     {
       "id": "s12",
@@ -407,26 +409,26 @@
             "kind": "version",
             "status": "stale",
             "freshness_score": 0.1,
-            "current_value": "Go 1.27",
-            "source_url": "https://go.dev/blog/go1.27",
-            "quote": "Today the Go team is pleased to release Go 1.27.",
+            "current_value": "1.27.3",
+            "source_url": "https://www.versio.io/en/product-release-end-of-life-eol-google-go.html",
+            "quote": "The latest version of Go is 1.27.3",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:48:43.642646893Z",
-        "recheck_after": "2026-11-14T17:48:43.642646893Z",
+        "checked_at": "2026-11-12T12:13:30.130327276Z",
+        "recheck_after": "2026-11-15T12:13:30.130327276Z",
         "searches": 1,
-        "judge_tokens": 2661,
-        "latency_ms": 7451,
+        "judge_tokens": 3387,
+        "latency_ms": 5618,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Go 1.21 is the latest release of the Go programming language.",
-        "corrected_answer": "Go 1.27 is the latest release of the Go programming language [1].\n\nSources:\n[1] https://go.dev/blog/go1.27"
+        "corrected_answer": "Go 1.27.3 is the latest release of the Go programming language. [1]\n\nSources:\n[1] https://www.versio.io/en/product-release-end-of-life-eol-google-go.html"
       },
-      "wall_seconds": 10.76
+      "wall_seconds": 7.09
     },
     {
       "id": "s13",
@@ -445,21 +447,21 @@
             "freshness_score": 0.5,
             "model_verdict": "contradicted",
             "grounded": false,
-            "rejected_because": "quote is not in the cited source",
-            "rejected_quote": "YouTube CEO Susan Wojcicki stepping down"
+            "rejected_because": "current value is not in the quote",
+            "rejected_quote": "YouTube CEO Susan Wojcicki is stepping down after nine years"
           }
         ],
-        "checked_at": "2026-11-11T17:48:57.466013636Z",
-        "recheck_after": "2026-11-18T17:48:57.466013636Z",
+        "checked_at": "2026-11-12T12:13:45.22776575Z",
+        "recheck_after": "2026-11-19T12:13:45.22776575Z",
         "searches": 1,
-        "judge_tokens": 2164,
-        "latency_ms": 12078,
+        "judge_tokens": 2154,
+        "latency_ms": 4946,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.39
+      "wall_seconds": 5.08
     },
     {
       "id": "s14",
@@ -468,34 +470,31 @@
       "answer": "The iPhone 15 is Apple's newest iPhone.",
       "why": "The iPhone 16 (2024) and iPhone 17 (2025) followed.",
       "report": {
-        "status": "healed",
-        "freshness_score": 0.1,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
             "claim": "The iPhone 15 is Apple's newest iPhone.",
             "kind": "version",
-            "status": "stale",
-            "freshness_score": 0.1,
-            "current_value": "18 series",
-            "source_url": "https://www.verizon.com/smartphones/apple",
-            "quote": "Apple's latest iPhone is the 18 series",
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "model_verdict": "contradicted",
-            "grounded": true
+            "grounded": false,
+            "rejected_because": "quote is not in the cited source",
+            "rejected_quote": "Apple debuts iPhone 18 Pro and iPhone 18 Pro Max"
           }
         ],
-        "checked_at": "2026-11-11T17:49:11.706070166Z",
-        "recheck_after": "2026-11-14T17:49:11.706070166Z",
-        "searches": 1,
-        "judge_tokens": 2381,
-        "latency_ms": 7118,
+        "checked_at": "2026-11-12T12:13:57.379069115Z",
+        "recheck_after": "2026-11-15T12:13:57.379069115Z",
+        "searches": 2,
+        "judge_tokens": 3670,
+        "latency_ms": 3845,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": true,
-        "original_answer": "The iPhone 15 is Apple's newest iPhone.",
-        "corrected_answer": "The iPhone 18 series is Apple's newest iPhone[1].\n\nSources:\n[1] https://www.verizon.com/smartphones/apple"
+        "healed": false
       },
-      "wall_seconds": 12.5
+      "wall_seconds": 3.89
     },
     {
       "id": "s15",
@@ -512,18 +511,19 @@
             "kind": "version",
             "status": "stale",
             "freshness_score": 0.1,
-            "current_value": "Java 25",
+            "current_value": "25",
             "source_url": "https://www.oracle.com/java/technologies/downloads",
+            "source_official": true,
             "quote": "JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:49:26.213423411Z",
-        "recheck_after": "2026-11-14T17:49:26.213423411Z",
-        "searches": 1,
-        "judge_tokens": 2739,
-        "latency_ms": 31457,
+        "checked_at": "2026-11-12T12:14:09.517929398Z",
+        "recheck_after": "2026-11-15T12:14:09.517929398Z",
+        "searches": 2,
+        "judge_tokens": 5533,
+        "latency_ms": 7703,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
@@ -531,7 +531,7 @@
         "original_answer": "Java 17 is the latest long-term support release of Java.",
         "corrected_answer": "Java 25 is the latest long-term support release of Java [1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads"
       },
-      "wall_seconds": 42.62
+      "wall_seconds": 8.45
     },
     {
       "id": "s16",
@@ -540,20 +540,34 @@
       "answer": "The EU AI Act has been proposed but has not yet been adopted.",
       "why": "The AI Act was adopted in 2024 and entered into force on 1 August 2024.",
       "report": {
-        "status": "timeless",
-        "freshness_score": 1,
-        "claims": [],
-        "checked_at": "2026-11-11T17:50:10.943454833Z",
-        "recheck_after": "0001-01-01T00:00:00Z",
-        "searches": 0,
-        "judge_tokens": 0,
-        "latency_ms": 0,
+        "status": "healed",
+        "freshness_score": 0.1,
+        "claims": [
+          {
+            "claim": "The EU AI Act has not yet been adopted.",
+            "kind": "regulation",
+            "status": "stale",
+            "freshness_score": 0.1,
+            "current_value": "the European Parliament adopted the Artificial Intelligence Act (AI Act).",
+            "source_url": "https://www.wilmerhale.com/en/insights/blogs/wilmerhale-privacy-and-cybersecurity-law/20240314-the-european-parliament-adopts-the-ai-act",
+            "quote": "the European Parliament adopted the Artificial Intelligence Act (AI Act).",
+            "model_verdict": "contradicted",
+            "grounded": true
+          }
+        ],
+        "checked_at": "2026-11-12T12:14:26.579145874Z",
+        "recheck_after": "2026-11-19T12:14:26.579145874Z",
+        "searches": 1,
+        "judge_tokens": 2664,
+        "latency_ms": 5328,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": false
+        "healed": true,
+        "original_answer": "The EU AI Act has been proposed but has not yet been adopted.",
+        "corrected_answer": "The EU AI Act has been proposed and the European Parliament adopted the Artificial Intelligence Act (AI Act) [1].\n\nSources:\n[1] https://www.wilmerhale.com/en/insights/blogs/wilmerhale-privacy-and-cybersecurity-law/20240314-the-european-parliament-adopts-the-ai-act"
       },
-      "wall_seconds": 0.14
+      "wall_seconds": 6.36
     },
     {
       "id": "s17",
@@ -563,13 +577,13 @@
       "why": "The service moved to x.com in May 2024.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.1,
+        "freshness_score": 0.15,
         "claims": [
           {
-            "claim": "Twitter's main website is twitter.com",
+            "claim": "Twitter's main website is currently twitter.com.",
             "kind": "recency",
             "status": "stale",
-            "freshness_score": 0.1,
+            "freshness_score": 0.15,
             "current_value": "X.com",
             "source_url": "https://www.businessinsider.com/twitter-url-redirects-x-com-domain-website-elon-musk-rebrand-2024-5?op=1",
             "quote": "Typing in Twitter.com now redirects to the X.com domain.",
@@ -577,19 +591,19 @@
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:50:10.999415544Z",
-        "recheck_after": "2026-11-12T17:50:10.999415544Z",
+        "checked_at": "2026-11-12T12:14:41.448936153Z",
+        "recheck_after": "2026-11-13T12:14:41.448936153Z",
         "searches": 1,
-        "judge_tokens": 2694,
-        "latency_ms": 11418,
+        "judge_tokens": 2526,
+        "latency_ms": 6371,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Twitter's main website is currently twitter.com.",
-        "corrected_answer": "Twitter's main website is currently X.com[1].\n\nSources:\n[1] https://www.businessinsider.com/twitter-url-redirects-x-com-domain-website-elon-musk-rebrand-2024-5?op=1"
+        "corrected_answer": "Twitter's main website is currently X.com [1].\n\nSources:\n[1] https://www.businessinsider.com/twitter-url-redirects-x-com-domain-website-elon-musk-rebrand-2024-5?op=1"
       },
-      "wall_seconds": 19.05
+      "wall_seconds": 7.56
     },
     {
       "id": "s18",
@@ -599,25 +613,26 @@
       "why": "PostgreSQL 16 (2023), 17 (2024) and 18 (2025) followed.",
       "report": {
         "status": "healed",
-        "freshness_score": 0.1,
+        "freshness_score": 0.16,
         "claims": [
           {
             "claim": "PostgreSQL 15 is the latest major version of PostgreSQL.",
             "kind": "version",
             "status": "stale",
-            "freshness_score": 0.1,
+            "freshness_score": 0.16,
             "current_value": "PostgreSQL 18",
             "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
-            "quote": "The PostgreSQL Global Development Group\ntoday announced the release of PostgreSQL 18,\nthe latest version of the world's most advanced open source database.",
+            "source_official": true,
+            "quote": "PostgreSQL 18 Released!",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:50:32.211814232Z",
-        "recheck_after": "2026-11-14T17:50:32.211814232Z",
-        "searches": 1,
-        "judge_tokens": 2878,
-        "latency_ms": 12583,
+        "checked_at": "2026-11-12T12:14:56.47755466Z",
+        "recheck_after": "2026-11-15T12:14:56.47755466Z",
+        "searches": 2,
+        "judge_tokens": 3875,
+        "latency_ms": 8948,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
@@ -625,7 +640,7 @@
         "original_answer": "PostgreSQL 15 is the latest major version of PostgreSQL.",
         "corrected_answer": "PostgreSQL 18 is the latest major version of PostgreSQL [1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142"
       },
-      "wall_seconds": 19.38
+      "wall_seconds": 10.2
     },
     {
       "id": "s19",
@@ -642,26 +657,26 @@
             "kind": "version",
             "status": "stale",
             "freshness_score": 0.1,
-            "current_value": "Claude Opus 5.5",
-            "source_url": "https://en.wikipedia.org/wiki/Claude_(AI)",
-            "quote": "Claude Opus 5.5  September 22, 2026",
+            "current_value": "Claude 3.7 Sonnet",
+            "source_url": "https://finance.yahoo.com/news/anthropic-used-pok-mon-benchmark-191054441.html",
+            "quote": "Anthropic said that it tested its latest model, Claude 3.7 Sonnet, on the Game Boy classic Pok\u00e9mon Red",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:50:53.444115952Z",
-        "recheck_after": "2026-11-14T17:50:53.444115952Z",
+        "checked_at": "2026-11-12T12:15:15.453502596Z",
+        "recheck_after": "2026-11-15T12:15:15.453502596Z",
         "searches": 1,
-        "judge_tokens": 2638,
-        "latency_ms": 3817,
+        "judge_tokens": 2739,
+        "latency_ms": 6652,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": true,
         "original_answer": "Claude 3 Opus is Anthropic's newest and most capable model.",
-        "corrected_answer": "Claude Opus 5.5 is Anthropic's newest and most capable model[1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/Claude_(AI)"
+        "corrected_answer": "Claude 3.7 Sonnet is Anthropic's newest and most capable model [1].\n\nSources:\n[1] https://finance.yahoo.com/news/anthropic-used-pok-mon-benchmark-191054441.html"
       },
-      "wall_seconds": 4.84
+      "wall_seconds": 8.55
     },
     {
       "id": "s20",
@@ -670,34 +685,34 @@
       "answer": "macOS Sonoma is the latest version of macOS.",
       "why": "macOS Sequoia (2024) and macOS Tahoe (2025) followed.",
       "report": {
-        "status": "healed",
-        "freshness_score": 0.1,
+        "status": "stale",
+        "freshness_score": 0.11,
         "claims": [
           {
             "claim": "macOS Sonoma is the latest version of macOS.",
             "kind": "version",
             "status": "stale",
-            "freshness_score": 0.1,
-            "current_value": "macOS Tahoe 26.5",
-            "source_url": "https://mac.install.guide/macos/new",
-            "quote": "The latest macOS version is macOS Tahoe 26.5",
+            "freshness_score": 0.11,
+            "current_value": "macOS 27 Golden Gate",
+            "source_url": "https://support.apple.com/en-us/127255",
+            "source_official": true,
+            "quote": "macOS 27 Golden Gate is the latest major version of the Mac operating system.",
             "model_verdict": "contradicted",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:51:00.274249934Z",
-        "recheck_after": "2026-11-14T17:51:00.274249934Z",
-        "searches": 1,
-        "judge_tokens": 2317,
-        "latency_ms": 10914,
+        "checked_at": "2026-11-12T12:15:31.396717789Z",
+        "recheck_after": "2026-11-15T12:15:31.396717789Z",
+        "searches": 2,
+        "judge_tokens": 4763,
+        "latency_ms": 6809,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
-        "healed": true,
-        "original_answer": "macOS Sonoma is the latest version of macOS.",
-        "corrected_answer": "macOS Tahoe 26.5 is the latest version of macOS. [1]\n\nSources:\n[1] https://mac.install.guide/macos/new"
+        "healed": false,
+        "heal_error": "could not rewrite the answer"
       },
-      "wall_seconds": 26.59
+      "wall_seconds": 8.03
     },
     {
       "id": "f01",
@@ -714,23 +729,24 @@
             "kind": "leadership",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://www.unifygtm.com/insights/executives/microsoft-ceo",
-            "quote": "Satya Nadella is the Chief Executive Officer and Chairman of Microsoft.",
+            "source_url": "https://news.microsoft.com/source/exec/satya-nadella",
+            "source_official": true,
+            "quote": "Satya Nadella is Chairman and Chief Executive Officer of Microsoft.",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:51:28.862868703Z",
-        "recheck_after": "2026-11-18T17:51:28.862868703Z",
-        "searches": 1,
-        "judge_tokens": 1978,
-        "latency_ms": 12440,
+        "checked_at": "2026-11-12T12:15:47.483203094Z",
+        "recheck_after": "2026-11-19T12:15:47.483203094Z",
+        "searches": 2,
+        "judge_tokens": 3465,
+        "latency_ms": 6893,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.53
+      "wall_seconds": 7.01
     },
     {
       "id": "f02",
@@ -747,23 +763,24 @@
             "kind": "leadership",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://nvidianews.nvidia.com/news/statement-from-nvidia-board-of-directors",
-            "quote": "founder and CEO Jensen Huang",
+            "source_url": "http://nvidianews.nvidia.com/bios/jensen-huang",
+            "source_official": true,
+            "quote": "Jensen Huang founded NVIDIA in 1993 and has served since its inception as president, chief executive officer, and a member of the board of directors.",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:51:43.438381225Z",
-        "recheck_after": "2026-11-18T17:51:43.438381225Z",
-        "searches": 1,
-        "judge_tokens": 2376,
-        "latency_ms": 12387,
+        "checked_at": "2026-11-12T12:16:02.500261273Z",
+        "recheck_after": "2026-11-19T12:16:02.500261273Z",
+        "searches": 2,
+        "judge_tokens": 3618,
+        "latency_ms": 7607,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.48
+      "wall_seconds": 7.7
     },
     {
       "id": "f03",
@@ -772,31 +789,31 @@
       "answer": "Sundar Pichai is the CEO of Alphabet.",
       "why": "CEO since 2019.",
       "report": {
-        "status": "uncertain",
-        "freshness_score": 0.5,
+        "status": "fresh",
+        "freshness_score": 0.9,
         "claims": [
           {
             "claim": "Sundar Pichai is the CEO of Alphabet.",
             "kind": "leadership",
-            "status": "uncertain",
-            "freshness_score": 0.5,
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/Sundar_Pichai",
+            "quote": "CEO of its parent company Alphabet Inc. since 2019.",
             "model_verdict": "supported",
-            "grounded": false,
-            "rejected_because": "quote is shorter than 5 words",
-            "rejected_quote": "Sundar Pichai (CEO)"
+            "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:51:57.87989919Z",
-        "recheck_after": "2026-11-18T17:51:57.87989919Z",
+        "checked_at": "2026-11-12T12:16:18.169416239Z",
+        "recheck_after": "2026-11-19T12:16:18.169416239Z",
         "searches": 1,
-        "judge_tokens": 2187,
-        "latency_ms": 3961,
+        "judge_tokens": 2185,
+        "latency_ms": 5080,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 4.02
+      "wall_seconds": 5.12
     },
     {
       "id": "f04",
@@ -808,17 +825,17 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:52:03.935986978Z",
-        "recheck_after": "2026-11-12T17:52:03.935986978Z",
+        "checked_at": "2026-11-12T12:16:31.27520331Z",
+        "recheck_after": "2026-11-13T12:16:31.27520331Z",
         "searches": 0,
-        "judge_tokens": 251,
-        "latency_ms": 1288,
+        "judge_tokens": 343,
+        "latency_ms": 1359,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 1.34
+      "wall_seconds": 1.39
     },
     {
       "id": "f05",
@@ -835,23 +852,23 @@
             "kind": "leadership",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://aifundingtracker.com/who-owns-github",
-            "quote": "GitHub is owned by Microsoft Corporation",
+            "source_url": "https://en.wikipedia.org/wiki/GitHub",
+            "quote": "a subsidiary of Microsoft since 2018",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:52:05.355424218Z",
-        "recheck_after": "2026-11-18T17:52:05.355424218Z",
+        "checked_at": "2026-11-12T12:16:32.670622385Z",
+        "recheck_after": "2026-11-19T12:16:32.670622385Z",
         "searches": 1,
-        "judge_tokens": 2263,
-        "latency_ms": 8568,
+        "judge_tokens": 1914,
+        "latency_ms": 4169,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 8.74
+      "wall_seconds": 4.19
     },
     {
       "id": "f06",
@@ -863,7 +880,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:52:16.301056074Z",
+        "checked_at": "2026-11-12T12:16:44.872805338Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -873,7 +890,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.31
+      "wall_seconds": 0.05
     },
     {
       "id": "f07",
@@ -890,23 +907,23 @@
             "kind": "regulation",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
-            "quote": "The AI Act entered into force on 1 August 2024",
+            "source_url": "https://puntersouthall.law/insights/the-eu-artificial-intelligence-act",
+            "quote": "entered into force on 1 August 2024",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:52:16.424145822Z",
-        "recheck_after": "2026-11-18T17:52:16.424145822Z",
+        "checked_at": "2026-11-12T12:16:44.943101557Z",
+        "recheck_after": "2026-11-19T12:16:44.943101557Z",
         "searches": 1,
-        "judge_tokens": 1984,
-        "latency_ms": 12360,
+        "judge_tokens": 2166,
+        "latency_ms": 5333,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.45
+      "wall_seconds": 5.39
     },
     {
       "id": "f08",
@@ -929,17 +946,17 @@
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:52:30.840803569Z",
-        "recheck_after": "2026-11-14T17:52:30.840803569Z",
-        "searches": 1,
-        "judge_tokens": 2432,
-        "latency_ms": 16967,
+        "checked_at": "2026-11-12T12:16:58.317685215Z",
+        "recheck_after": "2026-11-15T12:16:58.317685215Z",
+        "searches": 2,
+        "judge_tokens": 4110,
+        "latency_ms": 6761,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 17.05
+      "wall_seconds": 6.83
     },
     {
       "id": "f09",
@@ -948,31 +965,29 @@
       "answer": "Andy Jassy is the CEO of Amazon.",
       "why": "CEO since 2021.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
             "claim": "Andy Jassy is the CEO of Amazon.",
             "kind": "leadership",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://www.cnbc.com/2024/01/25/jeff-bezos-unusual-leadership-traits-helped-grow-amazon-current-ceo.html?msockid=000215de201c68572a7a033c21276990",
-            "quote": "current Amazon CEO Andy Jassy",
-            "model_verdict": "supported",
-            "grounded": true
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "model_verdict": "unverifiable",
+            "grounded": false
           }
         ],
-        "checked_at": "2026-11-11T17:52:49.980365Z",
-        "recheck_after": "2026-11-18T17:52:49.980365Z",
+        "checked_at": "2026-11-12T12:17:13.158255129Z",
+        "recheck_after": "2026-11-19T12:17:13.158255129Z",
         "searches": 1,
-        "judge_tokens": 2326,
-        "latency_ms": 12364,
+        "judge_tokens": 2519,
+        "latency_ms": 3944,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.47
+      "wall_seconds": 4.0
     },
     {
       "id": "f10",
@@ -989,23 +1004,24 @@
             "kind": "leadership",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://www.linkedin.com/in/lisasu-amd",
-            "quote": "Chair & CEO at AMD",
+            "source_url": "https://ir.amd.com/governance/board-of-directors",
+            "source_official": true,
+            "quote": "Dr. Lisa T. Su is AMD Chair, President and Chief Executive Officer.",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:53:04.405967748Z",
-        "recheck_after": "2026-11-18T17:53:04.405967748Z",
-        "searches": 1,
-        "judge_tokens": 2052,
-        "latency_ms": 10791,
+        "checked_at": "2026-11-12T12:17:25.134822569Z",
+        "recheck_after": "2026-11-19T12:17:25.134822569Z",
+        "searches": 2,
+        "judge_tokens": 3758,
+        "latency_ms": 6384,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 10.91
+      "wall_seconds": 6.41
     },
     {
       "id": "f11",
@@ -1022,23 +1038,24 @@
             "kind": "leadership",
             "status": "fresh",
             "freshness_score": 0.9,
-            "source_url": "https://en.wikipedia.org/wiki/Mark_Zuckerberg",
-            "quote": "He is its chairman, chief executive officer (CEO), and controlling shareholder.",
+            "source_url": "https://www.meta.com/about/leadership/mark-zuckerberg",
+            "source_official": true,
+            "quote": "Mark Zuckerberg is the founder, chairman and CEO of Meta",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:53:17.405661605Z",
-        "recheck_after": "2026-11-18T17:53:17.405661605Z",
-        "searches": 1,
-        "judge_tokens": 2007,
-        "latency_ms": 13005,
+        "checked_at": "2026-11-12T12:17:39.537018551Z",
+        "recheck_after": "2026-11-19T12:17:39.537018551Z",
+        "searches": 2,
+        "judge_tokens": 3179,
+        "latency_ms": 8341,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 13.25
+      "wall_seconds": 8.38
     },
     {
       "id": "f12",
@@ -1047,31 +1064,31 @@
       "answer": "React 19 was released in December 2024.",
       "why": "A dated fact that cannot change.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
             "claim": "React 19 was released in December 2024.",
             "kind": "version",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://en.wikipedia.org/wiki/React_(software)",
-            "quote": "On December 5, 2024, React 19 was released.",
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "model_verdict": "supported",
-            "grounded": true
+            "grounded": false,
+            "rejected_because": "quote is not in the cited source",
+            "rejected_quote": "React 19 is now stable! [...] December 05, 2024"
           }
         ],
-        "checked_at": "2026-11-11T17:53:32.57487501Z",
-        "recheck_after": "2026-11-14T17:53:32.57487501Z",
-        "searches": 1,
-        "judge_tokens": 2449,
-        "latency_ms": 3812,
+        "checked_at": "2026-11-12T12:17:55.897480806Z",
+        "recheck_after": "2026-11-15T12:17:55.897480806Z",
+        "searches": 2,
+        "judge_tokens": 3955,
+        "latency_ms": 9597,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 3.88
+      "wall_seconds": 9.61
     },
     {
       "id": "f13",
@@ -1089,22 +1106,23 @@
             "status": "fresh",
             "freshness_score": 0.9,
             "source_url": "https://ubuntu.com/about/release-cycle",
+            "source_official": true,
             "quote": "Ubuntu 24.04 LTS Released: Apr 2024",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:53:38.457402807Z",
-        "recheck_after": "2026-11-14T17:53:38.457402807Z",
-        "searches": 1,
-        "judge_tokens": 3211,
-        "latency_ms": 11430,
+        "checked_at": "2026-11-12T12:18:13.525070771Z",
+        "recheck_after": "2026-11-15T12:18:13.525070771Z",
+        "searches": 2,
+        "judge_tokens": 4098,
+        "latency_ms": 15963,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 11.53
+      "wall_seconds": 15.98
     },
     {
       "id": "f14",
@@ -1114,30 +1132,31 @@
       "why": "A dated fact that cannot change.",
       "report": {
         "status": "fresh",
-        "freshness_score": 0.81,
+        "freshness_score": 0.82,
         "claims": [
           {
             "claim": "GDPR has applied across the EU since 25 May 2018.",
             "kind": "regulation",
             "status": "fresh",
-            "freshness_score": 0.81,
+            "freshness_score": 0.82,
             "source_url": "https://commission.europa.eu/law/law-topic/data-protection/legal-framework-eu-data-protection_en",
+            "source_official": true,
             "quote": "The Regulation entered into force on 24 May 2016 and applies since 25 May 2018.",
             "model_verdict": "supported",
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:53:51.991988769Z",
-        "recheck_after": "2026-11-18T17:53:51.991988769Z",
-        "searches": 1,
-        "judge_tokens": 2132,
-        "latency_ms": 10881,
+        "checked_at": "2026-11-12T12:18:37.514294785Z",
+        "recheck_after": "2026-11-19T12:18:37.514294785Z",
+        "searches": 2,
+        "judge_tokens": 3509,
+        "latency_ms": 18009,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 10.92
+      "wall_seconds": 18.03
     },
     {
       "id": "f15",
@@ -1160,17 +1179,17 @@
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:54:04.836731273Z",
-        "recheck_after": "2026-11-18T17:54:04.836731273Z",
+        "checked_at": "2026-11-12T12:19:03.549492045Z",
+        "recheck_after": "2026-11-19T12:19:03.549492045Z",
         "searches": 1,
-        "judge_tokens": 2434,
-        "latency_ms": 10986,
+        "judge_tokens": 2706,
+        "latency_ms": 12827,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 11.03
+      "wall_seconds": 12.86
     },
     {
       "id": "f16",
@@ -1179,31 +1198,31 @@
       "answer": "Neal Mohan is the CEO of YouTube.",
       "why": "CEO since February 2023.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
+        "status": "uncertain",
+        "freshness_score": 0.5,
         "claims": [
           {
             "claim": "Neal Mohan is the CEO of YouTube.",
             "kind": "leadership",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://www.linkedin.com/in/neal-mohan",
-            "quote": "CEO at YouTube (Feb 2023 to present)",
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "model_verdict": "supported",
-            "grounded": true
+            "grounded": false,
+            "rejected_because": "quote is shorter than 5 words",
+            "rejected_quote": "CEO at YouTube"
           }
         ],
-        "checked_at": "2026-11-11T17:54:17.952206526Z",
-        "recheck_after": "2026-11-18T17:54:17.952206526Z",
+        "checked_at": "2026-11-12T12:19:26.679794124Z",
+        "recheck_after": "2026-11-19T12:19:26.679794124Z",
         "searches": 1,
-        "judge_tokens": 2122,
-        "latency_ms": 9776,
+        "judge_tokens": 2254,
+        "latency_ms": 17921,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 9.91
+      "wall_seconds": 20.01
     },
     {
       "id": "f17",
@@ -1215,7 +1234,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:54:29.815164309Z",
+        "checked_at": "2026-11-12T12:19:52.57248741Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1225,7 +1244,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.12
+      "wall_seconds": 0.08
     },
     {
       "id": "f18",
@@ -1234,31 +1253,20 @@
       "answer": "Python 3.12 was released in October 2023.",
       "why": "A dated fact that cannot change.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
-        "claims": [
-          {
-            "claim": "Python 3.12 was released in October 2023.",
-            "kind": "version",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://www.python.org/downloads/release/python-3120",
-            "quote": "Release date: Oct. 2, 2023",
-            "model_verdict": "supported",
-            "grounded": true
-          }
-        ],
-        "checked_at": "2026-11-11T17:54:29.863996754Z",
-        "recheck_after": "2026-11-14T17:54:29.863996754Z",
-        "searches": 1,
-        "judge_tokens": 3001,
-        "latency_ms": 24617,
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-12T12:19:52.612783728Z",
+        "recheck_after": "2026-11-13T12:19:52.612783728Z",
+        "searches": 0,
+        "judge_tokens": 341,
+        "latency_ms": 6331,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 24.62
+      "wall_seconds": 6.33
     },
     {
       "id": "f19",
@@ -1281,17 +1289,17 @@
             "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:54:56.64701454Z",
-        "recheck_after": "2026-11-12T17:54:56.64701454Z",
+        "checked_at": "2026-11-12T12:19:58.909084033Z",
+        "recheck_after": "2026-11-13T12:19:58.909084033Z",
         "searches": 1,
-        "judge_tokens": 2281,
-        "latency_ms": 21163,
+        "judge_tokens": 2314,
+        "latency_ms": 16533,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 21.28
+      "wall_seconds": 16.45
     },
     {
       "id": "f20",
@@ -1300,31 +1308,31 @@
       "answer": "Elon Musk is the CEO of SpaceX.",
       "why": "Founder and CEO.",
       "report": {
-        "status": "uncertain",
-        "freshness_score": 0.5,
+        "status": "fresh",
+        "freshness_score": 0.9,
         "claims": [
           {
             "claim": "Elon Musk is the CEO of SpaceX.",
             "kind": "leadership",
-            "status": "uncertain",
-            "freshness_score": 0.5,
+            "status": "fresh",
+            "freshness_score": 0.9,
+            "source_url": "https://en.wikipedia.org/wiki/SpaceX",
+            "quote": "Elon Musk | Founder, chairman, CEO and CTO of SpaceX",
             "model_verdict": "supported",
-            "grounded": false,
-            "rejected_because": "quote is not in the cited source",
-            "rejected_quote": "Elon Musk (Founder, chairman, CEO and CTO of SpaceX"
+            "grounded": true
           }
         ],
-        "checked_at": "2026-11-11T17:55:19.935224649Z",
-        "recheck_after": "2026-11-18T17:55:19.935224649Z",
+        "checked_at": "2026-11-12T12:20:23.366264667Z",
+        "recheck_after": "2026-11-19T12:20:23.366264667Z",
         "searches": 1,
-        "judge_tokens": 2432,
-        "latency_ms": 12751,
+        "judge_tokens": 2549,
+        "latency_ms": 17492,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 12.8
+      "wall_seconds": 17.5
     },
     {
       "id": "t01",
@@ -1336,7 +1344,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.719685364Z",
+        "checked_at": "2026-11-12T12:20:48.949164702Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1346,7 +1354,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.06
+      "wall_seconds": 0.08
     },
     {
       "id": "t02",
@@ -1358,7 +1366,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.741903066Z",
+        "checked_at": "2026-11-12T12:20:48.978054207Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1368,7 +1376,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.02
+      "wall_seconds": 0.03
     },
     {
       "id": "t03",
@@ -1380,7 +1388,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.767766126Z",
+        "checked_at": "2026-11-12T12:20:48.999914535Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1390,7 +1398,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.03
+      "wall_seconds": 0.02
     },
     {
       "id": "t04",
@@ -1402,29 +1410,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.790511141Z",
-        "recheck_after": "0001-01-01T00:00:00Z",
-        "searches": 0,
-        "judge_tokens": 0,
-        "latency_ms": 0,
-        "origin": "verified",
-        "cache_hit": false,
-        "cache_evicted": false,
-        "healed": false
-      },
-      "wall_seconds": 0.02
-    },
-    {
-      "id": "t05",
-      "label": "timeless",
-      "question": "Why does recursion need a base case?",
-      "answer": "A recursive function needs a base case, otherwise it never stops calling itself.",
-      "why": "Definition.",
-      "report": {
-        "status": "timeless",
-        "freshness_score": 1,
-        "claims": [],
-        "checked_at": "2026-11-11T17:55:34.810904047Z",
+        "checked_at": "2026-11-12T12:20:49.025390159Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1437,16 +1423,16 @@
       "wall_seconds": 0.03
     },
     {
-      "id": "t06",
+      "id": "t05",
       "label": "timeless",
-      "question": "What does HTTP 404 mean?",
-      "answer": "HTTP status 404 means the server could not find the requested resource.",
-      "why": "Protocol definition.",
+      "question": "Why does recursion need a base case?",
+      "answer": "A recursive function needs a base case, otherwise it never stops calling itself.",
+      "why": "Definition.",
       "report": {
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.830925334Z",
+        "checked_at": "2026-11-12T12:20:49.046305969Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1459,16 +1445,16 @@
       "wall_seconds": 0.02
     },
     {
-      "id": "t07",
+      "id": "t06",
       "label": "timeless",
-      "question": "How fast is merge sort?",
-      "answer": "Merge sort runs in n log n time in the worst case and is stable.",
-      "why": "Mathematics.",
+      "question": "What does HTTP 404 mean?",
+      "answer": "HTTP status 404 means the server could not find the requested resource.",
+      "why": "Protocol definition.",
       "report": {
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.849730114Z",
+        "checked_at": "2026-11-12T12:20:49.071024782Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1481,6 +1467,28 @@
       "wall_seconds": 0.01
     },
     {
+      "id": "t07",
+      "label": "timeless",
+      "question": "How fast is merge sort?",
+      "answer": "Merge sort runs in n log n time in the worst case and is stable.",
+      "why": "Mathematics.",
+      "report": {
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-12T12:20:49.089450352Z",
+        "recheck_after": "0001-01-01T00:00:00Z",
+        "searches": 0,
+        "judge_tokens": 0,
+        "latency_ms": 0,
+        "origin": "verified",
+        "cache_hit": false,
+        "cache_evicted": false,
+        "healed": false
+      },
+      "wall_seconds": 0.03
+    },
+    {
       "id": "t08",
       "label": "timeless",
       "question": "What is a prime number?",
@@ -1490,7 +1498,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.876037121Z",
+        "checked_at": "2026-11-12T12:20:49.122826395Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1512,7 +1520,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.901486577Z",
+        "checked_at": "2026-11-12T12:20:49.152700999Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1534,7 +1542,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:34.92247408Z",
+        "checked_at": "2026-11-12T12:20:49.173078049Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1553,31 +1561,20 @@
       "answer": "TLS 1.3 removed static RSA key exchange and requires forward secrecy.",
       "why": "A fixed property of a published standard; it trips the version pattern on purpose.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
-        "claims": [
-          {
-            "claim": "TLS 1.3 is the current version of the Transport Layer Security protocol.",
-            "kind": "version",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://www.ncsc.gov.uk/guidance/using-tls-to-protect-data",
-            "quote": "TLS 1.3 is the latest version of TLS.",
-            "model_verdict": "supported",
-            "grounded": true
-          }
-        ],
-        "checked_at": "2026-11-11T17:55:34.942880636Z",
-        "recheck_after": "2026-11-14T17:55:34.942880636Z",
-        "searches": 1,
-        "judge_tokens": 2252,
-        "latency_ms": 8715,
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-12T12:20:49.195498554Z",
+        "recheck_after": "2026-11-13T12:20:49.195498554Z",
+        "searches": 0,
+        "judge_tokens": 339,
+        "latency_ms": 7343,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 8.72
+      "wall_seconds": 7.36
     },
     {
       "id": "t12",
@@ -1586,31 +1583,20 @@
       "answer": "An IPv4 address is 32 bits long, giving about 4.3 billion addresses.",
       "why": "Fixed by the standard; it trips the version pattern on purpose.",
       "report": {
-        "status": "fresh",
-        "freshness_score": 0.9,
-        "claims": [
-          {
-            "claim": "The total number of available IPv4 addresses is approximately 4.3 billion.",
-            "kind": "recency",
-            "status": "fresh",
-            "freshness_score": 0.9,
-            "source_url": "https://www.ipxo.com/blog/how-can-we-alleviate-ipv4-exhaustion",
-            "quote": "In total, there are 4,294,967,296 IPv4 addresses, and there will never be more addresses.",
-            "model_verdict": "supported",
-            "grounded": true
-          }
-        ],
-        "checked_at": "2026-11-11T17:55:45.698196238Z",
-        "recheck_after": "2026-11-12T17:55:45.698196238Z",
-        "searches": 1,
-        "judge_tokens": 2282,
-        "latency_ms": 9677,
+        "status": "timeless",
+        "freshness_score": 1,
+        "claims": [],
+        "checked_at": "2026-11-12T12:20:56.561932839Z",
+        "recheck_after": "2026-11-13T12:20:56.561932839Z",
+        "searches": 0,
+        "judge_tokens": 342,
+        "latency_ms": 9056,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 9.74
+      "wall_seconds": 9.09
     },
     {
       "id": "t13",
@@ -1622,7 +1608,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:57.398482031Z",
+        "checked_at": "2026-11-12T12:21:05.641474899Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1632,7 +1618,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.06
+      "wall_seconds": 0.03
     },
     {
       "id": "t14",
@@ -1644,17 +1630,17 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:55:57.467022319Z",
-        "recheck_after": "2026-11-12T17:55:57.467022319Z",
+        "checked_at": "2026-11-12T12:21:05.702331904Z",
+        "recheck_after": "2026-11-13T12:21:05.702331904Z",
         "searches": 0,
-        "judge_tokens": 251,
-        "latency_ms": 6941,
+        "judge_tokens": 342,
+        "latency_ms": 4559,
         "origin": "verified",
         "cache_hit": false,
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 7.0
+      "wall_seconds": 4.61
     },
     {
       "id": "t15",
@@ -1666,7 +1652,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.465103218Z",
+        "checked_at": "2026-11-12T12:21:10.281022984Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1676,7 +1662,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.06
+      "wall_seconds": 0.02
     },
     {
       "id": "t16",
@@ -1688,7 +1674,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.507926355Z",
+        "checked_at": "2026-11-12T12:21:10.300686405Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1710,7 +1696,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.55039536Z",
+        "checked_at": "2026-11-12T12:21:10.323517553Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1720,7 +1706,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.05
+      "wall_seconds": 0.02
     },
     {
       "id": "t18",
@@ -1732,7 +1718,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.694776879Z",
+        "checked_at": "2026-11-12T12:21:10.340918674Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1742,7 +1728,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.14
+      "wall_seconds": 0.01
     },
     {
       "id": "t19",
@@ -1754,7 +1740,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.752156256Z",
+        "checked_at": "2026-11-12T12:21:10.355887912Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1764,7 +1750,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.06
+      "wall_seconds": 0.02
     },
     {
       "id": "t20",
@@ -1776,7 +1762,7 @@
         "status": "timeless",
         "freshness_score": 1,
         "claims": [],
-        "checked_at": "2026-11-11T17:56:04.791824805Z",
+        "checked_at": "2026-11-12T12:21:10.395646079Z",
         "recheck_after": "0001-01-01T00:00:00Z",
         "searches": 0,
         "judge_tokens": 0,
@@ -1786,7 +1772,7 @@
         "cache_evicted": false,
         "healed": false
       },
-      "wall_seconds": 0.03
+      "wall_seconds": 0.05
     }
   ]
 }

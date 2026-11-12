@@ -6,21 +6,21 @@
       "timeless": 20
     },
     "with": {
-      "recall": 80.0,
+      "recall": 75.0,
       "false_alarm": 0.0
     },
     "without": {
-      "recall": 90.0,
+      "recall": 95.0,
       "false_alarm": 0.0
     },
     "precision": 100.0,
-    "heal_rate": 87.5,
+    "heal_rate": 93.33333333333333,
     "gate_skip": 85.0,
-    "checked": 38,
-    "tokens_per_checked": 2433.8947368421054,
-    "searches_per_checked": 1,
-    "latency_p50": 10881,
-    "latency_p95": 21163
+    "checked": 36,
+    "tokens_per_checked": 3338,
+    "searches_per_checked": 1.5277777777777777,
+    "latency_p50": 6809,
+    "latency_p95": 17492
   },
   "claims_run1": {
     "sizes": {
@@ -68,28 +68,51 @@
     "latency_p50": 9164,
     "latency_p95": 26481
   },
+  "holdout": {
+    "sizes": {
+      "stale": 9,
+      "fresh": 7,
+      "timeless": 0
+    },
+    "with": {
+      "recall": 88.88888888888889,
+      "false_alarm": 14.285714285714286
+    },
+    "without": {
+      "recall": 100.0,
+      "false_alarm": 14.285714285714286
+    },
+    "precision": 88.88888888888889,
+    "heal_rate": 77.77777777777777,
+    "gate_skip": 0,
+    "checked": 16,
+    "tokens_per_checked": 3586.3125,
+    "searches_per_checked": 1.75,
+    "latency_p50": 7630,
+    "latency_p95": 13402
+  },
   "cache": {
     "baseline": {
       "questions": 10,
-      "stale_first": 9,
-      "stale_delivered": 17,
-      "unproven_delivered": 1,
+      "stale_first": 6,
+      "stale_delivered": 12,
+      "unproven_delivered": 6,
       "asks": 20,
       "hits": 10,
-      "served_stale": 8,
+      "served_stale": 6,
       "served_corrected": 0,
-      "repeat_seconds_p50": 11.2
+      "repeat_seconds_p50": 0.08
     },
     "bestbefore": {
       "questions": 10,
-      "stale_first": 8,
-      "stale_delivered": 0,
-      "unproven_delivered": 3,
+      "stale_first": 6,
+      "stale_delivered": 1,
+      "unproven_delivered": 8,
       "asks": 20,
-      "hits": 10,
+      "hits": 9,
       "served_stale": 0,
-      "served_corrected": 9,
-      "repeat_seconds_p50": 0.14
+      "served_corrected": 5,
+      "repeat_seconds_p50": 0.08
     }
   }
 }

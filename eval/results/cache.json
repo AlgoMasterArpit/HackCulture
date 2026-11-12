@@ -1,5 +1,5 @@
 {
-  "ran_at": "2026-11-11T17:46:50+00:00",
+  "ran_at": "2026-11-12T12:10:41+00:00",
   "model": "gemini/gemma-4-26b-a4b-it",
   "runs": [
     {
@@ -8,7 +8,7 @@
         "first": {
           "answer": "The latest stable version of Python is 3.13.",
           "cache_hit": false,
-          "seconds": 42.16,
+          "seconds": 50.0,
           "bestbefore": {
             "status": "stale",
             "freshness_score": 0.1,
@@ -20,16 +20,16 @@
                 "freshness_score": 0.1,
                 "current_value": "3.15",
                 "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-                "quote": "Python 3.15 is the latest stable release",
+                "quote": "As of October 2026( Python 3.15 is the latest stable release.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:16:55.873471193Z",
-            "recheck_after": "2026-11-14T17:16:55.873471193Z",
-            "searches": 1,
-            "judge_tokens": 2520,
-            "latency_ms": 10287,
+            "checked_at": "2026-11-12T12:00:31.980357Z",
+            "recheck_after": "2026-11-15T12:00:31.980357Z",
+            "searches": 2,
+            "judge_tokens": 5214,
+            "latency_ms": 9657,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -39,29 +39,18 @@
         "second": {
           "answer": "The latest stable version of Python is 3.13.",
           "cache_hit": true,
-          "seconds": 26.55,
+          "seconds": 0.12,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
-            "claims": [
-              {
-                "claim": "The latest stable version of Python is 3.13.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "3.15",
-                "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-                "quote": "Python 3.15 is the latest stable release",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:17:30.349855691Z",
-            "recheck_after": "2026-11-14T17:17:30.349855691Z",
-            "searches": 1,
-            "judge_tokens": 2520,
-            "latency_ms": 6818,
-            "origin": "verified",
+            "status": "unchecked",
+            "freshness_score": 0.5,
+            "claims": [],
+            "checked_at": "0001-01-01T00:00:00Z",
+            "recheck_after": "0001-01-01T00:00:00Z",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -70,67 +59,63 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The latest stable version of Python is 3.15[1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/History_of_Python",
+          "answer": "The latest stable version of Python is 3.13.",
           "cache_hit": false,
-          "seconds": 30.67,
+          "seconds": 21.83,
           "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The latest stable version of Python is 3.12.3.",
+                "claim": "The latest stable version of Python is 3.13.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "3.15",
-                "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-                "quote": "Python 3.15 is the latest stable release.",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "As of October 2026, Python 3.15 is the latest stable release."
               }
             ],
-            "checked_at": "2026-11-11T17:17:55.745585616Z",
-            "recheck_after": "2026-11-14T17:17:55.745585616Z",
-            "searches": 1,
-            "judge_tokens": 2775,
-            "latency_ms": 11732,
+            "checked_at": "2026-11-12T12:01:04.081579552Z",
+            "recheck_after": "2026-11-15T12:01:04.081579552Z",
+            "searches": 2,
+            "judge_tokens": 5188,
+            "latency_ms": 12211,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
-            "healed": true,
-            "original_answer": "The latest stable version of Python is 3.12.3.",
-            "corrected_answer": "The latest stable version of Python is 3.15[1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/History_of_Python"
+            "healed": false
           }
         },
         "second": {
-          "answer": "The latest stable version of Python is 3.15[1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/History_of_Python",
+          "answer": "The latest stable version of Python is 3.13.",
           "cache_hit": true,
-          "seconds": 0.14,
+          "seconds": 0.19,
           "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The latest stable version of Python is 3.12.3.",
+                "claim": "The latest stable version of Python is 3.13.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "3.15",
-                "source_url": "https://en.wikipedia.org/wiki/History_of_Python",
-                "quote": "Python 3.15 is the latest stable release.",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "As of October 2026, Python 3.15 is the latest stable release."
               }
             ],
-            "checked_at": "2026-11-11T17:17:55.745585616Z",
-            "recheck_after": "2026-11-14T17:17:55.745585616Z",
-            "searches": 1,
-            "judge_tokens": 2775,
-            "latency_ms": 11732,
+            "checked_at": "2026-11-12T12:01:04.081579552Z",
+            "recheck_after": "2026-11-15T12:01:04.081579552Z",
+            "searches": 2,
+            "judge_tokens": 5188,
+            "latency_ms": 12211,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
-            "healed": true
+            "healed": false
           }
         }
       }
@@ -139,29 +124,27 @@
       "question": "What is the newest Kubernetes release? Answer in one sentence.",
       "baseline": {
         "first": {
-          "answer": "As of my knowledge cutoff in January 2025, the latest major Kubernetes release is version 1.32.",
+          "answer": "As of January 2025, the newest stable Kubernetes release is version 1.32.",
           "cache_hit": false,
-          "seconds": 25.11,
+          "seconds": 19.69,
           "bestbefore": {
-            "status": "fresh",
-            "freshness_score": 0.9,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "As of January 2025, the latest major Kubernetes release is version 1.32.",
+                "claim": "As of January 2025, the newest stable Kubernetes release is version 1.32.",
                 "kind": "version",
-                "status": "fresh",
-                "freshness_score": 0.9,
-                "source_url": "https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions",
-                "quote": "| 1.32 | Dec 2024 | Feb 2025 | Apr 2025 | Mar 2026 | Until 1.36 GA |",
-                "model_verdict": "supported",
-                "grounded": true
+                "status": "uncertain",
+                "freshness_score": 0.5,
+                "model_verdict": "unverifiable",
+                "grounded": false
               }
             ],
-            "checked_at": "2026-11-11T17:18:27.461861155Z",
-            "recheck_after": "2026-11-14T17:18:27.461861155Z",
-            "searches": 1,
-            "judge_tokens": 2767,
-            "latency_ms": 16630,
+            "checked_at": "2026-11-12T12:01:39.055833468Z",
+            "recheck_after": "2026-11-15T12:01:39.055833468Z",
+            "searches": 2,
+            "judge_tokens": 3287,
+            "latency_ms": 11332,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -169,29 +152,27 @@
           }
         },
         "second": {
-          "answer": "As of my knowledge cutoff in January 2025, the latest major Kubernetes release is version 1.32.",
+          "answer": "As of January 2025, the newest stable Kubernetes release is version 1.32.",
           "cache_hit": true,
-          "seconds": 0.2,
+          "seconds": 0.09,
           "bestbefore": {
-            "status": "fresh",
-            "freshness_score": 0.9,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "As of January 2025, the latest major Kubernetes release is version 1.32.",
+                "claim": "As of January 2025, the newest stable Kubernetes release is version 1.32.",
                 "kind": "version",
-                "status": "fresh",
-                "freshness_score": 0.9,
-                "source_url": "https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions",
-                "quote": "| 1.32 | Dec 2024 | Feb 2025 | Apr 2025 | Mar 2026 | Until 1.36 GA |",
-                "model_verdict": "supported",
-                "grounded": true
+                "status": "uncertain",
+                "freshness_score": 0.5,
+                "model_verdict": "unverifiable",
+                "grounded": false
               }
             ],
-            "checked_at": "2026-11-11T17:18:27.461861155Z",
-            "recheck_after": "2026-11-14T17:18:27.461861155Z",
-            "searches": 1,
-            "judge_tokens": 2767,
-            "latency_ms": 16630,
+            "checked_at": "2026-11-12T12:01:39.055833468Z",
+            "recheck_after": "2026-11-15T12:01:39.055833468Z",
+            "searches": 2,
+            "judge_tokens": 3287,
+            "latency_ms": 11332,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -201,63 +182,65 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases",
+          "answer": "As of my latest knowledge, the newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases",
           "cache_hit": false,
-          "seconds": 67.53,
+          "seconds": 23.23,
           "bestbefore": {
             "status": "healed",
-            "freshness_score": 0.22,
+            "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The newest stable release of Kubernetes is version 1.30.",
+                "claim": "The newest stable release of Kubernetes is version 1.32.",
                 "kind": "version",
                 "status": "stale",
-                "freshness_score": 0.22,
+                "freshness_score": 0.1,
                 "current_value": "1.37",
                 "source_url": "https://kubernetes.io/releases",
+                "source_official": true,
                 "quote": "The Kubernetes project maintains release branches for the most recent three minor releases (1.37, 1.36, 1.35).",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:19:31.400684722Z",
-            "recheck_after": "2026-11-14T17:19:31.400684722Z",
-            "searches": 1,
-            "judge_tokens": 2548,
-            "latency_ms": 25789,
+            "checked_at": "2026-11-12T12:02:10.876082065Z",
+            "recheck_after": "2026-11-15T12:02:10.876082065Z",
+            "searches": 2,
+            "judge_tokens": 3545,
+            "latency_ms": 13923,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
-            "original_answer": "The newest stable release of Kubernetes is version 1.30.",
-            "corrected_answer": "The newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases"
+            "original_answer": "As of my latest knowledge, the newest stable release of Kubernetes is version 1.32.",
+            "corrected_answer": "As of my latest knowledge, the newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases"
           }
         },
         "second": {
-          "answer": "The newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases",
+          "answer": "As of my latest knowledge, the newest stable release of Kubernetes is version 1.37[1].\n\nSources:\n[1] https://kubernetes.io/releases",
           "cache_hit": true,
-          "seconds": 0.08,
+          "seconds": 2.06,
           "bestbefore": {
             "status": "healed",
-            "freshness_score": 0.22,
+            "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The newest stable release of Kubernetes is version 1.30.",
+                "claim": "The newest stable release of Kubernetes is version 1.32.",
                 "kind": "version",
                 "status": "stale",
-                "freshness_score": 0.22,
+                "freshness_score": 0.1,
                 "current_value": "1.37",
                 "source_url": "https://kubernetes.io/releases",
+                "source_official": true,
                 "quote": "The Kubernetes project maintains release branches for the most recent three minor releases (1.37, 1.36, 1.35).",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:19:31.400684722Z",
-            "recheck_after": "2026-11-14T17:19:31.400684722Z",
-            "searches": 1,
-            "judge_tokens": 2548,
-            "latency_ms": 25789,
+            "checked_at": "2026-11-12T12:02:10.876082065Z",
+            "recheck_after": "2026-11-15T12:02:10.876082065Z",
+            "searches": 2,
+            "judge_tokens": 3545,
+            "latency_ms": 13923,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -270,30 +253,29 @@
       "question": "What is the latest version of Go? Answer in one sentence.",
       "baseline": {
         "first": {
-          "answer": "As of my latest knowledge, the latest stable version of Go is 1.23.",
+          "answer": "As of May 2024, the latest stable version of Go is 1.22.",
           "cache_hit": false,
-          "seconds": 16.67,
+          "seconds": 16.5,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.2,
+            "status": "fresh",
+            "freshness_score": 0.82,
             "claims": [
               {
-                "claim": "The latest stable version of Go is 1.23.",
+                "claim": "As of May 2024, the latest stable version of Go is 1.22.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.2,
-                "current_value": "1.27",
-                "source_url": "https://go.dev/blog/go1.27",
-                "quote": "Go 1.27 is released",
-                "model_verdict": "contradicted",
+                "status": "fresh",
+                "freshness_score": 0.82,
+                "source_url": "https://go.dev/doc/devel/release",
+                "quote": "Go 1.22.0 is a major release of Go.",
+                "model_verdict": "supported",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:20:13.65134354Z",
-            "recheck_after": "2026-11-14T17:20:13.65134354Z",
+            "checked_at": "2026-11-12T12:02:52.781809812Z",
+            "recheck_after": "2026-11-15T12:02:52.781809812Z",
             "searches": 1,
-            "judge_tokens": 3006,
-            "latency_ms": 8925,
+            "judge_tokens": 3246,
+            "latency_ms": 6295,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -301,31 +283,30 @@
           }
         },
         "second": {
-          "answer": "As of my latest knowledge, the latest stable version of Go is 1.23.",
+          "answer": "As of May 2024, the latest stable version of Go is 1.22.",
           "cache_hit": true,
-          "seconds": 11.2,
+          "seconds": 0.09,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.16,
+            "status": "fresh",
+            "freshness_score": 0.82,
             "claims": [
               {
-                "claim": "The latest stable version of Go is 1.23.",
+                "claim": "As of May 2024, the latest stable version of Go is 1.22.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.16,
-                "current_value": "1.27.3",
-                "source_url": "https://endoflife.date/go",
-                "quote": "1.27 | 2 months and 2 weeks ago (19 Aug 2026) | Yes | 1.27.3 (19 Oct 2026)",
-                "model_verdict": "contradicted",
+                "status": "fresh",
+                "freshness_score": 0.82,
+                "source_url": "https://go.dev/doc/devel/release",
+                "quote": "Go 1.22.0 is a major release of Go.",
+                "model_verdict": "supported",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:20:26.691587263Z",
-            "recheck_after": "2026-11-14T17:20:26.691587263Z",
+            "checked_at": "2026-11-12T12:02:52.781809812Z",
+            "recheck_after": "2026-11-15T12:02:52.781809812Z",
             "searches": 1,
-            "judge_tokens": 2657,
-            "latency_ms": 10231,
-            "origin": "verified",
+            "judge_tokens": 3246,
+            "latency_ms": 6295,
+            "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -334,67 +315,69 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The latest stable version of Go is 1.27[1].\n\nSources:\n[1] https://go.dev/blog/go1.27",
+          "answer": "As of January 2025, the latest stable version of Go is 1.23.",
           "cache_hit": false,
-          "seconds": 13.66,
+          "seconds": 23.88,
+          "bestbefore": {
+            "status": "stale",
+            "freshness_score": 0.24,
+            "claims": [
+              {
+                "claim": "As of January 2025, the latest stable version of Go is 1.23.",
+                "kind": "version",
+                "status": "stale",
+                "freshness_score": 0.24,
+                "current_value": "1.24",
+                "source_url": "https://tip.golang.org/doc/go1.24",
+                "source_official": true,
+                "quote": "The latest Go release, version 1.24, arrives in February 2025, six months after Go 1.23.",
+                "model_verdict": "contradicted",
+                "grounded": true
+              }
+            ],
+            "checked_at": "2026-11-12T12:03:25.301293841Z",
+            "recheck_after": "2026-11-15T12:03:25.301293841Z",
+            "searches": 2,
+            "judge_tokens": 4463,
+            "latency_ms": 9000,
+            "origin": "verified",
+            "cache_hit": false,
+            "cache_evicted": true,
+            "healed": false,
+            "heal_error": "could not rewrite the answer"
+          }
+        },
+        "second": {
+          "answer": "The latest stable version of Go is 1.27[1].\n\nSources:\n[1] https://endoflife.date/go",
+          "cache_hit": false,
+          "seconds": 16.81,
           "bestbefore": {
             "status": "healed",
-            "freshness_score": 0.2,
+            "freshness_score": 0.19,
             "claims": [
               {
                 "claim": "The latest stable version of Go is 1.23.",
                 "kind": "version",
                 "status": "stale",
-                "freshness_score": 0.2,
+                "freshness_score": 0.19,
                 "current_value": "1.27",
-                "source_url": "https://go.dev/blog/go1.27",
-                "quote": "Go 1.27 is released",
+                "source_url": "https://endoflife.date/go",
+                "quote": "1.27 | 2 months and 2 weeks ago (19 Aug 2026) | Yes | 1.27.3 (19 Oct 2026) |",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:20:49.254810411Z",
-            "recheck_after": "2026-11-14T17:20:49.254810411Z",
+            "checked_at": "2026-11-12T12:03:47.285625913Z",
+            "recheck_after": "2026-11-15T12:03:47.285625913Z",
             "searches": 1,
-            "judge_tokens": 3205,
-            "latency_ms": 3527,
+            "judge_tokens": 3782,
+            "latency_ms": 4686,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
             "original_answer": "The latest stable version of Go is 1.23.",
-            "corrected_answer": "The latest stable version of Go is 1.27[1].\n\nSources:\n[1] https://go.dev/blog/go1.27"
-          }
-        },
-        "second": {
-          "answer": "The latest stable version of Go is 1.27[1].\n\nSources:\n[1] https://go.dev/blog/go1.27",
-          "cache_hit": true,
-          "seconds": 0.06,
-          "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.2,
-            "claims": [
-              {
-                "claim": "The latest stable version of Go is 1.23.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.2,
-                "current_value": "1.27",
-                "source_url": "https://go.dev/blog/go1.27",
-                "quote": "Go 1.27 is released",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:20:49.254810411Z",
-            "recheck_after": "2026-11-14T17:20:49.254810411Z",
-            "searches": 1,
-            "judge_tokens": 3205,
-            "latency_ms": 3527,
-            "origin": "ledger",
-            "cache_hit": true,
-            "cache_evicted": false,
-            "healed": true
+            "corrected_answer": "The latest stable version of Go is 1.27[1].\n\nSources:\n[1] https://endoflife.date/go"
           }
         }
       }
@@ -405,7 +388,7 @@
         "first": {
           "answer": "The current active LTS version of Node.js is version 20.",
           "cache_hit": false,
-          "seconds": 64.17,
+          "seconds": 13.58,
           "bestbefore": {
             "status": "stale",
             "freshness_score": 0.1,
@@ -422,11 +405,11 @@
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:21:51.592147666Z",
-            "recheck_after": "2026-11-14T17:21:51.592147666Z",
+            "checked_at": "2026-11-12T12:04:12.076809792Z",
+            "recheck_after": "2026-11-15T12:04:12.076809792Z",
             "searches": 1,
-            "judge_tokens": 2546,
-            "latency_ms": 14235,
+            "judge_tokens": 2951,
+            "latency_ms": 7633,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -436,29 +419,18 @@
         "second": {
           "answer": "The current active LTS version of Node.js is version 20.",
           "cache_hit": true,
-          "seconds": 13.72,
+          "seconds": 0.06,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
-            "claims": [
-              {
-                "claim": "The current active LTS version of Node.js is version 20.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "Node.js 24",
-                "source_url": "https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of",
-                "quote": "Node.js 24 is the Active LTS line",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:22:08.909277568Z",
-            "recheck_after": "2026-11-14T17:22:08.909277568Z",
-            "searches": 1,
-            "judge_tokens": 2571,
-            "latency_ms": 13688,
-            "origin": "verified",
+            "status": "unchecked",
+            "freshness_score": 0.5,
+            "claims": [],
+            "checked_at": "0001-01-01T00:00:00Z",
+            "recheck_after": "0001-01-01T00:00:00Z",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -467,67 +439,63 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The current active LTS version of Node.js is version 24[1].\n\nSources:\n[1] https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of",
+          "answer": "The current active LTS version of Node.js is v20.",
           "cache_hit": false,
-          "seconds": 26.56,
+          "seconds": 14.58,
           "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The current active LTS version of Node.js is version 20.",
+                "claim": "The current active LTS version of Node.js is v20.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "Node.js 24",
-                "source_url": "https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of",
-                "quote": "Node.js 24 is the Active LTS line",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "current value is not in the quote",
+                "rejected_quote": "Node.js 24 is the Active LTS line"
               }
             ],
-            "checked_at": "2026-11-11T17:24:27.270796256Z",
-            "recheck_after": "2026-11-14T17:24:27.270796256Z",
+            "checked_at": "2026-11-12T12:04:40.272010595Z",
+            "recheck_after": "2026-11-15T12:04:40.272010595Z",
             "searches": 1,
-            "judge_tokens": 2823,
-            "latency_ms": 15832,
+            "judge_tokens": 2778,
+            "latency_ms": 6732,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
-            "healed": true,
-            "original_answer": "The current active LTS version of Node.js is version 20.",
-            "corrected_answer": "The current active LTS version of Node.js is version 24[1].\n\nSources:\n[1] https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of"
+            "healed": false
           }
         },
         "second": {
-          "answer": "The current active LTS version of Node.js is version 24[1].\n\nSources:\n[1] https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of",
+          "answer": "The current active LTS version of Node.js is v20.",
           "cache_hit": true,
-          "seconds": 0.05,
+          "seconds": 0.47,
           "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The current active LTS version of Node.js is version 20.",
+                "claim": "The current active LTS version of Node.js is v20.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "Node.js 24",
-                "source_url": "https://www.herodevs.com/blog-posts/node-js-end-of-life-dates-you-should-be-aware-of",
-                "quote": "Node.js 24 is the Active LTS line",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "current value is not in the quote",
+                "rejected_quote": "Node.js 24 is the Active LTS line"
               }
             ],
-            "checked_at": "2026-11-11T17:24:27.270796256Z",
-            "recheck_after": "2026-11-14T17:24:27.270796256Z",
+            "checked_at": "2026-11-12T12:04:40.272010595Z",
+            "recheck_after": "2026-11-15T12:04:40.272010595Z",
             "searches": 1,
-            "judge_tokens": 2823,
-            "latency_ms": 15832,
+            "judge_tokens": 2778,
+            "latency_ms": 6732,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
-            "healed": true
+            "healed": false
           }
         }
       }
@@ -536,30 +504,29 @@
       "question": "What is the newest iPhone model? Answer in one sentence.",
       "baseline": {
         "first": {
-          "answer": "The newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+          "answer": "As of early 2025, the newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
           "cache_hit": false,
-          "seconds": 13.38,
+          "seconds": 14.61,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest iPhone models are the iPhone 16 series, including the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+                "claim": "As of early 2025, the newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "18 series",
-                "source_url": "https://www.verizon.com/smartphones/apple",
-                "quote": "Apple's latest iPhone is the 18 series",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "iPhone Duo\nNew\n\niPhone 18 Pro\nNew\n\niPhone Air\nNew\n\niPhone 17\nCurrently viewing\n\niPhone 17e\nNew\n\niPhone 16"
               }
             ],
-            "checked_at": "2026-11-11T17:24:59.519424016Z",
-            "recheck_after": "2026-11-14T17:24:59.519424016Z",
-            "searches": 1,
-            "judge_tokens": 2402,
-            "latency_ms": 5939,
+            "checked_at": "2026-11-12T12:05:07.667407867Z",
+            "recheck_after": "2026-11-15T12:05:07.667407867Z",
+            "searches": 2,
+            "judge_tokens": 3834,
+            "latency_ms": 7824,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -567,31 +534,30 @@
           }
         },
         "second": {
-          "answer": "The newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+          "answer": "As of early 2025, the newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
           "cache_hit": true,
-          "seconds": 5.38,
+          "seconds": 0.05,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+                "claim": "As of early 2025, the newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
-                "source_url": "https://en.wikipedia.org/wiki/List_of_iPhone_models",
-                "quote": "As of September 2026, the most recent iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "iPhone Duo\nNew\n\niPhone 18 Pro\nNew\n\niPhone Air\nNew\n\niPhone 17\nCurrently viewing\n\niPhone 17e\nNew\n\niPhone 16"
               }
             ],
-            "checked_at": "2026-11-11T17:25:08.510944026Z",
-            "recheck_after": "2026-11-14T17:25:08.510944026Z",
-            "searches": 1,
-            "judge_tokens": 2776,
-            "latency_ms": 5343,
-            "origin": "verified",
+            "checked_at": "2026-11-12T12:05:07.667407867Z",
+            "recheck_after": "2026-11-15T12:05:07.667407867Z",
+            "searches": 2,
+            "judge_tokens": 3834,
+            "latency_ms": 7824,
+            "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -600,63 +566,184 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The newest iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/List_of_iPhone_models",
+          "answer": "The newest iPhone models are the iPhone 15 series, which includes the iPhone 15, 15 Plus, 15 Pro, and 15 Pro Max.",
           "cache_hit": false,
-          "seconds": 26.16,
+          "seconds": 12.91,
+          "bestbefore": {
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "claims": [
+              {
+                "claim": "The newest iPhone models are the iPhone 15 series, which includes the iPhone 15, 15 Plus, 15 Pro, and 15 Pro Max.",
+                "kind": "version",
+                "status": "uncertain",
+                "freshness_score": 0.5,
+                "model_verdict": "contradicted",
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "Apple debuts iPhone\u00a018\u00a0Pro and iPhone\u00a018\u00a0Pro\u00a0Max"
+              }
+            ],
+            "checked_at": "2026-11-12T12:05:36.423021855Z",
+            "recheck_after": "2026-11-15T12:05:36.423021855Z",
+            "searches": 2,
+            "judge_tokens": 3723,
+            "latency_ms": 5057,
+            "origin": "verified",
+            "cache_hit": false,
+            "cache_evicted": false,
+            "healed": false
+          }
+        },
+        "second": {
+          "answer": "The newest iPhone models are the iPhone 15 series, which includes the iPhone 15, 15 Plus, 15 Pro, and 15 Pro Max.",
+          "cache_hit": true,
+          "seconds": 0.03,
+          "bestbefore": {
+            "status": "uncertain",
+            "freshness_score": 0.5,
+            "claims": [
+              {
+                "claim": "The newest iPhone models are the iPhone 15 series, which includes the iPhone 15, 15 Plus, 15 Pro, and 15 Pro Max.",
+                "kind": "version",
+                "status": "uncertain",
+                "freshness_score": 0.5,
+                "model_verdict": "contradicted",
+                "grounded": false,
+                "rejected_because": "quote is not in the cited source",
+                "rejected_quote": "Apple debuts iPhone\u00a018\u00a0Pro and iPhone\u00a018\u00a0Pro\u00a0Max"
+              }
+            ],
+            "checked_at": "2026-11-12T12:05:36.423021855Z",
+            "recheck_after": "2026-11-15T12:05:36.423021855Z",
+            "searches": 2,
+            "judge_tokens": 3723,
+            "latency_ms": 5057,
+            "origin": "ledger",
+            "cache_hit": true,
+            "cache_evicted": false,
+            "healed": false
+          }
+        }
+      }
+    },
+    {
+      "question": "What is the latest major version of PostgreSQL? Answer in one sentence.",
+      "baseline": {
+        "first": {
+          "answer": "The latest major version of PostgreSQL is 16.",
+          "cache_hit": false,
+          "seconds": 16.11,
+          "bestbefore": {
+            "status": "stale",
+            "freshness_score": 0.1,
+            "claims": [
+              {
+                "claim": "The latest major version of PostgreSQL is 16.",
+                "kind": "version",
+                "status": "stale",
+                "freshness_score": 0.1,
+                "current_value": "18",
+                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
+                "source_official": true,
+                "quote": "PostgreSQL 18 Released!",
+                "model_verdict": "contradicted",
+                "grounded": true
+              }
+            ],
+            "checked_at": "2026-11-12T12:06:03.342428254Z",
+            "recheck_after": "2026-11-15T12:06:03.342428254Z",
+            "searches": 2,
+            "judge_tokens": 3703,
+            "latency_ms": 7275,
+            "origin": "verified",
+            "cache_hit": false,
+            "cache_evicted": false,
+            "healed": false
+          }
+        },
+        "second": {
+          "answer": "The latest major version of PostgreSQL is 16.",
+          "cache_hit": true,
+          "seconds": 0.11,
+          "bestbefore": {
+            "status": "unchecked",
+            "freshness_score": 0.5,
+            "claims": [],
+            "checked_at": "0001-01-01T00:00:00Z",
+            "recheck_after": "0001-01-01T00:00:00Z",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
+            "cache_hit": true,
+            "cache_evicted": false,
+            "healed": false
+          }
+        }
+      },
+      "bestbefore": {
+        "first": {
+          "answer": "The latest major version of PostgreSQL is 18 [1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142",
+          "cache_hit": false,
+          "seconds": 11.42,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The newest iPhone models are the iPhone 16 series, including the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+                "claim": "The latest major version of PostgreSQL is 16.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.1,
-                "current_value": "iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
-                "source_url": "https://en.wikipedia.org/wiki/List_of_iPhone_models",
-                "quote": "As of September 2026, the most recent iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
+                "current_value": "18",
+                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
+                "source_official": true,
+                "quote": "today announced the release of PostgreSQL 18,\nthe latest version of the world's most advanced open source database.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:28:14.637555991Z",
-            "recheck_after": "2026-11-14T17:28:14.637555991Z",
-            "searches": 1,
-            "judge_tokens": 3114,
-            "latency_ms": 6689,
+            "checked_at": "2026-11-12T12:06:29.800857322Z",
+            "recheck_after": "2026-11-15T12:06:29.800857322Z",
+            "searches": 2,
+            "judge_tokens": 4063,
+            "latency_ms": 3936,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
-            "original_answer": "The newest iPhone models are the iPhone 16 series, which includes the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
-            "corrected_answer": "The newest iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/List_of_iPhone_models"
+            "original_answer": "The latest major version of PostgreSQL is 16.",
+            "corrected_answer": "The latest major version of PostgreSQL is 18 [1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142"
           }
         },
         "second": {
-          "answer": "The newest iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo [1].\n\nSources:\n[1] https://en.wikipedia.org/wiki/List_of_iPhone_models",
+          "answer": "The latest major version of PostgreSQL is 18 [1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142",
           "cache_hit": true,
-          "seconds": 0.06,
+          "seconds": 0.08,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The newest iPhone models are the iPhone 16 series, including the iPhone 16, 16 Plus, 16 Pro, and 16 Pro Max.",
+                "claim": "The latest major version of PostgreSQL is 16.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.1,
-                "current_value": "iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
-                "source_url": "https://en.wikipedia.org/wiki/List_of_iPhone_models",
-                "quote": "As of September 2026, the most recent iPhone models are the iPhone 18 Pro, iPhone 18 Pro Max and iPhone Duo",
+                "current_value": "18",
+                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
+                "source_official": true,
+                "quote": "today announced the release of PostgreSQL 18,\nthe latest version of the world's most advanced open source database.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:28:14.637555991Z",
-            "recheck_after": "2026-11-14T17:28:14.637555991Z",
-            "searches": 1,
-            "judge_tokens": 3114,
-            "latency_ms": 6689,
+            "checked_at": "2026-11-12T12:06:29.800857322Z",
+            "recheck_after": "2026-11-15T12:06:29.800857322Z",
+            "searches": 2,
+            "judge_tokens": 4063,
+            "latency_ms": 3936,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -666,155 +753,34 @@
       }
     },
     {
-      "question": "What is the latest major version of PostgreSQL? Answer in one sentence.",
-      "baseline": {
-        "first": {
-          "answer": "The latest major version of PostgreSQL is version 17.",
-          "cache_hit": false,
-          "seconds": 18.41,
-          "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.14,
-            "claims": [
-              {
-                "claim": "The latest major version of PostgreSQL is version 17.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.14,
-                "current_value": "18",
-                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
-                "quote": "PostgreSQL 18 Released!",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:28:40.706052345Z",
-            "recheck_after": "2026-11-14T17:28:40.706052345Z",
-            "searches": 1,
-            "judge_tokens": 2941,
-            "latency_ms": 11908,
-            "origin": "verified",
-            "cache_hit": false,
-            "cache_evicted": false,
-            "healed": false
-          }
-        },
-        "second": {
-          "answer": "The latest major version of PostgreSQL is version 17.",
-          "cache_hit": true,
-          "seconds": 10.31,
-          "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.14,
-            "claims": [
-              {
-                "claim": "The latest major version of PostgreSQL is version 17.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.14,
-                "current_value": "18",
-                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
-                "quote": "PostgreSQL 18 Released!",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:28:55.676232772Z",
-            "recheck_after": "2026-11-14T17:28:55.676232772Z",
-            "searches": 1,
-            "judge_tokens": 2941,
-            "latency_ms": 10273,
-            "origin": "verified",
-            "cache_hit": true,
-            "cache_evicted": false,
-            "healed": false
-          }
-        }
-      },
-      "bestbefore": {
-        "first": {
-          "answer": "The latest major version of PostgreSQL is version 17.",
-          "cache_hit": false,
-          "seconds": 10.28,
-          "bestbefore": {
-            "status": "unchecked",
-            "freshness_score": 0.5,
-            "claims": [],
-            "checked_at": "2026-11-11T17:29:16.335932606Z",
-            "recheck_after": "0001-01-01T00:00:00Z",
-            "searches": 1,
-            "judge_tokens": 2958,
-            "latency_ms": 3881,
-            "error": "judging failed",
-            "origin": "verified",
-            "cache_hit": false,
-            "cache_evicted": false,
-            "healed": false
-          }
-        },
-        "second": {
-          "answer": "The latest major version of PostgreSQL is version 18[1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142",
-          "cache_hit": true,
-          "seconds": 16.76,
-          "bestbefore": {
-            "status": "healed",
-            "freshness_score": 0.14,
-            "claims": [
-              {
-                "claim": "The latest major version of PostgreSQL is version 17.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.14,
-                "current_value": "PostgreSQL 18",
-                "source_url": "https://www.postgresql.org/about/news/postgresql-18-released-3142",
-                "quote": "today announced the release of PostgreSQL 18,\nthe latest version of the world's most advanced open source database.",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:29:23.282963596Z",
-            "recheck_after": "2026-11-14T17:29:23.282963596Z",
-            "searches": 1,
-            "judge_tokens": 3194,
-            "latency_ms": 8921,
-            "origin": "verified",
-            "cache_hit": true,
-            "cache_evicted": true,
-            "healed": true,
-            "original_answer": "The latest major version of PostgreSQL is version 17.",
-            "corrected_answer": "The latest major version of PostgreSQL is version 18[1].\n\nSources:\n[1] https://www.postgresql.org/about/news/postgresql-18-released-3142"
-          }
-        }
-      }
-    },
-    {
       "question": "What is OpenAI's newest flagship model? Answer in one sentence.",
       "baseline": {
         "first": {
-          "answer": "OpenAI's newest flagship model is the o1 series.",
+          "answer": "OpenAI's newest flagship model series is o1, which is designed for advanced reasoning capabilities.",
           "cache_hit": false,
-          "seconds": 139.83,
+          "seconds": 33.51,
           "bestbefore": {
             "status": "stale",
             "freshness_score": 0.13,
             "claims": [
               {
-                "claim": "OpenAI's newest flagship model is the o1 series.",
+                "claim": "OpenAI's newest flagship model series is o1.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.13,
                 "current_value": "GPT-6 Astra",
                 "source_url": "https://developers.openai.com/api/docs/models",
-                "quote": "If you're not sure where to start, use GPT-6 Astra, our flagship model",
+                "source_official": true,
+                "quote": "If you're not sure where to start, use GPT-6 Astra, our flagship model for complex reasoning and coding.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:29:57.677317659Z",
-            "recheck_after": "2026-11-14T17:29:57.677317659Z",
-            "searches": 1,
-            "judge_tokens": 2299,
-            "latency_ms": 34085,
+            "checked_at": "2026-11-12T12:07:13.523163272Z",
+            "recheck_after": "2026-11-15T12:07:13.523163272Z",
+            "searches": 2,
+            "judge_tokens": 3816,
+            "latency_ms": 8134,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -822,20 +788,20 @@
           }
         },
         "second": {
-          "answer": "OpenAI's newest flagship model is the o1 series.",
+          "answer": "OpenAI's newest flagship model series is o1, which is designed for advanced reasoning capabilities.",
           "cache_hit": true,
-          "seconds": 60.14,
+          "seconds": 0.06,
           "bestbefore": {
             "status": "unchecked",
             "freshness_score": 0.5,
             "claims": [],
-            "checked_at": "2026-11-11T17:32:07.047799145Z",
+            "checked_at": "0001-01-01T00:00:00Z",
             "recheck_after": "0001-01-01T00:00:00Z",
-            "searches": 1,
-            "judge_tokens": 302,
-            "latency_ms": 60025,
-            "error": "judging failed",
-            "origin": "verified",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -844,63 +810,65 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "OpenAI's newest flagship model series is GPT-6 Astra [1], which is designed for advanced reasoning tasks.\n\nSources:\n[1] https://developers.openai.com/api/docs/models",
+          "answer": "OpenAI's newest flagship model is GPT-6 Astra[1].\n\nSources:\n[1] https://developers.openai.com/api/docs/models",
           "cache_hit": false,
-          "seconds": 29.5,
+          "seconds": 13.81,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.13,
             "claims": [
               {
-                "claim": "OpenAI's newest flagship model series is o1.",
+                "claim": "OpenAI's newest flagship model is GPT-4o.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.13,
                 "current_value": "GPT-6 Astra",
                 "source_url": "https://developers.openai.com/api/docs/models",
+                "source_official": true,
                 "quote": "If you're not sure where to start, use GPT-6 Astra, our flagship model for complex reasoning and coding.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:33:40.998272894Z",
-            "recheck_after": "2026-11-14T17:33:40.998272894Z",
-            "searches": 1,
-            "judge_tokens": 2613,
-            "latency_ms": 3982,
+            "checked_at": "2026-11-12T12:07:41.725744935Z",
+            "recheck_after": "2026-11-15T12:07:41.725744935Z",
+            "searches": 2,
+            "judge_tokens": 4097,
+            "latency_ms": 5699,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
-            "original_answer": "OpenAI's newest flagship model series is o1, which is designed for advanced reasoning tasks.",
-            "corrected_answer": "OpenAI's newest flagship model series is GPT-6 Astra [1], which is designed for advanced reasoning tasks.\n\nSources:\n[1] https://developers.openai.com/api/docs/models"
+            "original_answer": "OpenAI's newest flagship model is GPT-4o.",
+            "corrected_answer": "OpenAI's newest flagship model is GPT-6 Astra[1].\n\nSources:\n[1] https://developers.openai.com/api/docs/models"
           }
         },
         "second": {
-          "answer": "OpenAI's newest flagship model series is GPT-6 Astra [1], which is designed for advanced reasoning tasks.\n\nSources:\n[1] https://developers.openai.com/api/docs/models",
+          "answer": "OpenAI's newest flagship model is GPT-6 Astra[1].\n\nSources:\n[1] https://developers.openai.com/api/docs/models",
           "cache_hit": true,
-          "seconds": 0.28,
+          "seconds": 0.05,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.13,
             "claims": [
               {
-                "claim": "OpenAI's newest flagship model series is o1.",
+                "claim": "OpenAI's newest flagship model is GPT-4o.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.13,
                 "current_value": "GPT-6 Astra",
                 "source_url": "https://developers.openai.com/api/docs/models",
+                "source_official": true,
                 "quote": "If you're not sure where to start, use GPT-6 Astra, our flagship model for complex reasoning and coding.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:33:40.998272894Z",
-            "recheck_after": "2026-11-14T17:33:40.998272894Z",
-            "searches": 1,
-            "judge_tokens": 2613,
-            "latency_ms": 3982,
+            "checked_at": "2026-11-12T12:07:41.725744935Z",
+            "recheck_after": "2026-11-15T12:07:41.725744935Z",
+            "searches": 2,
+            "judge_tokens": 4097,
+            "latency_ms": 5699,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -915,7 +883,7 @@
         "first": {
           "answer": "The latest version of macOS is macOS 15 Sequoia.",
           "cache_hit": false,
-          "seconds": 84.42,
+          "seconds": 12.28,
           "bestbefore": {
             "status": "stale",
             "freshness_score": 0.1,
@@ -932,11 +900,11 @@
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:34:51.100737131Z",
-            "recheck_after": "2026-11-14T17:34:51.100737131Z",
+            "checked_at": "2026-11-12T12:08:08.541344745Z",
+            "recheck_after": "2026-11-15T12:08:08.541344745Z",
             "searches": 1,
-            "judge_tokens": 2012,
-            "latency_ms": 40460,
+            "judge_tokens": 2058,
+            "latency_ms": 5392,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -946,29 +914,18 @@
         "second": {
           "answer": "The latest version of macOS is macOS 15 Sequoia.",
           "cache_hit": true,
-          "seconds": 11.06,
+          "seconds": 0.06,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
-            "claims": [
-              {
-                "claim": "The latest version of macOS is macOS 15 Sequoia.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "macOS Tahoe 26.5",
-                "source_url": "https://mac.install.guide/macos/new",
-                "quote": "The latest macOS version is macOS Tahoe 26.5",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:35:34.851675192Z",
-            "recheck_after": "2026-11-14T17:35:34.851675192Z",
-            "searches": 1,
-            "judge_tokens": 2012,
-            "latency_ms": 10901,
-            "origin": "verified",
+            "status": "unchecked",
+            "freshness_score": 0.5,
+            "claims": [],
+            "checked_at": "0001-01-01T00:00:00Z",
+            "recheck_after": "0001-01-01T00:00:00Z",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -979,13 +936,13 @@
         "first": {
           "answer": "The latest version of macOS is macOS Tahoe 26.5[1].\n\nSources:\n[1] https://mac.install.guide/macos/new",
           "cache_hit": false,
-          "seconds": 27.52,
+          "seconds": 10.2,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The latest version of macOS is macOS 15 Sequoia.",
+                "claim": "The latest version of macOS is macOS Sonoma.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.1,
@@ -996,29 +953,29 @@
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:36:00.927850446Z",
-            "recheck_after": "2026-11-14T17:36:00.927850446Z",
+            "checked_at": "2026-11-12T12:08:32.179192801Z",
+            "recheck_after": "2026-11-15T12:08:32.179192801Z",
             "searches": 1,
-            "judge_tokens": 2256,
-            "latency_ms": 3979,
+            "judge_tokens": 2289,
+            "latency_ms": 3776,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
-            "original_answer": "The latest version of macOS is macOS 15 Sequoia.",
+            "original_answer": "The latest version of macOS is macOS Sonoma.",
             "corrected_answer": "The latest version of macOS is macOS Tahoe 26.5[1].\n\nSources:\n[1] https://mac.install.guide/macos/new"
           }
         },
         "second": {
           "answer": "The latest version of macOS is macOS Tahoe 26.5[1].\n\nSources:\n[1] https://mac.install.guide/macos/new",
           "cache_hit": true,
-          "seconds": 0.14,
+          "seconds": 0.05,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
             "claims": [
               {
-                "claim": "The latest version of macOS is macOS 15 Sequoia.",
+                "claim": "The latest version of macOS is macOS Sonoma.",
                 "kind": "version",
                 "status": "stale",
                 "freshness_score": 0.1,
@@ -1029,11 +986,11 @@
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:36:00.927850446Z",
-            "recheck_after": "2026-11-14T17:36:00.927850446Z",
+            "checked_at": "2026-11-12T12:08:32.179192801Z",
+            "recheck_after": "2026-11-15T12:08:32.179192801Z",
             "searches": 1,
-            "judge_tokens": 2256,
-            "latency_ms": 3979,
+            "judge_tokens": 2289,
+            "latency_ms": 3776,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -1048,7 +1005,7 @@
         "first": {
           "answer": "The latest LTS release of Java is Java 21.",
           "cache_hit": false,
-          "seconds": 11.2,
+          "seconds": 15.34,
           "bestbefore": {
             "status": "stale",
             "freshness_score": 0.1,
@@ -1060,16 +1017,17 @@
                 "freshness_score": 0.1,
                 "current_value": "Java 25",
                 "source_url": "https://www.oracle.com/java/technologies/downloads",
+                "source_official": true,
                 "quote": "JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:37:22.674459005Z",
-            "recheck_after": "2026-11-14T17:37:22.674459005Z",
-            "searches": 1,
-            "judge_tokens": 2237,
-            "latency_ms": 5393,
+            "checked_at": "2026-11-12T12:08:56.08161754Z",
+            "recheck_after": "2026-11-15T12:08:56.08161754Z",
+            "searches": 2,
+            "judge_tokens": 4696,
+            "latency_ms": 9509,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -1079,29 +1037,18 @@
         "second": {
           "answer": "The latest LTS release of Java is Java 21.",
           "cache_hit": true,
-          "seconds": 8.88,
+          "seconds": 0.06,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.1,
-            "claims": [
-              {
-                "claim": "The latest LTS release of Java is Java 21.",
-                "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.1,
-                "current_value": "Java 25",
-                "source_url": "https://www.oracle.com/java/technologies/downloads",
-                "quote": "JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.",
-                "model_verdict": "contradicted",
-                "grounded": true
-              }
-            ],
-            "checked_at": "2026-11-11T17:37:31.141056861Z",
-            "recheck_after": "2026-11-14T17:37:31.141056861Z",
-            "searches": 1,
-            "judge_tokens": 2237,
-            "latency_ms": 8819,
-            "origin": "verified",
+            "status": "unchecked",
+            "freshness_score": 0.5,
+            "claims": [],
+            "checked_at": "0001-01-01T00:00:00Z",
+            "recheck_after": "0001-01-01T00:00:00Z",
+            "searches": 0,
+            "judge_tokens": 0,
+            "latency_ms": 0,
+            "error": "being re-checked in the background",
+            "origin": "revalidating",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -1110,9 +1057,9 @@
       },
       "bestbefore": {
         "first": {
-          "answer": "The latest LTS release of Java is Java 25[1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads",
+          "answer": "The latest LTS release of Java is Java 25 [1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads",
           "cache_hit": false,
-          "seconds": 30.38,
+          "seconds": 10.64,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
@@ -1124,28 +1071,29 @@
                 "freshness_score": 0.1,
                 "current_value": "Java 25",
                 "source_url": "https://www.oracle.com/java/technologies/downloads",
+                "source_official": true,
                 "quote": "JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:38:01.543816936Z",
-            "recheck_after": "2026-11-14T17:38:01.543816936Z",
-            "searches": 1,
-            "judge_tokens": 2487,
-            "latency_ms": 11551,
+            "checked_at": "2026-11-12T12:09:23.982230361Z",
+            "recheck_after": "2026-11-15T12:09:23.982230361Z",
+            "searches": 2,
+            "judge_tokens": 4948,
+            "latency_ms": 3940,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
             "healed": true,
             "original_answer": "The latest LTS release of Java is Java 21.",
-            "corrected_answer": "The latest LTS release of Java is Java 25[1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads"
+            "corrected_answer": "The latest LTS release of Java is Java 25 [1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads"
           }
         },
         "second": {
-          "answer": "The latest LTS release of Java is Java 25[1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads",
+          "answer": "The latest LTS release of Java is Java 25 [1].\n\nSources:\n[1] https://www.oracle.com/java/technologies/downloads",
           "cache_hit": true,
-          "seconds": 0.11,
+          "seconds": 0.06,
           "bestbefore": {
             "status": "healed",
             "freshness_score": 0.1,
@@ -1157,16 +1105,17 @@
                 "freshness_score": 0.1,
                 "current_value": "Java 25",
                 "source_url": "https://www.oracle.com/java/technologies/downloads",
+                "source_official": true,
                 "quote": "JDK 25 is the latest Long-Term Support (LTS) release of the Java SE Platform.",
                 "model_verdict": "contradicted",
                 "grounded": true
               }
             ],
-            "checked_at": "2026-11-11T17:38:01.543816936Z",
-            "recheck_after": "2026-11-14T17:38:01.543816936Z",
-            "searches": 1,
-            "judge_tokens": 2487,
-            "latency_ms": 11551,
+            "checked_at": "2026-11-12T12:09:23.982230361Z",
+            "recheck_after": "2026-11-15T12:09:23.982230361Z",
+            "searches": 2,
+            "judge_tokens": 4948,
+            "latency_ms": 3940,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
@@ -1179,30 +1128,29 @@
       "question": "What is the newest Ubuntu LTS release? Answer in one sentence.",
       "baseline": {
         "first": {
-          "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, also known as Noble Numbat.",
+          "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
           "cache_hit": false,
-          "seconds": 46.67,
+          "seconds": 16.05,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.15,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS.",
+                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.15,
-                "current_value": "Ubuntu 26.04 LTS",
-                "source_url": "https://ubuntu.com/about/release-cycle",
-                "quote": "Ubuntu 26.04 LTS Released: Apr 2026",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "current value is not in the quote",
+                "rejected_quote": "The latest LTS version of Ubuntu, for desktop\nPCs and laptops."
               }
             ],
-            "checked_at": "2026-11-11T17:45:31.827648131Z",
-            "recheck_after": "2026-11-14T17:45:31.827648131Z",
-            "searches": 1,
-            "judge_tokens": 2898,
-            "latency_ms": 20131,
+            "checked_at": "2026-11-12T12:09:50.300532057Z",
+            "recheck_after": "2026-11-15T12:09:50.300532057Z",
+            "searches": 2,
+            "judge_tokens": 4331,
+            "latency_ms": 8117,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -1210,31 +1158,30 @@
           }
         },
         "second": {
-          "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, also known as Noble Numbat.",
+          "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
           "cache_hit": true,
-          "seconds": 14.48,
+          "seconds": 0.08,
           "bestbefore": {
-            "status": "stale",
-            "freshness_score": 0.14,
+            "status": "uncertain",
+            "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS.",
+                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
                 "kind": "version",
-                "status": "stale",
-                "freshness_score": 0.14,
-                "current_value": "26.04 LTS",
-                "source_url": "https://ubuntu.com/about/release-cycle",
-                "quote": "26.04 LTS    Ubuntu  Supported architectures  amd64, armhf, arm64, s390x, riscv64, ppc64el-p9  ---  Upgrade path  26.10    Ubuntu 26.04 LTS Released: Apr 2026",
+                "status": "uncertain",
+                "freshness_score": 0.5,
                 "model_verdict": "contradicted",
-                "grounded": true
+                "grounded": false,
+                "rejected_because": "current value is not in the quote",
+                "rejected_quote": "The latest LTS version of Ubuntu, for desktop\nPCs and laptops."
               }
             ],
-            "checked_at": "2026-11-11T17:45:56.785431223Z",
-            "recheck_after": "2026-11-14T17:45:56.785431223Z",
-            "searches": 1,
-            "judge_tokens": 2167,
-            "latency_ms": 13532,
-            "origin": "verified",
+            "checked_at": "2026-11-12T12:09:50.300532057Z",
+            "recheck_after": "2026-11-15T12:09:50.300532057Z",
+            "searches": 2,
+            "judge_tokens": 4331,
+            "latency_ms": 8117,
+            "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,
             "healed": false
@@ -1245,27 +1192,27 @@
         "first": {
           "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
           "cache_hit": false,
-          "seconds": 29.06,
+          "seconds": 16.97,
           "bestbefore": {
             "status": "uncertain",
             "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
+                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS.",
                 "kind": "version",
                 "status": "uncertain",
                 "freshness_score": 0.5,
                 "model_verdict": "contradicted",
                 "grounded": false,
                 "rejected_because": "current value is not in the quote",
-                "rejected_quote": "The latest LTS version of Ubuntu, for desktop\nPCs and laptops. LTS stands for long-term support"
+                "rejected_quote": "The latest LTS version of Ubuntu Server."
               }
             ],
-            "checked_at": "2026-11-11T17:46:21.179426995Z",
-            "recheck_after": "2026-11-14T17:46:21.179426995Z",
-            "searches": 1,
-            "judge_tokens": 2947,
-            "latency_ms": 21962,
+            "checked_at": "2026-11-12T12:10:20.588813409Z",
+            "recheck_after": "2026-11-15T12:10:20.588813409Z",
+            "searches": 2,
+            "judge_tokens": 4074,
+            "latency_ms": 7856,
             "origin": "verified",
             "cache_hit": false,
             "cache_evicted": false,
@@ -1275,27 +1222,27 @@
         "second": {
           "answer": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
           "cache_hit": true,
-          "seconds": 0.23,
+          "seconds": 0.05,
           "bestbefore": {
             "status": "uncertain",
             "freshness_score": 0.5,
             "claims": [
               {
-                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS, codenamed Noble Numbat.",
+                "claim": "The newest Ubuntu LTS release is Ubuntu 24.04 LTS.",
                 "kind": "version",
                 "status": "uncertain",
                 "freshness_score": 0.5,
                 "model_verdict": "contradicted",
                 "grounded": false,
                 "rejected_because": "current value is not in the quote",
-                "rejected_quote": "The latest LTS version of Ubuntu, for desktop\nPCs and laptops. LTS stands for long-term support"
+                "rejected_quote": "The latest LTS version of Ubuntu Server."
               }
             ],
-            "checked_at": "2026-11-11T17:46:21.179426995Z",
-            "recheck_after": "2026-11-14T17:46:21.179426995Z",
-            "searches": 1,
-            "judge_tokens": 2947,
-            "latency_ms": 21962,
+            "checked_at": "2026-11-12T12:10:20.588813409Z",
+            "recheck_after": "2026-11-15T12:10:20.588813409Z",
+            "searches": 2,
+            "judge_tokens": 4074,
+            "latency_ms": 7856,
             "origin": "ledger",
             "cache_hit": true,
             "cache_evicted": false,

@@ -45,7 +45,7 @@ Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source 
 | **Problem** | A model answers from frozen training data: "the latest Python is 3.12", "Parag Agrawal runs Twitter". A gateway's semantic cache then replays that answer to every user who asks again, until the TTL runs out. In Bifrost today the clock is the only thing that removes a cached answer: [`isExpiredEntry`](https://github.com/maximhq/bifrost/blob/plugins/semanticcache/v1.7.7/plugins/semanticcache/search.go#L252) checks `expires_at` and nothing else, and even expired entries are only cleaned up lazily ([#2414](https://github.com/maximhq/bifrost/issues/2414)). |
 | **What we built** | A Bifrost plugin that runs between the model and the cache. It finds the claims in each answer that can go out of date, checks them against Tavily search results, and makes the judge model prove every verdict with a word-for-word quote. Plain Go makes the decision. A stale answer is **rewritten with the verified values before the cache stores it**, so the cache only ever holds corrected text. Every cached answer gets a **best-before date**, and a background sweeper re-checks it when that date passes. |
 | **Why Bifrost + Tavily** | Bifrost is where every answer passes and where the cache lives, so one plugin protects every app with no code change, and its plugin order lets us edit the answer before the cache writes it. Tavily supplies the live evidence. Take either away and nothing works. |
-| **Proof** | <!-- proof:start -->Live, 10 time-sensitive questions asked twice through each gateway: a TTL-only cache delivered 17 stale answers out of 20; with BestBefore, 0, and 9 repeat asks were served the corrected answer straight from the cache (median 0.14s). 3 answers could not be proven either way and were delivered flagged. On 60 hand-labelled answers, BestBefore caught 80% of the stale ones, healed 88% of those it caught, and wrongly flagged 0% of the good ones. On this clean set the quote check cost 10 points of recall and prevented no false alarm, because nothing here tries to fool the judge; it exists for poisoned pages and invented quotes, which the [attack tests](docs/REVIEW.md) show the judge alone would act on. 85% of timeless answers cost nothing at all.<!-- proof:end --> |
+| **Proof** | <!-- proof:start -->Live, 10 time-sensitive questions asked twice through each gateway: a TTL-only cache delivered 12 stale answers out of 20; with BestBefore, 1, and 5 repeat asks were served the corrected answer straight from the cache (median 0.08s). 8 answers could not be proven either way and were delivered flagged. On 60 hand-labelled answers, BestBefore caught 75% of the stale ones, healed 93% of those it caught, and wrongly flagged 0% of the good ones. On this clean set the quote check cost 20 points of recall and prevented no false alarm, because nothing here tries to fool the judge; it exists for poisoned pages and invented quotes, which the [attack tests](docs/REVIEW.md) show the judge alone would act on. 85% of timeless answers cost nothing at all.<!-- proof:end --> |
 
 ## What no TTL cache does
 
@@ -68,28 +68,30 @@ All numbers come from [`eval/cache.py`](eval/cache.py) and [`eval/run.py`](eval/
 <!-- results:start -->
 | Live: 10 questions, each asked twice | Bifrost cache, TTL only | Bifrost cache + BestBefore |
 |---|---|---|
-| The model's first answer was out of date | 9 of 10 | 8 of 10 |
-| **Stale answers delivered to users** | **17 of 20** | **0 of 20** |
-| Answers that could not be proven either way, delivered flagged | 1 | 3 |
-| Repeat asks served from cache | 10 | 10 |
-| ...with the corrected answer | 0 | 9 |
-| Repeat-ask time, median | not comparable¹ | 0.14s |
+| The model's first answer was out of date | 6 of 10 | 6 of 10 |
+| **Stale answers delivered to users** | **12 of 20** | **1 of 20** |
+| Answers that could not be proven either way, delivered flagged | 6 | 8 |
+| Repeat asks served from cache | 10 | 9 |
+| ...with the corrected answer | 0 | 5 |
+| Repeat-ask time, median | not comparable¹ | 0.08s |
 
-¹ The baseline gateway runs the plugin as an observer so stale answers can be counted, and the observer re-checks every cache hit, which makes its repeat asks slow. A real TTL-only cache answers a hit as fast as BestBefore does.
+¹ The baseline gateway runs the plugin as an observer so stale answers can be counted, and the observer re-checks every cache hit, which makes its repeat asks slow. A real TTL-only cache answers a hit as fast as BestBefore does. When the observer could not re-check a hit (free-tier quota), the hit is the first answer's exact text, so it is counted with that answer's verdict.
 
 | Labelled answers | LLM verdict alone | BestBefore |
 |---|---|---|
-| Stale answers caught | 90% | **80%** |
+| Stale answers caught | 95% | **75%** |
 | Good answers wrongly flagged stale | 0% | **0%** |
 | A stale flag is right | | 100% |
-| Stale answers rewritten with the verified values | | 88% |
+| Stale answers rewritten with the verified values | | 93% |
 | Timeless answers checked for free (no model, no search) | | 85% |
-| Judge tokens per checked answer | | 2434 |
-| Tavily searches per checked answer | | 1.0 |
-| Added latency, p50 / p95 | | 10.9s / 21.2s |
-| Judge verdicts thrown out because the quote did not prove them | | 4 |
+| Judge tokens per checked answer | | 3338 |
+| Tavily searches per checked answer | | 1.5 |
+| Added latency, p50 / p95 | | 6.8s / 17.5s |
+| Judge verdicts thrown out because the quote did not prove them | | 6 |
 
-**Earlier runs, also published.** Our first run used a stricter quote rule, which threw out real contradictions worded differently from the source ("JDK 25" for "Java 25", a three-word "Latest version: 19.3"). It caught 65% of stale answers and wrongly flagged 0% of good ones; a repeat with the same rule gave 65% and 0%. We changed the rule after reading those misses, then re-ran the same 60 answers; the table above is that run. Because the rule was tuned after seeing this data, treat these as development numbers, not a held-out test. Every run is in [eval/results/](eval/results/), and every rejected verdict carries its reason.
+**Earlier runs, also published.** Our first run used a stricter quote rule, which threw out real contradictions worded differently from the source ("JDK 25" for "Java 25", a three-word "Latest version: 19.3"). It caught 65% of stale answers and wrongly flagged 0% of good ones; a repeat with the same rule gave 65% and 0%. We changed the rule after reading those misses, and later stopped the extractor dropping negations ("not yet adopted") after reading another; the table above is the same 60 answers on the final build. Because the rule was tuned after seeing this data, treat these as development numbers, not a held-out test. Every run is in [eval/results/](eval/results/), and every rejected verdict carries its reason.
+
+**Held-out test.** 16 more answers about prices, laws and leadership were written and labelled after the rule was settled, committed, and only then run once ([eval/holdout.json](eval/holdout.json)). BestBefore caught **89%** of the stale ones, wrongly flagged **14%** of the good ones, and rewrote 78% of the answers it flagged with the verified values. It ran on the build before the last two fixes (the extractor keeping negations, plain grammar words in rewrites), and we did not re-run it. The one false alarm (hf3) is likely our label's fault: we wrote that Spotify raised the price in July 2024, and the cited CNBC article says June 2024. It stays counted against us.
 
 <!-- results:end -->
 
@@ -360,7 +362,7 @@ We would rather you read these here than find them yourself.
 - **Background revalidation serves one answer on trust.** A hit past its best-before date is answered before its re-check finishes. The sweeper usually re-checks entries before that happens; set `revalidate: "inline"` to never serve without a fresh check.
 - **The sweeper evicts but cannot pre-write.** Bifrost's cache has no API for a plugin to insert an entry, so after a sweep the next ask pays for one model call, which is then healed and cached.
 - **The ledger and the demo cache live in memory.** Best-before dates reset on restart and are not shared between replicas; the demo uses Bifrost's in-process vector store, so its cache resets too. A persistent vector store and storing dates in its metadata would fix both.
-- **The judge can still be wrong in a grounded way.** A real quote can be misread. In our final run it accepted "Gemini 1.5 Pro is Google's most capable Gemini model" as fresh, because Wikipedia calls it "the most capable model in the Gemini 1.5 family". One grounded source is enough, so an outdated or narrowly worded page can make a stale answer look fresh. Requiring two sources on different hosts would cut this, at the cost of recall.
+- **The judge can still be wrong in a grounded way.** A real quote can be misread. In an earlier run it accepted "Gemini 1.5 Pro is Google's most capable Gemini model" as fresh, because Wikipedia calls it "the most capable model in the Gemini 1.5 family". One grounded source is enough, so an outdated or narrowly worded page can make a stale answer look fresh. Requiring two sources on different hosts would cut this, at the cost of recall.
 - **The demo stack has no auth.** Ports 3000 and 8080 let anyone on your network spend your keys, and the demo turns on `admin_models`, so anyone who can reach it can trigger a sweep. Run it locally, or put Bifrost's virtual keys in front before exposing it.
 - **Healing relies on Bifrost's default plugin order.** Custom plugins run after the built-in cache on the way in and before it on the way back. A custom `pre_builtin` placement would reverse that, and the cache would store the answer before it is healed.
 - **Rewrites are deliberately conservative.** A correction may only reuse words from the answer and the verified values, so a rewrite that rephrases more than it needs to is rejected. The answer is then flagged and kept out of the cache, not healed.
