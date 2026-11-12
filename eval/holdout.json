@@ -1,0 +1,23 @@
+{
+  "labelled_on": "2026-11-12",
+  "note": "Held-out answers about prices, laws and leadership, written and labelled on 12 Nov 2026 before any of them was run through BestBefore, and after the grounding rule and the law-word fix to the regex gate were settled. 'stale' answers were true once and stopped being true before 12 Nov 2026; 'fresh' answers are time-sensitive in kind but still true.",
+  "items": [
+    {"id": "hp1", "label": "stale", "question": "How much is Netflix's Standard plan in the US?", "answer": "Netflix's Standard plan costs $15.49 per month in the US.", "why": "Raised to $17.99 in January 2025."},
+    {"id": "hp2", "label": "stale", "question": "How much is Spotify Premium in the US?", "answer": "Spotify Premium Individual costs $10.99 per month in the US.", "why": "Raised to $11.99 in July 2024."},
+    {"id": "hp3", "label": "stale", "question": "How much is Amazon Prime per year in the US?", "answer": "Amazon Prime costs $119 per year in the US.", "why": "Raised to $139 in February 2022."},
+    {"id": "hp4", "label": "stale", "question": "How much is Disney+ Premium in the US?", "answer": "Disney+ Premium costs $13.99 per month in the US.", "why": "Raised in October 2024 and again in October 2025."},
+    {"id": "hl1", "label": "stale", "question": "Is the EU Digital Markets Act law yet?", "answer": "The EU Digital Markets Act has been proposed but has not been adopted yet.", "why": "Adopted in 2022; entered into force on 1 November 2022."},
+    {"id": "hl2", "label": "stale", "question": "Has India passed its data protection law?", "answer": "India's Digital Personal Data Protection Act has not yet been passed by Parliament.", "why": "Passed and given assent in August 2023."},
+    {"id": "hl3", "label": "stale", "question": "Is the UK Online Safety Bill law?", "answer": "The UK's Online Safety Bill has not yet become law.", "why": "Received Royal Assent on 26 October 2023."},
+    {"id": "hc1", "label": "stale", "question": "Who is the CEO of Disney?", "answer": "Bob Chapek is the CEO of Disney.", "why": "Replaced by Bob Iger in November 2022."},
+    {"id": "hc2", "label": "stale", "question": "Who runs Activision Blizzard?", "answer": "Bobby Kotick is the CEO of Activision Blizzard.", "why": "Left at the end of 2023 after Microsoft's acquisition."},
+
+    {"id": "hf1", "label": "fresh", "question": "When did Amazon raise the Prime fee?", "answer": "Amazon raised the US Prime annual fee to $139 in February 2022.", "why": "A dated fact that cannot change."},
+    {"id": "hf2", "label": "fresh", "question": "When did Netflix last raise the Standard plan?", "answer": "Netflix raised its US Standard plan to $17.99 per month in January 2025.", "why": "A dated fact that cannot change."},
+    {"id": "hf3", "label": "fresh", "question": "When did Spotify raise Premium prices?", "answer": "Spotify raised US Premium Individual to $11.99 per month in July 2024.", "why": "A dated fact that cannot change."},
+    {"id": "hf4", "label": "fresh", "question": "When did the Digital Markets Act take effect?", "answer": "The EU Digital Markets Act entered into force on 1 November 2022.", "why": "A dated fact that cannot change."},
+    {"id": "hf5", "label": "fresh", "question": "When did India's data protection act become law?", "answer": "India's Digital Personal Data Protection Act received presidential assent in August 2023.", "why": "A dated fact that cannot change."},
+    {"id": "hf6", "label": "fresh", "question": "When did the UK Online Safety Act become law?", "answer": "The UK Online Safety Act received Royal Assent in October 2023.", "why": "A dated fact that cannot change."},
+    {"id": "hf7", "label": "fresh", "question": "What is the US federal minimum wage?", "answer": "The US federal minimum wage is $7.25 per hour.", "why": "Unchanged since 2009."}
+  ]
+}
