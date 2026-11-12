@@ -222,6 +222,7 @@ const extractSystem = `You extract time-sensitive factual claims from an AI answ
 A claim is time-sensitive when its truth can change: prices, plans, versions, deprecations, laws and rates, leadership, ownership, company figures, "latest" or "current" statements.
 Rules:
 - Each claim must be atomic and self-contained: name the product, company or law explicitly, never "it" or "they".
+- Each claim must assert exactly what the sentence asserts, keeping its negations ("not", "not yet", "no") and its values. Never turn a statement into a topic such as "the status of X".
 - Skip opinions, definitions, maths and history that cannot change.
 - "query" is a short web search that would reveal the current value.
 - "site" is the domain of the organisation that publishes the authoritative current value (for example python.org, kubernetes.io, gov.uk), or "" if there is no single such site.
