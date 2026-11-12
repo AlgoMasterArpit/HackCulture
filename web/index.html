@@ -108,6 +108,13 @@
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .countdown { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
   .countdown.due { color: var(--uncertain); }
+  .sbs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .side { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .side h3 { margin: 0 0 10px; font-size: 15px; }
+  .ask { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+  .ask .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ask p { margin: 6px 0 0; white-space: pre-wrap; }
+  @media (max-width: 760px) { .sbs { grid-template-columns: 1fr; } }
   .answer { white-space: pre-wrap; margin: 0 0 6px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 10px; }
   .claims { display: grid; gap: 10px; }
@@ -155,6 +162,7 @@
     <button role="tab" aria-selected="true" data-tab="ask">Ask through the gateway</button>
     <button role="tab" aria-selected="false" data-tab="check">Check any answer</button>
     <button role="tab" aria-selected="false" data-tab="cache">Cache freshness</button>
+    <button role="tab" aria-selected="false" data-tab="sbs">Side by side</button>
   </div>
 
   <form class="card" id="ask-form" data-panel="ask">
@@ -188,6 +196,28 @@
     <div class="actions">
       <button class="primary" type="submit">Check freshness</button>
       <span class="spinner" aria-hidden="true"></span>
+    </div>
+  </form>
+
+  <form class="card" id="sbs-form" data-panel="sbs" hidden>
+    <div class="row">
+      <div>
+        <label for="sbs-question">Ask the same question twice through a plain Bifrost cache and through BestBefore</label>
+        <input type="text" id="sbs-question" value="What is the latest stable version of Python? Answer in one sentence." required>
+      </div>
+      <div>
+        <label for="sbs-model">Model</label>
+        <input type="text" id="sbs-model" value="gemini/gemini-2.5-flash">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" type="submit">Ask twice, both ways</button>
+      <span class="spinner" aria-hidden="true"></span>
+      <span class="empty" id="sbs-note">Needs the plain-cache gateway: docker compose --profile baseline up -d</span>
+    </div>
+    <div class="sbs">
+      <div class="side" id="sbs-plain"><h3>Bifrost semantic cache, TTL only</h3></div>
+      <div class="side" id="sbs-bb"><h3>Bifrost semantic cache + BestBefore</h3></div>
     </div>
   </form>
 
@@ -243,8 +273,8 @@ for (const q of EXAMPLES) {
   $("#examples").append(chip);
 }
 
-async function call(body, headers) {
-  const res = await fetch("/v1/chat/completions", {
+async function call(body, headers, path = "/v1/chat/completions") {
+  const res = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body),
@@ -294,6 +324,52 @@ $("#check-form").addEventListener("submit", (e) => {
     const data = await call({ model: "bestbefore/verify", messages });
     return { data, answer: $("#check-answer").value.trim() };
   });
+});
+
+// Side by side: the same question, asked twice through each gateway with a
+// fresh cache key, so the second ask shows what each cache replays.
+function sideAsk(label, data, plain) {
+  const box = el("div", "ask");
+  const head = el("div", "label", label);
+  const debug = data.extra_fields?.cache_debug;
+  head.append(el("span", "pill", debug?.cache_hit ? "served from cache" : "asked the model"));
+  const report = data.bestbefore;
+  if (report && !plain) head.append(el("span", `pill ${report.status}`, report.status));
+  if (report && plain && report.status === "stale") head.append(el("span", "pill stale", "out of date"));
+  box.append(head, el("p", null, data.choices?.[0]?.message?.content ?? ""));
+  return box;
+}
+
+async function runSide(path, plain, question, model, key) {
+  const box = $(plain ? "#sbs-plain" : "#sbs-bb");
+  box.replaceChildren(el("h3", null, plain ? "Bifrost semantic cache, TTL only" : "Bifrost semantic cache + BestBefore"));
+  const body = { model, messages: [{ role: "user", content: question }], fallbacks: ["gemini/gemma-4-26b-a4b-it"] };
+  try {
+    for (const label of ["First ask", "Second ask, another user"]) {
+      box.append(sideAsk(label, await call(body, { "x-bf-cache-key": key }, path), plain));
+    }
+  } catch (err) {
+    box.append(el("p", "error", plain ? "The plain-cache gateway is not running. Start it with: docker compose --profile baseline up -d" : err.message));
+  }
+}
+
+$("#sbs-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.currentTarget;
+  const button = form.querySelector(".primary");
+  form.classList.add("busy");
+  button.disabled = true;
+  $("#sbs-note").textContent = "Asking both gateways twice; a check takes 10–20 seconds.";
+  const key = `side-by-side-${Date.now()}`;
+  const question = $("#sbs-question").value.trim();
+  const model = $("#sbs-model").value.trim();
+  await Promise.all([
+    runSide("/baseline/v1/chat/completions", true, question, model, key),
+    runSide("/v1/chat/completions", false, question, model, key),
+  ]);
+  $("#sbs-note").textContent = "";
+  form.classList.remove("busy");
+  button.disabled = false;
 });
 
 function until(iso) {
