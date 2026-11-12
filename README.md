@@ -31,6 +31,7 @@ Global AI Hackathon 2026 · Team **stackoverflow** · Statement 04 *Open-Source 
 - [How Bifrost and Tavily are used](#how-bifrost-and-tavily-are-used)
 - [Run it](#run-it)
 - [Use it from your own app](#use-it-from-your-own-app)
+- [Add BestBefore to your own Bifrost](#add-bestbefore-to-your-own-bifrost)
 - [Configuration](#configuration)
 - [Reproduce the numbers](#reproduce-the-numbers)
 - [Tests](#tests)
@@ -207,7 +208,7 @@ The image is built and published by [CI](.github/workflows/image.yml) on every p
 
 Then open:
 
-- **http://localhost:3000** for the demo page: ask through the gateway, check any answer, and watch the Cache freshness tab.
+- **http://localhost:3000** for the demo page: ask through the gateway, check any answer, and watch the Cache freshness tab. The Side by side tab asks a plain TTL-only Bifrost cache and BestBefore the same question twice; it needs the plain gateway too: `docker compose --profile baseline up -d`.
 - **http://localhost:8080** for the Bifrost dashboard. Its Logs page shows the judge and healer calls.
 
 Why building is slow: Go plugins only load into a gateway built with the exact same Go version, libc and dependency versions, and the official Bifrost image is statically linked so it cannot load plugins at all. The [Dockerfile](Dockerfile) builds Bifrost v2.5.1 and the plugin side by side, and [scripts/align-deps.sh](scripts/align-deps.sh) pins every shared module to the gateway's version, including Bifrost's own `replace` of `mcp-go`, without which `plugin.Open` refuses the plugin. The Go tests run during the build too.
@@ -379,7 +380,7 @@ main.go                 config, check-and-heal, eviction
 freshness/              detection, Tavily and judge clients, scoring, healing, ledger (no Bifrost imports)
 Dockerfile              builds Bifrost v2.5.1 and the plugin together
 config.json             gateway config used by docker compose
-web/                    demo page (ask, check, cache freshness) and its nginx proxy
+web/                    demo page (ask, check, cache freshness, side by side) and its nginx proxy
 e2e/                    end-to-end suite with a mock provider and a mock web whose prices can change
 eval/                   labelled answers, eval scripts, RESULTS.md
 .github/workflows/      CI (Go tests + end-to-end) and the image publish
